@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Chats - Roomhy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+            extend: {
+                keyframes: {
+                    kenburns: {
+                        '0%': { transform: 'scale(1) translate(0, 0)' },
+                        '100%': { transform: 'scale(1.1) translate(-2%, 2%)' },
+                    },
+                    'slide-left': {
+                        '0%': { transform: 'translateX(0%)' },
+                        '100%': { transform: 'translateX(-50%)' },
+                    },
+                    'slide-right': {
+                        '0%': { transform: 'translateX(-50%)' },
+                        '100%': { transform: 'translateX(0%)' },
+                    }
+    <!-- Payment & Rules Modal -->
+    <div id="payment-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+      <div class="bg-white rounded-xl w-full max-w-md p-6">
+        <h3 class="text-lg font-bold">Confirm Bid: ₹500 Commitment</h3>
+        <p class="text-sm text-gray-600 mt-2">This fee holds your priority bid. See refund rules below.</p>
+        <div class="mt-4 border rounded p-3 bg-gray-50">
+          <p class="text-sm"><strong>Payment breakdown</strong></p>
+          <ul class="text-sm text-gray-700 mt-2 list-disc list-inside">
+            <li>Commitment: ₹500 (paid now)</li>
+            <li>Platform commission (example): ₹500 (applies on full security deposit later)</li>
+          </ul>
+        </div>
+        <div class="mt-4 border rounded p-3 bg-gray-50 text-sm text-gray-700">
+          <p class="font-semibold">Refund Rules</p>
+          <ul class="mt-2 list-disc list-inside">
+            <li>Owner rejects → full refund.</li>
+            <li>No owner response within 48 hours → full refund.</li>
+            <li>Student misses confirmed visit → ₹500 forfeited.</li>
+            <li>Visit done but student not interested → refundable.</li>
+            <li>If student books → ₹500 adjusted into security deposit.</li>
+          </ul>
+        </div>
+        <div class="mt-4 flex justify-end gap-2">
+          <button id="payment-cancel" class="px-4 py-2 rounded bg-gray-100">Cancel</button>
+          <button id="payment-confirm" class="px-4 py-2 rounded bg-green-600 text-white">Pay ₹500</button>
+        </div>
+      </div>
+    </div>
+                },
+                    animation: {
+                        kenburns: 'kenburns 30s ease-in-out infinite alternate',
+                        'slide-left-infinite': 'slide-left 40s linear infinite',
+                        'slide-right-infinite': 'slide-right 40s linear infinite',
+                    }
+                    }
+
+                    // =====================
+                    // Request / Bid Workflow
+                    // =====================
+                    function todayKey() { const d = new Date(); return d.toISOString().slice(0,10); }
+
+                    function getOwnerEnquiries(ownerId) {
+                      try { return JSON.parse(localStorage.getItem('owner_enquiries_' + ownerId) || '[]'); } catch (e) { return []; }
+                    }
+                    function setOwnerEnquiries(ownerId, arr) { localStorage.setItem('owner_enquiries_' + ownerId, JSON.stringify(arr)); localStorage.setItem('owner_enquiry_event', JSON.stringify({ ownerId: ownerId, ts: Date.now() })); }
+
+                    function getStudentEnquiries(studentId) {
+                      try { return JSON.parse(localStorage.getItem('student_enquiries_' + studentId) || '[]'); } catch (e) { return []; }
+                    }
+                    function setStudentEnquiries(studentId, arr) { localStorage.setItem('student_enquiries_' + studentId, JSON.stringify(arr)); }
+
+                    function appendMessage(msg) { const box = document.getElementById('demo-messages'); if (!box) return; box.innerHTML = msg; }
+
+                    // Enforce max 4 bids per day per student
+                    function canPlaceBid(studentId) {
+                      const enquires = getStudentEnquiries(studentId);
+                      const today = todayKey();
+                      const todaysBids = enquires.filter(e => e.type === 'bid' && e.ts && e.ts.startsWith(today));
+                      return todaysBids.length < 4;
+                    }
+
+                    // Create enquiry object and notify owner
+                    function createEnquiry({ ownerId, propertyId, studentId, type, paidAmount=0 }){
+                      if(!ownerId || !studentId || !propertyId) { appendMessage('Please enter Property ID, Owner ID and Student ID.'); return null; }
+
+                      const ts = new Date().toISOString();
+                      const enquiry = {
+                        id: 'enq_' + Math.random().toString(36).slice(2,9),
+                        ownerId, propertyId, studentId, type, status: 'pending', paidAmount, ts, chatOpen: false, visitAllowed: false, visitRequests: []
+                      };
+
+                      // For bid: mark chatOpen immediately and visitAllowed true
+                      if (type === 'bid') {
+                        enquiry.chatOpen = true;
+                        enquiry.priority = true;
+                        enquiry.visitAllowed = true; // student can request visit but owner still must confirm time
+                      }
+
+                      // Save to owner list
+                      const ownerList = getOwnerEnquiries(ownerId);
+                      ownerList.unshift(enquiry);
+                      setOwnerEnquiries(ownerId, ownerList);
+
+                      // Save to student list
+                      const studList = getStudentEnquiries(studentId);
+                      studList.unshift(enquiry);
+                      setStudentEnquiries(studentId, studList);
+
+                      appendMessage('Enquiry sent to owner. Type: ' + type + (paidAmount ? (' | Paid ₹' + paidAmount) : ''));
+
+                      // Notify owner (storage event will fire in other tabs)
+                      try { localStorage.setItem('owner_enquiry_notify_' + ownerId, JSON.stringify({ id: enquiry.id, ts: Date.now() })); } catch (e) {}
+
+                      return enquiry;
+                    }
+
+                    // Demo button handlers
+                    document.getElementById('demo-request-btn')?.addEventListener('click', () => {
+                      const prop = document.getElementById('demo-property-id').value.trim();
+                      const owner = document.getElementById('demo-owner-id').value.trim();
+                      const student = document.getElementById('demo-student-id').value.trim();
+                      if (!prop || !owner || !student) { appendMessage('Please fill Property ID, Owner ID and Student ID.'); return; }
+                      createEnquiry({ ownerId: owner, propertyId: prop, studentId: student, type: 'request', paidAmount: 0 });
+                    });
+
+                    // Payment modal controls for Bid Now
+                    let pendingBidPayload = null;
+                    document.getElementById('demo-bid-btn')?.addEventListener('click', () => {
+                      const prop = document.getElementById('demo-property-id').value.trim();
+                      const owner = document.getElementById('demo-owner-id').value.trim();
+                      const student = document.getElementById('demo-student-id').value.trim();
+                      if (!prop || !owner || !student) { appendMessage('Please fill Property ID, Owner ID and Student ID.'); return; }
+                      if (!canPlaceBid(student)) { appendMessage('Bid limit reached for today (4).'); return; }
+                      // Show payment modal
+                      pendingBidPayload = { ownerId: owner, propertyId: prop, studentId: student };
+                      document.getElementById('payment-modal').classList.remove('hidden');
+                      document.getElementById('payment-modal').classList.add('flex');
+                    });
+
+                    document.getElementById('payment-cancel')?.addEventListener('click', () => {
+                      pendingBidPayload = null;
+                      document.getElementById('payment-modal').classList.add('hidden');
+                      document.getElementById('payment-modal').classList.remove('flex');
+                    });
+
+                    document.getElementById('payment-confirm')?.addEventListener('click', () => {
+                      if (!pendingBidPayload) return;
+                      // Simulate payment success
+                      const p = pendingBidPayload;
+                      const enquiry = createEnquiry({ ownerId: p.ownerId, propertyId: p.propertyId, studentId: p.studentId, type: 'bid', paidAmount: 500 });
+                      // Save payment record
+                      try {
+                        const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+                        payments.unshift({ id: 'pay_' + Math.random().toString(36).slice(2,9), studentId: p.studentId, ownerId: p.ownerId, propertyId: p.propertyId, amount: 500, ts: new Date().toISOString(), status: 'captured' });
+                        localStorage.setItem('payments', JSON.stringify(payments));
+                      } catch (e) {}
+                      // close modal
+                      pendingBidPayload = null;
+                      document.getElementById('payment-modal').classList.add('hidden');
+                      document.getElementById('payment-modal').classList.remove('flex');
+                      appendMessage('Bid placed and ₹500 captured. Owner notified with priority. Chat opened.');
+                    });
+
+                    // Owner/Student storage listener: update UI if owner accepts/rejects
+                    window.addEventListener('storage', (ev) => {
+                      if (!ev.key) return;
+                      if (ev.key.startsWith('owner_enquiries_')) {
+                        // Owner list changed; if student has an open tab, reflect updates
+                        const ownerId = ev.key.replace('owner_enquiries_', '');
+                        appendMessage('Owner (' + ownerId + ') enquiries updated.');
+                      }
+                      if (ev.key.startsWith('owner_enquiry_action_')) {
+                        try {
+                          const payload = JSON.parse(ev.newValue || '{}');
+                          appendMessage('Owner action: ' + (payload.action || 'update') + ' on ' + (payload.enquiryId || '')); 
+                        } catch (e) {}
+                      }
+                    });
+
+                    // Helper: show owner-side enquiries (for demo, when student clicks Show Notifications)
+                    document.getElementById('demo-show-notifs')?.addEventListener('click', () => {
+                      const owner = document.getElementById('demo-owner-id').value.trim();
+                      if (!owner) { appendMessage('Enter Owner ID to view their enquiries.'); return; }
+                      const list = getOwnerEnquiries(owner);
+                      if (!list.length) { appendMessage('No enquiries for owner ' + owner); return; }
+                      const html = list.map(e => `<div class=\"p-2 border-b\"><strong>${e.type.toUpperCase()}</strong> ${e.propertyId} from ${e.studentId} — status: ${e.status} ${e.paidAmount?('| ₹'+e.paidAmount):''}\n<button data-enqid=\"${e.id}\" data-owner=\"${owner}\" class=\"owner-accept ml-2 bg-green-600 text-white px-2 py-1 rounded text-xs\">Accept</button> <button data-enqid=\"${e.id}\" data-owner=\"${owner}\" class=\"owner-reject ml-2 bg-red-100 text-red-700 px-2 py-1 rounded text-xs\">Reject</button></div>`).join('');
+                      appendMessage(html);
+                      // attach delegated listeners
+                      setTimeout(() => {
+                        document.querySelectorAll('.owner-accept').forEach(btn => btn.addEventListener('click', (ev) => {
+                          const enqId = ev.target.getAttribute('data-enqid'); const ownerId = ev.target.getAttribute('data-owner');
+                          ownerAcceptEnquiry(ownerId, enqId);
+                        }));
+                        document.querySelectorAll('.owner-reject').forEach(btn => btn.addEventListener('click', (ev) => {
+                          const enqId = ev.target.getAttribute('data-enqid'); const ownerId = ev.target.getAttribute('data-owner');
+                          ownerRejectEnquiry(ownerId, enqId);
+                        }));
+                      }, 50);
+                    });
+
+                    function ownerAcceptEnquiry(ownerId, enquiryId) {
+                      const list = getOwnerEnquiries(ownerId);
+                      const idx = list.findIndex(x => x.id === enquiryId);
+                      if (idx === -1) return appendMessage('Enquiry not found');
+                      list[idx].status = 'accepted';
+                      list[idx].chatOpen = true;
+                      list[idx].visitAllowed = true;
+                      setOwnerEnquiries(ownerId, list);
+                      // record action for student tabs
+                      localStorage.setItem('owner_enquiry_action_' + enquiryId, JSON.stringify({ enquiryId, ownerId, action: 'accepted', ts: Date.now() }));
+                      appendMessage('Accepted. Chat unlocked and visit scheduling enabled (owner must confirm time).');
+                    }
+
+                    function ownerRejectEnquiry(ownerId, enquiryId) {
+                      const list = getOwnerEnquiries(ownerId);
+                      const idx = list.findIndex(x => x.id === enquiryId);
+                      if (idx === -1) return appendMessage('Enquiry not found');
+                      const enq = list[idx];
+                      list[idx].status = 'rejected';
+                      setOwnerEnquiries(ownerId, list);
+                      // refund logic for paid bids
+                      if (enq.paidAmount && enq.paidAmount > 0) {
+                        // simple refund record
+                        try {
+                          const refunds = JSON.parse(localStorage.getItem('refunds') || '[]');
+                          refunds.unshift({ id: 'ref_' + Math.random().toString(36).slice(2,9), enquiryId: enq.id, studentId: enq.studentId, amount: enq.paidAmount, ts: new Date().toISOString(), reason: 'owner_rejected' });
+                          localStorage.setItem('refunds', JSON.stringify(refunds));
+                        } catch (e) {}
+                      }
+                      localStorage.setItem('owner_enquiry_action_' + enquiryId, JSON.stringify({ enquiryId, ownerId, action: 'rejected', ts: Date.now() }));
+                      appendMessage('Rejected. If paid, refund initiated (demo).');
+                    }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f2f6; 
+            color: #1F2937;
+        }
+
+        .text-shadow {
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .horizontal-slider::-webkit-scrollbar {
+            display: none;
+        }
+        .horizontal-slider {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        .light-card {
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+        }
+
+      /* ====== Premium Footer Styling ====== */
+        .footer {
+          font-family: 'Inter', sans-serif;
+          color: #e5e7eb;
+          background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+          position: relative;
+          overflow: hidden;
+        }
+        
+        .footer a {
+          color: #cbd5e1;
+          text-decoration: none;
+          transition: color 0.3s ease;
+        }
+        
+        .footer a:hover {
+          color: #60a5fa;
+        }
+        
+        .footer-top {
+          background: rgba(255, 255, 255, 0.04);
+          text-align: center;
+          padding: 2rem 1.5rem;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .footer-top h2 {
+          font-size: 1.4rem;
+          color: #ffffff;
+          margin-bottom: 1.5rem;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          
+        }
+        
+        .footer-presence {
+          display: flex;
+          justify-content: left;
+          flex-wrap: wrap;
+          gap: 450px;
+          padding-left: 50px;
+        }
+        
+        .footer-presence h4 {
+          color: #60a5fa;
+          margin-bottom: 0.6rem;
+        }
+        
+        .footer-presence ul {
+          list-style: none;
+          padding: 0;
+        }
+        
+        .footer-presence li {
+          margin: 0.3rem 0;
+        }
+        
+        .footer-main {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+          gap: 2rem;
+          padding: 3rem 2rem;
+          align-items: start;
+        }
+        
+        .footer-logo img {
+          width: 180px;
+          margin-bottom: 0.5rem;
+        }
+        
+        .footer-logo p {
+          color: #cbd5e1;
+          font-size: 0.95rem;
+        }
+        
+        .footer-links h4,
+        .footer-legal h4,
+        .footer-contact h4 {
+          font-weight: 600;
+          color: #ffffff;
+          margin-bottom: 1rem;
+          position: relative;
+        }
+        
+        .footer-links h4::after,
+        .footer-legal h4::after,
+        .footer-contact h4::after {
+          content: '';
+          position: absolute;
+          bottom: -0.4rem;
+          left: 0;
+          width: 40px;
+          height: 2px;
+          background: #60a5fa;
+          border-radius: 2px;
+        }
+        
+        .footer-links ul,
+        .footer-legal ul {
+          list-style: none;
+          padding: 0;
+        }
+        
+        .footer-links li,
+        .footer-legal li {
+          margin-bottom: 0.4rem;
+        }
+        
+        .footer-contact p {
+          color: #d1d5db;
+          margin: 0.4rem 0;
+          font-size: 0.95rem;
+        }
+        
+        .footer-contact i {
+          color: #60a5fa;
+          margin-right: 0.4rem;
+        }
+        
+        .footer-social {
+          margin-top: 0.8rem;
+        }
+        
+        .footer-social a {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(255, 255, 255, 0.08);
+          color: #ffffff;
+          width: 35px;
+          height: 35px;
+          border-radius: 8px;
+          margin-right: 0.6rem;
+          transition: all 0.3s ease;
+        }
+        
+        .footer-social a:hover {
+          background: #60a5fa;
+          color: #0f172a;
+          transform: translateY(-4px);
+        }
+        
+        .footer-bottom {
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          text-align: center;
+          padding: 1rem;
+          font-size: 0.9rem;
+          color: #9ca3af;
+          background: rgba(0, 0, 0, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+          .footer-presence {
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+            padding-left: 1rem;
+            gap: 0;
+           
+          }
+        
+          .footer-main {
+            grid-template-columns: 1fr;
+            text-align: left;
+          }
+        
+          .footer-logo img {
+            margin-bottom: 1rem;
+          }
+        
+          .footer-social {
+            justify-content: flex-start;
+          }
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="sticky top-0 z-30 w-full bg-white/95 backdrop-blur-sm shadow-sm">
+        <div class="container mx-auto px-4 sm:px-6">
+            <div class="flex h-20 items-center justify-between">
+                
+                <div class="flex items-center">
+                    <a href="index.html" class="flex-shrink-0">
+                        <img src="logo.svg" alt="Roomhy Logo" class="h-10 w-auto">
+                    </a>
+                </div>
+                
+                <div class="flex items-center gap-3 sm:gap-6">
+                    <nav class="hidden lg:flex items-center space-x-6">
+                        <a href="index.html#why-roomhy" class="text-gray-600 hover:text-blue-600 font-medium transition-colors">About Us</a>
+                        <a href="contact.html" class="text-gray-600 hover:text-blue-600 font-medium transition-colors">Contact</a>
+                    </nav>
+
+                    <a href="list.html" class="flex-shrink-0 flex items-center space-x-1 bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>Post <span class="hidden sm:inline">Your</span> Property</span>
+                    </a>
+                    
+                    <button id="menu-toggle" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                        <i data-lucide="menu" class="w-7 h-7 text-gray-800"></i>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </header>
+    <section class="relative py-20 md:py-28 text-white">
+        <div id="hero-image-wrapper" class="absolute inset-0 w-full h-full overflow-hidden">
+            
+            <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=1980&auto:format&fit=crop" 
+                 alt="Hero background 1" 
+                 class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out animate-kenburns opacity-100">
+            
+            <img src="httpsG://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto:format&fit=crop" 
+                 alt="Hero background 2" 
+                 class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out animate-kenburns opacity-0">
+            
+            <img src="httpsG://images.unsplash.com/photo-1494203484021-3c454daf695d?q=80&w=2070&auto:format&fit=crop" 
+                 alt="Hero background 3" 
+                 class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out animate-kenburns opacity-0">
+
+            <div class="absolute inset-0 w-full h-full bg-black/60"></div> 
+        </div>
+
+        <div class="container mx-auto px-4 sm:px-6 text-center relative z-10">
+            <h1 class=" text-1l md:text-4xl font-bold text-shadow mb-6 " style="color: #fffcf2;">
+                SEARCH.CONNECT.SUCCEED
+            </h1>
+            <div class="relative w-full max-w-2xl mx-auto">
+                <input type="text" placeholder="Search for 'PG near me' or 'Hostel in Kota'" class="w-full p-4 pl-5 pr-14 rounded-lg bg-white text-gray-900 border-transparent focus:ring-4 focus:ring-cyan-300/50 focus:outline-none placeholder-gray-500 shadow-lg">
+                <button type="submit" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-2.5 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+                    <i data-lucide="search" class="w-5 h-5 text-white"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+    <div id="menu-overlay" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
+    
+    <div id="mobile-menu" class="fixed top-0 right-0 w-80 h-full bg-white z-50 shadow-xl transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+        <div class="flex justify-end p-4 flex-shrink-0">
+            <button id="menu-close" class="p-2">
+                <i data-lucide="x" class="w-6 h-6 text-gray-700"></i>
+            </button>
+        </div>
+
+        <div class="flex justify-between items-center px-6 py-2">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                    <i data-lucide="users" class="w-6 h-6 text-gray-600"></i>
+                </div>
+                <span class="text-lg font-semibold text-gray-800">Hi,welcome 👋</span>
+            </div>
+            <a href="profile-settings.html" class="text-sm font-medium text-blue-600 hover:underline">Profile</a>
+        </div>
+
+        <div class="px-6 py-4">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 relative overflow-hidden">
+                <img src="images/post.png" alt="Illustartion of people with house" class="absolute right-0 bottom-0 opacity-80 w-32 h-auto" style="pointer-events: none;">
+                <p class="font-semibold text-gray-800 mb-3 relative z-10">Looking to Sell/Rent your Property?</p>
+                <a href="list.html" class="block text-center w-full bg-blue-600 text-white font-medium py-2 px-4 rounded-lg text-sm hover:bg-blue-700 transition-colors relative z-10" style="width: 150px;">
+                    Post Property for Free
+                </a>
+            </div>
+        </div>
+
+        <nav class="flex-grow p-4 space-y-1 overflow-y-auto">
+            <a href="ourproperty.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="home" class="w-5 h-5 text-blue-600"></i>
+                </div>
+                <span>Our Properties</span>
+            </a>
+            <a href="favorites.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="heart" class="w-5 h-5 text-red-600"></i>
+                </div>
+                <span>Favorites</span>
+            </a>
+            <a href="chat-home.html" class="flex items-center space-x-4 p-3 rounded-lg text-blue-600 bg-blue-50">
+                 <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="message-square" class="w-5 h-5 text-green-600"></i>
+                </div>
+                <span>Chats</span>
+            </a>
+            <a href="my-stays.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="building" class="w-5 h-5 text-purple-600"></i>
+                </div>
+                <span>My Stays</span>
+            </a>
+            <a href="about.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="info" class="w-5 h-5 text-yellow-600"></i>
+                </div>
+                <span>About Us</span>
+            </a>
+            <a href="contact.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <div class="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="phone" class="w-5 h-5 text-cyan-600"></i>
+                </div>
+                <span>Contact Us</span>
+            </a>
+        </nav>
+        
+        <div class="p-4 border-t flex-shrink-0">
+            <a href="#" class="flex items-center space-x-4 p-3 rounded-lg text-red-600 hover:bg-red-50">
+                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="log-out" class="w-5 h-5 text-gray-600"></i>
+                </div>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+       
+    <main class="container mx-auto px-4 sm:px-6 py-8 md:py-12">
+        
+        <div class="light-card rounded-2xl overflow-hidden shadow-xl" style="height: 700px;">
+            <div class="flex h-full">
+                <div class="w-full md:w-1/3 border-r border-gray-200 bg-gray-50 flex flex-col">
+                    <div class="p-4 border-b border-gray-200 flex justify-between items-center flex-shrink-0">
+                        <h2 class="text-2xl font-bold text-gray-900">Chats</h2>
+                        <button class="p-2 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-lg">
+                            <i data-lucide="search" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex-grow overflow-y-auto">
+                        <a href="#" class="flex items-center p-4 gap-3 bg-white border-b border-gray-200">
+                            <img src="httpsG://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Priya Sharma" class="w-12 h-12 rounded-full flex-shrink-0">
+                            <div class="flex-grow overflow-hidden">
+                                <h3 class="font-semibold text-gray-900 truncate">Priya Sharma</h3>
+                                <p class="text-sm text-gray-500 truncate">Great, thanks for the info! I'll let you know.</p>
+                            </div>
+                            <div class="flex-shrink-0 flex flex-col items-end text-xs text-gray-400 space-y-1">
+                                <span>10:30 AM</span>
+                                <span class="w-5 h-5 bg-blue-600 text-white text-xs font-bold rounded-full flex items-center justify-center">2</span>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="flex items-center p-4 gap-3 hover:bg-gray-100 border-b border-gray-200">
+                            <img src="httpsG://i.pravatar.cc/150?u=a042581f4e29026704a" alt="Rohan Mehra" class="w-12 h-12 rounded-full flex-shrink-0">
+                            <div class="flex-grow overflow-hidden">
+                                <h3 class="font-semibold text-gray-900 truncate">Rohan Mehra</h3>
+                                <p class="text-sm text-gray-500 truncate">Can you send the location?</p>
+                            </div>
+                            <div class="flex-shrink-0 flex flex-col items-end text-xs text-gray-400 space-y-1">
+                                <span>Yesterday</span>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="flex items-center p-4 gap-3 hover:bg-gray-100 border-b border-gray-200">
+                            <div class="w-12 h-12 rounded-full flex-shrink-0 bg-purple-100 flex items-center justify-center">
+                                <i data-lucide="building" class="w-6 h-6 text-purple-600"></i>
+                            </div>
+                            <div class="flex-grow overflow-hidden">
+                                <h3 class="font-semibold text-gray-900 truncate">Owner: Urban Stay PG</h3>
+                                <p class="text-sm text-gray-500 truncate">Your booking is confirmed. Welcome!</p>
+                            </div>
+                            <div class="flex-shrink-0 flex flex-col items-end text-xs text-gray-400 space-y-1">
+                                <span>Mon</span>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="flex items-center p-4 gap-3 hover:bg-gray-100 border-b border-gray-200">
+                            <img src="httpsG://i.pravatar.cc/150?u=a042581f4e29026704b" alt="Anjali Singh" class="w-12 h-12 rounded-full flex-shrink-0">
+                            <div class="flex-grow overflow-hidden">
+                                <h3 class="font-semibold text-gray-900 truncate">Anjali Singh</h3>
+                                <p class="text-sm text-gray-500 truncate">See you there!</p>
+                            </div>
+                            <div class="flex-shrink-0 flex flex-col items-end text-xs text-gray-400 space-y-1">
+                                <span>10/28/25</span>
+                            </div>
+                        </a>
+
+                    </div>
+                </div>
+                
+                <div class="hidden md:flex w-2/3 h-full flex-col">
+                    <div class="flex-grow flex flex-col items-center justify-center text-center p-8">
+                        <div class="w-24 h-24 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-6">
+                            <i data-lucide="message-circle" class="w-12 h-12"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Welcome to your Chats</h2>
+                        <p class="text-gray-500 max-w-sm">Select a conversation from the list on the left to start chatting with property owners and other students.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+    <!-- Demo panel: Property Actions to simulate Request / Bid flows and owner notifications -->
+    <div id="property-actions-demo" class="container mx-auto px-4 sm:px-6 py-6">
+      <div class="light-card rounded-xl p-6 mb-6">
+        <h3 class="text-xl font-bold mb-3">Property Actions (Demo)</h3>
+        <p class="text-sm text-gray-600 mb-4">Use this panel to simulate a student clicking <strong>Request</strong> (free) or <strong>Bid Now</strong> (₹500 paid). Notifications are emitted to owner panel via <code>localStorage</code>.</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <input id="demo-property-id" placeholder="Property ID (eg: prop_123)" class="form-input p-3 rounded-lg border-gray-300" />
+          <input id="demo-owner-id" placeholder="Owner ID (eg: owner_1)" class="form-input p-3 rounded-lg border-gray-300" />
+          <input id="demo-student-id" placeholder="Student ID (eg: student_1)" class="form-input p-3 rounded-lg border-gray-300" />
+        </div>
+        <div class="flex gap-3 mt-4">
+          <button id="demo-request-btn" class="bg-white border border-gray-300 text-gray-800 py-2 px-4 rounded-lg">Request (Free)</button>
+          <button id="demo-bid-btn" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg">Bid Now (₹500)</button>
+          <button id="demo-show-notifs" class="bg-blue-50 border border-blue-200 text-blue-700 py-2 px-4 rounded-lg">Show Notifications</button>
+        </div>
+        <div id="demo-messages" class="mt-4 text-sm text-gray-700"></div>
+      </div>
+    </div>
+    <a href="chathome.html" class="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg transition-transform hover:scale-110" aria-label="Open chat">
+      <i data-lucide="message-circle" class="w-8 h-8"></i>
+    </a>
+    <footer class="footer">
+      <div class="footer-top">
+        <h2>Our Presence</h2>
+        <div class="footer-presence">
+          <div>
+            <h4>Kota</h4>
+            <ul>
+              <li><a href="#">Hostels in Kota</a></li>
+              <li><a href="#">Apartments in Kota</a></li>
+              <li><a href="#">PG in Kota</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Indore</h4>
+            <ul>
+              <li><a href="#">Hostels in Indore</a></li>
+              <li><a href="#">Apartments in Indore</a></li>
+              <li><a href="#">PG in Indore</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Ahmedabad</h4>
+            <ul>
+              <li><a href="#">Hostels in Ahmedabad</a></li>
+              <li><a href="#">Apartments in Ahmedabad</a></li>
+              <li><a href="#">PG in Ahmedabad</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    
+      <div class="footer-main">
+        <div class="footer-logo">
+          <img src="https://roomhy.com/assets/logo.png" alt="Roomhy Logo">
+          <p>Discover Your Next Home, Together.</p>
+        </div>
+    
+        <div class="footer-links">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="contact.html">Contact Us</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="ourproperty.html">Our Properties</a></li>
+          </ul>
+        </div>
+    
+        <div class="footer-legal">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="terms.html">Terms & Conditions</a></li>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+            <li><a href="cancellation.html">Cancellation Policy</a></li>
+            <li><a href="refund.html">Refund Policy</a></li>
+          </ul>
+        </div>
+    
+        <div class="footer-contact">
+          <h4>Contact</h4>
+          <p><i class="fas fa-phone"></i> +91 99830 05030</p>
+          <p><i class="fas fa-envelope"></i> hello@roomhy.com</p>
+          <div class="footer-social">
+            <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" title="X"><i class="fab fa-x-twitter"></i></a>
+            <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            <a href="#" title="YouTube"><i class="fab fa-youtube"></i></a>
+          </div>
+        </div>
+      </div>
+    
+      <div class="footer-bottom">
+        <p>© 2025 <strong>Roomhy</strong>. All Rights Reserved.</p>
+      </div>
+    </footer>
+    <script>
+        lucide.createIcons();
+        
+        /*
+        ============================================================
+        JavaScript for Mobile Side Menu
+        ============================================================
+        */
+        const menuToggle = document.getElementById('menu-toggle');
+        const menuClose = document.getElementById('menu-close');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuOverlay = document.getElementById('menu-overlay');
+
+        if (menuToggle && mobileMenu && menuClose && menuOverlay) {
+            menuToggle.addEventListener('click', () => {
+                mobileMenu.classList.remove('translate-x-full');
+                menuOverlay.classList.remove('hidden');
+            });
+
+            const closeMenu = () => {
+                mobileMenu.classList.add('translate-x-full');
+                menuOverlay.classList.add('hidden');
+            };
+
+            menuClose.addEventListener('click', closeMenu);
+            menuOverlay.addEventListener('click', closeMenu);
+
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    if (link.href.includes('#')) {
+                        setTimeout(closeMenu, 100);
+                    }
+                    // For external pages, we can just close it
+                    closeMenu();
+                });
+            });
+        }
+        
+        /*
+        ============================================================
+        Hero Slideshow
+        ============================================================
+        */
+        const heroWrapper = document.getElementById('hero-image-wrapper');
+        if (heroWrapper) {
+            const heroImages = heroWrapper.querySelectorAll('img');
+            const totalHeroImages = heroImages.length;
+            let currentHeroIndex = 0;
+
+            if (totalHeroImages > 1) {
+                setInterval(() => {
+                    const nextHeroIndex = (currentHeroIndex + 1) % totalHeroImages;
+                    
+                    heroImages[currentHeroIndex].classList.remove('opacity-100');
+                    heroImages[currentHeroIndex].classList.add('opacity-0');
+                    
+                    heroImages[nextHeroIndex].classList.remove('opacity-0');
+                    heroImages[nextHeroIndex].classList.add('opacity-100');
+                    
+                    currentHeroIndex = nextHeroIndex;
+                }, 5000);
+            }
+        }
+    </script>
+    </body>
+</html>

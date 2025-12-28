@@ -1,0 +1,2055 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+        <script src="../js/socket-init.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Athena House, Hinjawadi - Roomhy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+            color: #1a202c;
+            min-height: 100vh;
+        }
+        .light-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.03);
+            border-radius: 18px;
+            transition: all 0.3s ease;
+        }
+        .light-card:hover {
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.05);
+            transform: translateY(-4px);
+        }
+        .glow-button {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+        }
+        .glow-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(59, 130, 246, 0.4);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        }
+        .horizontal-slider::-webkit-scrollbar {
+            display: none;
+        }
+        .horizontal-slider {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+         .faq-question {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+         .faq-question:hover {
+            color: #9333ea;
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+        }
+        .faq-item.active .faq-answer {
+            max-height: 500px;
+            padding-top: 1rem;
+        }
+        .faq-item.active .icon-plus {
+            transform: rotate(45deg);
+        }
+        .icon-plus {
+            transition: transform 0.3s ease;
+            color: #9333ea;
+        }
+
+            /* Image Gallery Enhancements */
+            .gallery-thumbnail {
+                cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                border: 2px solid transparent;
+            }
+            .gallery-thumbnail:hover { transform: scale(1.08); box-shadow: 0 8px 16px rgba(59, 130, 246, 0.2); border-color: #e0e7ff; }
+            .gallery-thumbnail.active { border: 3px solid #3b82f6; box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3); }
+        
+            /* Image Zoom Modal */
+            .zoom-container { position: relative; display: inline-block; width: 100%; height: 100%; }
+            .zoom-controls { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.85); border-radius: 12px; padding: 12px 16px; display: flex; gap: 12px; z-index: 10; backdrop-filter: blur(10px); }
+            .zoom-btn { background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); width: 40px; height: 40px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; transition: all 0.2s; color: white; }
+            .zoom-btn:hover { background: #3b82f6; border-color: #3b82f6; transform: scale(1.1); }
+            .zoom-level { background: rgba(255, 255, 255, 0.1); color: white; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; min-width: 60px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.2); }
+        
+            /* Thumbnail Strip */
+            .thumbnail-strip { display: flex; gap: 10px; overflow-x: auto; padding: 10px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 12px; }
+            .thumbnail-strip::-webkit-scrollbar { height: 6px; }
+            .thumbnail-strip::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.05); border-radius: 3px; }
+            .thumbnail-strip::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.5); border-radius: 3px; }
+            .thumbnail-strip::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.8); }
+
+         @media (min-width: 1024px) {
+            .sticky-booking-card { 
+                top: 100px; /* Header height (h-20 = 80px) + space */
+            }
+         }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="sticky top-0 z-30 w-full bg-white/97 backdrop-blur-md shadow-lg border-b border-slate-200 flex-shrink-0">
+        <div class="container mx-auto px-4 sm:px-6">
+            <div class="flex h-20 items-center justify-between">
+                
+                <div class="flex items-center gap-3">
+                    <a href="index.html" class="flex-shrink-0 hover:opacity-80 transition-opacity">
+                        <img src="logo.svg" alt="Roomhy Logo" class="h-10 w-auto">
+                    </a>
+                    <div class="hidden md:block h-6 border-l border-gray-300"></div>
+                </div>
+                
+                <div class="flex items-center gap-3 sm:gap-6">
+                    
+                    <a href="list.html" class="flex-shrink-0 flex items-center space-x-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>Post <span class="hidden sm:inline">Your</span> Property</span>
+                    </a>
+                    
+                    <button id="menu-toggle" class="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700 hover:text-gray-900">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <div id="menu-overlay" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
+    
+    <div id="mobile-menu" class="fixed top-0 right-0 w-80 h-full bg-white z-50 shadow-xl transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+        <div class="flex justify-end p-4 flex-shrink-0">
+            <button id="menu-close" class="p-2">
+                <i data-lucide="x" class="w-6 h-6 text-gray-700"></i>
+            </button>
+        </div>
+
+        <div class="flex justify-between items-center px-6 py-2">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                    <i data-lucide="users" class="w-6 h-6 text-gray-600"></i>
+                </div>
+                <span class="text-lg font-semibold text-gray-800">Hi Yasmine 👋</span>
+            </div>
+            <a href="profile.html" class="text-sm font-medium text-blue-600 hover:underline">Profile</a>
+        </div>
+
+        <div class="px-6 py-4">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 relative overflow-hidden">
+                <img src="images/post-property-bg.svg" alt="Illustartion of people with house" class="absolute right-0 bottom-0 opacity-80 w-32 h-auto" style="pointer-events: none;">
+                <p class="font-semibold text-gray-800 mb-3 relative z-10">Looking to Sell/Rent your Property?</p>
+                <a href="list.html" class="block text-center w-full bg-blue-600 text-white font-medium py-2 px-4 rounded-lg text-sm hover:bg-blue-700 transition-colors relative z-10">
+                    Post Property for Free
+                </a>
+            </div>
+        </div>
+
+        <nav class="flex-grow p-4 space-y-1 overflow-y-auto">
+            <a href="stays.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="home" class="w-5 h-5 text-blue-600"></i>
+                </div>
+                <span>Our Properties</span>
+            </a>
+            <a href="fav.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="heart" class="w-5 h-5 text-red-600"></i>
+                </div>
+                <span>Favorites</span>
+            </a>
+            <a href="chathome.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                 <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="message-square" class="w-5 h-5 text-green-600"></i>
+                </div>
+                <span>Chats</span>
+            </a>
+            <a href="mystays.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="building" class="w-5 h-5 text-purple-600"></i>
+                </div>
+                <span>My Stays</span>
+            </a>
+            <a href="about.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="info" class="w-5 h-5 text-yellow-600"></i>
+                </div>
+                <span>About Us</span>
+            </a>
+            <a href="index.html#contact" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <div class="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="phone" class="w-5 h-5 text-cyan-600"></i>
+                </div>
+                <span>Contact Us</span>
+            </a>
+        </nav>
+        
+        <div class="p-4 border-t flex-shrink-0">
+            <a href="logout.html" class="flex items-center space-x-4 p-3 rounded-lg text-red-600 hover:bg-red-50">
+                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="log-out" class="w-5 h-5 text-gray-600"></i>
+                </div>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Website Banner Section -->
+    <div id="websiteBannerSection" class="w-full bg-gray-100 hidden">
+        <img id="websiteBannerImg" src="" alt="Website Banner" class="w-full h-auto max-h-96 object-cover">
+    </div>
+
+    <main class="container mx-auto px-4 sm:px-6 py-6 md:py-10 mt-6">
+        <div class="flex justify-between items-center mb-6">
+            <nav class="text-sm font-medium text-gray-500">
+                <a href="stays.html" class="hover:text-blue-600 inline-flex items-center"> 
+                    <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>Back to listings
+                </a>
+            </nav>
+            <div class="flex items-center space-x-4">
+                <button id="save-button" class="flex items-center space-x-2 text-gray-600 hover:text-red-600"> 
+                    <i data-lucide="heart" class="w-5 h-5"></i>
+                    <span class="font-medium hidden sm:inline">Save</span>
+                </button>
+                <button id="share-button" class="flex items-center space-x-2 text-gray-600 hover:text-blue-600">
+                    <i data-lucide="share-2" class="w-5 h-5"></i>
+                    <span class="font-medium hidden sm:inline">Share</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="lg:grid lg:grid-cols-3 lg:gap-8 xl:gap-12">
+            <div class="lg:col-span-2 space-y-12">
+
+
+                <!-- Enhanced Image Gallery with Zoom -->
+                <section id="image-gallery" class="relative light-card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-900">Property Gallery</h3>
+                        <span class="text-xs font-medium bg-blue-100 text-blue-700 px-3 py-1 rounded-full">Professional Photos</span>
+                    </div>
+                    
+                    <!-- Main Zoomed Image Display -->
+                    <div class="relative w-full h-[28rem] bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden shadow-md mb-4 cursor-zoom-in group" id="mainImageContainer" onclick="openImageZoom()">
+                        <img id="mainGalleryImage" src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2000&auto=format&fit=crop" alt="Property main view" class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105">
+                        <div class="absolute top-4 left-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg"><span id="imageCounter">1</span> / <span id="totalImages">3</span></div>
+                        <button onclick="event.stopPropagation(); openImageZoom()" class="absolute top-4 right-4 bg-white text-gray-800 p-3 rounded-full shadow-lg hover:bg-blue-50 hover:text-blue-600 transition-all" title="Zoom image">
+                            <i data-lucide="zoom-in" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Horizontal Thumbnail Scroll -->
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-sm font-semibold text-gray-800">All Photos</h4>
+                            <span class="text-xs font-medium text-gray-500">← Scroll to browse →</span>
+                        </div>
+                        <div class="flex gap-3 overflow-x-auto pb-2 thumbnail-strip" id="galleryThumbnails">
+                            <!-- Thumbnails will be populated dynamically -->
+                        </div>
+                    </div>
+                    
+                    <!-- Photo Information -->
+                    <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg p-4 text-sm text-emerald-800 flex items-start gap-3">
+                        <i data-lucide="image" class="w-5 h-5 flex-shrink-0 mt-0.5 text-emerald-600"></i>
+                        <div>
+                            <p class="font-semibold mb-1">Professional Photography</p>
+                            <span id="photoInfo" class="text-emerald-700">10+ high-quality photos available for detailed viewing</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Image Zoom Modal -->
+                <div id="imageZoomModal" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-50 backdrop-blur-sm">
+                    <button onclick="closeImageZoom()" class="absolute top-4 right-4 text-white hover:text-gray-300 z-10" title="Close">
+                        <i data-lucide="x" class="w-8 h-8"></i>
+                    </button>
+                    
+                    <div class="w-full h-full flex flex-col items-center justify-center p-4" id="zoomedImageContainer">
+                        <img id="zoomedImage" src="" alt="Zoomed property view" class="max-w-4xl max-h-[80vh] object-contain rounded" style="transform: scale(1); transform-origin: center; transition: transform 0.2s ease;">
+                    </div>
+                    
+                    <!-- Zoom Controls -->
+                    <div class="zoom-controls">
+                        <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">−</button>
+                        <div class="zoom-level" id="zoomLevel">100%</div>
+                        <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">+</button>
+                        <button class="zoom-btn" onclick="resetZoom()" title="Reset">⟲</button>
+                    </div>
+                    
+                    <!-- Image Navigation -->
+                    <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex gap-4 bg-gray-800 rounded-full px-4 py-2">
+                        <button onclick="previousImage()" class="text-white hover:text-blue-400 p-2" title="Previous">
+                            <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                        </button>
+                        <span class="text-white text-sm font-semibold px-4 py-2"><span id="zoomImageCounter">1</span> / <span id="zoomTotalImages">1</span></span>
+                        <button onclick="nextImage()" class="text-white hover:text-blue-400 p-2" title="Next">
+                            <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <section>
+                    <div class="light-card rounded-2xl p-8 md:p-10">
+                        <div class="sm:flex sm:justify-between sm:items-start gap-6">
+                             <div class="flex-1">
+                                          <div class="flex items-center gap-2 mb-3">
+                                              <span id="property-badge" class="text-xs font-bold text-pink-600 bg-pink-100 px-3 py-1.5 rounded-full inline-block">For Girls</span>
+                                              <span class="text-xs font-bold text-blue-600 bg-blue-100 px-3 py-1.5 rounded-full inline-block">Verified</span>
+                                          </div>
+                                          <h1 id="property-title" class="text-4xl font-bold text-gray-900 mt-2 mb-3">Athena House</h1>
+                                            <div class="flex items-center gap-3 flex-wrap mb-2">
+                                                <p id="property-location" class="text-gray-600 flex items-center font-medium"><i data-lucide="map-pin" class="w-4 h-4 mr-2 text-blue-600"></i>Hinjawadi, Pune</p>
+                                    <a href="#location" class="text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline inline-flex items-center gap-1">View on Map <i data-lucide="arrow-right" class="w-3 h-3"></i></a>
+                                </div>
+                                <div id="property-owner-contact" class="mt-3 text-sm text-gray-700 font-medium"></div>
+                            </div>
+                            <div class="text-left sm:text-right flex-shrink-0 mt-4 sm:mt-0">
+                                <div class="flex items-center justify-start sm:justify-end space-x-1 mb-3 bg-yellow-50 rounded-lg p-3 inline-block">
+                                    <i data-lucide="star" class="w-5 h-5 fill-yellow-400 text-yellow-400"></i>
+                                    <span id="property-rating" class="font-bold text-lg text-gray-900">4.8</span>
+                                     <span class="text-sm text-gray-600">(12 Reviews)</span>
+                                </div>
+                                <div id="property-verified" class="inline-flex items-center gap-2 bg-green-50 text-green-700 text-xs font-bold px-4 py-2 rounded-full border border-green-200">
+                                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                                    <span>Verified Property</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-gray-200 my-8"></div>
+
+                        <h3 class="font-bold text-2xl text-gray-900 mb-6 flex items-center gap-2"><i data-lucide="sparkles" class="w-6 h-6 text-emerald-600"></i>Quick Facts</h3>
+                        <div id="quickFactsGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+                            <div class="flex items-center gap-3 p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border-l-4 border-orange-600 hover:shadow-md transition-all duration-300 hover:scale-105"><i data-lucide="utensils-crossed" class="w-6 h-6 text-orange-600 flex-shrink-0 font-bold"></i><span class="font-bold text-gray-800">Meals</span></div>
+                            <div class="flex items-center gap-3 p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-l-4 border-blue-600 hover:shadow-md transition-all duration-300 hover:scale-105"><i data-lucide="wifi" class="w-6 h-6 text-blue-600 flex-shrink-0 font-bold"></i><span class="font-bold text-gray-800">Wi-Fi</span></div>
+                            <div class="flex items-center gap-3 p-4 bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-xl border-l-4 border-cyan-600 hover:shadow-md transition-all duration-300 hover:scale-105"><i data-lucide="wind" class="w-6 h-6 text-cyan-600 flex-shrink-0 font-bold"></i><span class="font-bold text-gray-800">AC</span></div>
+                            <div class="flex items-center gap-3 p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border-l-4 border-purple-600 hover:shadow-md transition-all duration-300 hover:scale-105"><i data-lucide="sparkles" class="w-6 h-6 text-purple-600 flex-shrink-0 font-bold"></i><span class="font-bold text-gray-800">Housekeeping</span></div>
+                            <div class="flex items-center gap-3 p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-xl border-l-4 border-red-600 hover:shadow-md transition-all duration-300 hover:scale-105"><i data-lucide="shield-check" class="w-6 h-6 text-red-600 flex-shrink-0 font-bold"></i><span class="font-bold text-gray-800">Security</span></div>
+                             <div class="flex items-center gap-3 p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border-l-4 border-green-600 hover:shadow-md transition-all duration-300 hover:scale-105"><i data-lucide="bed-double" class="w-6 h-6 text-green-600 flex-shrink-0 font-bold"></i><span class="font-bold text-gray-800">Furnished</span></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-3xl font-bold mb-8 flex items-center gap-3"><i data-lucide="check-square" class="w-7 h-7 text-emerald-600"></i>Common Amenities</h2>
+                    <div id="amenitiesGrid" class="light-card rounded-2xl p-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                        <div class="flex flex-col items-center text-center p-5 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 hover:shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 border border-blue-200"><i data-lucide="wifi" class="w-8 h-8 text-blue-600 mb-3 flex-shrink-0 font-bold"></i><span class="font-bold text-sm text-gray-800">High-Speed Wi-Fi</span></div>
+                        <div class="flex flex-col items-center text-center p-5 rounded-xl bg-gradient-to-br from-cyan-50 to-cyan-100 hover:shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 border border-cyan-200"><i data-lucide="wind" class="w-8 h-8 text-cyan-600 mb-3 flex-shrink-0 font-bold"></i><span class="font-bold text-sm text-gray-800">Air Conditioning</span></div>
+                        <div class="flex flex-col items-center text-center p-5 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 hover:shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 border border-purple-200"><i data-lucide="tv" class="w-8 h-8 text-purple-600 mb-3 flex-shrink-0 font-bold"></i><span class="font-bold text-sm text-gray-800">Common TV</span></div>
+                        <div class="flex flex-col items-center text-center p-5 rounded-xl bg-gradient-to-br from-pink-50 to-pink-100 hover:shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 border border-pink-200"><i data-lucide="washing-machine" class="w-8 h-8 text-pink-600 mb-3 flex-shrink-0 font-bold"></i><span class="font-bold text-sm text-gray-800">Laundry</span></div>
+                        <div class="flex flex-col items-center text-center p-5 rounded-xl bg-gradient-to-br from-red-50 to-red-100 hover:shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 border border-red-200"><i data-lucide="shield-check" class="w-8 h-8 text-red-600 mb-3 flex-shrink-0 font-bold"></i><span class="font-bold text-sm text-gray-800">24/7 Security</span></div>
+                        <div class="flex flex-col items-center text-center p-5 rounded-xl bg-gradient-to-br from-yellow-50 to-yellow-100 hover:shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 border border-yellow-200"><i data-lucide="sparkles" class="w-8 h-8 text-yellow-600 mb-3 flex-shrink-0 font-bold"></i><span class="font-bold text-sm text-gray-800">Housekeeping</span></div>
+                        <div class="flex flex-col items-center text-center p-5 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 hover:shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 border border-orange-200"><i data-lucide="box" class="w-8 h-8 text-orange-600 mb-3 flex-shrink-0 font-bold"></i><span class="font-bold text-sm text-gray-800">Refrigerator</span></div>
+                        <div class="flex flex-col items-center text-center p-5 rounded-xl bg-gradient-to-br from-green-50 to-green-100 hover:shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 border border-green-200"><i data-lucide="gamepad-2" class="w-8 h-8 text-green-600 mb-3 flex-shrink-0 font-bold"></i><span class="font-bold text-sm text-gray-800">Gaming Zone</span></div>
+                         <div class="flex flex-col items-center text-center p-5 rounded-xl bg-gradient-to-br from-indigo-50 to-indigo-100 hover:shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 border border-indigo-200"><i data-lucide="car" class="w-8 h-8 text-indigo-600 mb-3 flex-shrink-0 font-bold"></i><span class="font-bold text-sm text-gray-800">Parking</span></div>
+                         <div class="flex flex-col items-center text-center p-5 rounded-xl bg-gradient-to-br from-violet-50 to-violet-100 hover:shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 border border-violet-200"><i data-lucide="plug-zap" class="w-8 h-8 text-violet-600 mb-3 flex-shrink-0 font-bold"></i><span class="font-bold text-sm text-gray-800">Power Backup</span></div>
+                    </div>
+                </section>
+                
+                 <section id="location" class="scroll-mt-24">
+                    <h2 class="text-3xl font-bold mb-8 flex items-center gap-3"><i data-lucide="map-pin" class="w-8 h-8 text-red-600"></i>Location & Nearby Places</h2>
+                    <div class="light-card rounded-2xl p-6 md:p-8 border border-gray-200 shadow-lg">
+                        
+                        <div class="w-full h-80 bg-gray-200 rounded-2xl overflow-hidden mb-8 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+                             <iframe id="propertyMapIframe"
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15125.93170782271!2d73.7302436871582!3d18.597144800000004!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2bbc048041d6f%3A0x2c608fa4f67c696f!2sHinjawadi%2C%20Pune%2C%20Maharashtra%2C%20India!5e0!3m2!1sen!2sus!4v1730248835251!5m2!1sen!2sus"
+                                width="100%"
+                                height="100%"
+                                style="border:0;"
+                                allowfullscreen=""
+                                loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade">
+                            </iframe>
+                        </div>
+                         
+                         <h3 class="text-2xl font-bold mb-6 text-gray-900">What's Nearby?</h3>
+                        <div id="whats-nearby-dynamic" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                    </div>
+                </section>
+
+                 <section class="max-w-3xl mx-auto">
+                    <h2 class="text-3xl font-bold mb-8 flex items-center gap-3"><i data-lucide="help-circle" class="w-8 h-8 text-purple-600"></i>Frequently Asked Questions</h2>
+                    <div class="space-y-4" id="faq-container">
+                        <div class="faq-item light-card rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300 cursor-pointer">
+                            <div class="faq-question flex justify-between items-center">
+                                <h3 class="font-bold text-lg text-gray-900">Are meals included in the rent?</h3>
+                                <i data-lucide="plus" class="w-6 h-6 icon-plus text-purple-600 flex-shrink-0 transition-transform duration-300"></i>
+                            </div>
+                            <p class="faq-answer text-gray-600 text-sm mt-3 hidden">Yes, nutritious and delicious meals (breakfast, lunch, and dinner) are included in the monthly rent. We also provide evening snacks.</p>
+                        </div>
+                        <div class="faq-item light-card rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300 cursor-pointer">
+                            <div class="faq-question flex justify-between items-center">
+                                <h3 class="font-bold text-lg text-gray-900">Is there a curfew time?</h3>
+                                <i data-lucide="plus" class="w-6 h-6 icon-plus text-purple-600 flex-shrink-0 transition-transform duration-300"></i>
+                            </div>
+                            <p class="faq-answer text-gray-600 text-sm mt-3 hidden">For the safety of our residents, we have a curfew of 10:30 PM. Exceptions can be made with prior approval from the warden for academic or personal reasons.</p>
+                        </div>
+                         <div class="faq-item light-card rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300 cursor-pointer">
+                            <div class="faq-question flex justify-between items-center">
+                                <h3 class="font-bold text-lg text-gray-900">Are guests allowed?</h3>
+                                <i data-lucide="plus" class="w-6 h-6 icon-plus text-purple-600 flex-shrink-0 transition-transform duration-300"></i>
+                            </div>
+                            <p class="faq-answer text-gray-600 text-sm mt-3 hidden">Yes, guests are allowed in the common areas during visiting hours (9 AM to 9 PM). Overnight stays for guests are not permitted.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="lg:col-span-1 mt-12 lg:mt-0">
+                <div class="light-card p-8 rounded-2xl sticky sticky-booking-card border-l-4 border-blue-500"> 
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Monthly Budget</p>
+                    <p id="property-budget" class="text-4xl font-bold text-gray-900 mb-6">₹10,000 <span class="text-lg font-normal text-gray-500">/ month</span></p>
+                    
+                    <!-- Bid Type Info -->
+                    <div class="mt-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200">
+                        <div class="flex items-start space-x-3">
+                            <i data-lucide="zap" class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0 font-bold"></i>
+                            <div class="text-sm">
+                                <p id="bid-type-label" class="font-bold text-blue-900 mb-1">Quick Bid System</p>
+                                <p id="bid-type-description" class="text-blue-800 text-xs">Send your bid to match with owner instantly</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fees Info -->
+                    <div class="mt-6 space-y-3 text-sm border-b border-gray-200 pb-6">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-700 font-medium">Bid Fee</span>
+                            <span id="activation-fee" class="font-bold text-gray-900">₹49</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-700 font-medium">Security Deposit <span class="text-xs text-gray-500">(Refundable)</span></span>
+                            <span id="visit-security" class="font-bold text-gray-900">₹500</span>
+                        </div>
+                        <div class="flex justify-between items-center text-base font-bold bg-gradient-to-r from-amber-100 to-orange-100 -mx-4 -mb-3 px-4 py-3 rounded-b-lg border-t-2 border-amber-200">
+                            <span class="text-gray-900">Total Cost</span>
+                            <span id="total-amount" class="text-orange-700">₹549</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 space-y-3">
+                        <button id="request-btn" class="w-full bg-white border-2 border-green-500 text-green-600 font-bold py-3 px-4 rounded-lg hover:bg-green-50 hover:border-green-600 transition-all duration-200 text-base flex items-center justify-center space-x-2 shadow-sm">
+                            <i data-lucide="message-square" class="w-5 h-5"></i>
+                            <span>Contact Owner</span>
+                        </button>
+                        <button id="bid-now-btn" class="w-full glow-button text-white font-bold py-3 px-4 rounded-lg text-base flex items-center justify-center space-x-2 shadow-lg" data-property-id="">
+                            <i data-lucide="zap" class="w-5 h-5"></i>
+                            <span id="bid-btn-text">Place Bid (₹500)</span>
+                        </button>
+                    </div>
+
+                    <!-- Bid Details -->
+                    <div class="mt-8 space-y-3 text-xs">
+                        <div class="flex items-start space-x-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0 font-bold"></i>
+                            <span class="text-gray-700"><span class="font-semibold">Chat enabled</span> when owner accepts your bid</span>
+                        </div>
+                        <div class="flex items-start space-x-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0 font-bold"></i>
+                            <span class="text-gray-700"><span class="font-semibold">1-2 visits</span> allowed per bid to verify property</span>
+                        </div>
+                        <div class="flex items-start space-x-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0 font-bold"></i>
+                            <span class="text-gray-700"><span class="font-semibold">Security adjusted</span> on successful booking</span>
+                        </div>
+                    </div>
+
+                     <div class="mt-6 text-center text-xs text-gray-600 border-t border-gray-200 pt-4 flex items-center justify-center gap-2">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-green-600 font-bold"></i>
+                        <span><span class="font-semibold text-gray-800">100% Safe</span> & Protected</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <section id="recommended-properties" class="mt-16 md:mt-24">
+            <h2 class="text-2xl font-bold mb-8 text-gray-900">Roomhy Recommended</h2>
+            <div class="relative">
+                <button id="recommended-prev" class="absolute -left-3 top-1/2 -translate-y-1/2 z-10 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 text-gray-700 hidden sm:block"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+                <div id="recommended-slider" class="flex gap-6 overflow-x-auto pb-4 -mx-4 px-4 snap-x snap-mandatory scroll-smooth horizontal-slider">
+                    <a href="property.html?id=2" class="group block flex-shrink-0 snap-start w-80">
+                        <div class="light-card rounded-xl overflow-hidden h-full">
+                            <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=1916&auto=format&fit=crop" alt="Recommended Property 1" class="w-full h-48 object-cover">
+                            <div class="p-4">
+                                <p class="text-sm text-gray-500">Co-Living</p>
+                                <h3 class="font-bold text-lg mt-1 truncate">The Hive</h3>
+                                <p class="text-gray-500 text-sm mt-1 truncate">Koramangala, BLR</p>
+                                <p class="font-bold mt-2">₹18,000 <span class="text-sm font-normal text-gray-500">/ mo</span></p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="property.html?id=3" class="group block flex-shrink-0 snap-start w-80">
+                        <div class="light-card rounded-xl overflow-hidden h-full">
+                            <img src="https://images.unsplash.com/photo-1567016432779-1fee749a1532?q=80&w=1974&auto:format&fit=crop" alt="Recommended Property 2" class="w-full h-48 object-cover">
+                            <div class="p-4">
+                                <p class="text-sm text-gray-500">Private Studio</p>
+                                <h3 class="font-bold text-lg mt-1 truncate">Campus Corner</h3>
+                                <p class="text-gray-500 text-sm mt-1 truncate">North Campus, Delhi</p>
+                                <p class="font-bold mt-2">₹13,000 <span class="text-sm font-normal text-gray-500">/ mo</span></p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="property.html?id=6" class="group block flex-shrink-0 snap-start w-80">
+                        <div class="light-card rounded-xl overflow-hidden h-full">
+                            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto:format&fit=crop" alt="Recommended Property 3" class="w-full h-48 object-cover">
+                            <div class="p-4">
+                                <p class="text-sm text-gray-500">Co-Living</p>
+                                <h3 class="font-bold text-lg mt-1 truncate">Prime Student Living</h3>
+                                <p class="text-gray-500 text-sm mt-1 truncate">Saket Nagar, Indore</p>
+                                <p class="font-bold mt-2">₹11,000 <span class="text-sm font-normal text-gray-500">/ mo</span></p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="property.html?id=4" class="group block flex-shrink-0 snap-start w-80">
+                        <div class="light-card rounded-xl overflow-hidden h-full">
+                            <img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1932&auto:format&fit=crop" alt="Recommended Property 4" class="w-full h-48 object-cover">
+                            <div class="p-4">
+                                <p class="text-sm text-gray-500">Apartment</p>
+                                <h3 class="font-bold text-lg mt-1 truncate">Modern Loft</h3>
+                                <p class="text-gray-500 text-sm mt-1 truncate">Powai, Mumbai</p>
+                                <p class="font-bold mt-2">₹22,000 <span class="text-sm font-normal text-gray-500">/ mo</span></p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <button id="recommended-next" class="absolute -right-3 top-1/2 -translate-y-1/2 z-10 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 text-gray-700 hidden sm:block"><i data-lucide="chevron-right" class="w-6 h-6"></i></button>
+            </div>
+        </section>
+
+         <section id="similar-properties" class="mt-16 md:mt-24">
+            <div class="flex items-center space-x-4 mb-10">
+                <h2 class="text-4xl font-bold text-gray-900">Similar Properties Near You</h2>
+                <span class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">Recommended</span>
+            </div>
+            <div class="relative">
+                <button id="similar-prev" class="absolute -left-3 top-1/2 -translate-y-1/2 z-10 p-3 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full shadow-lg hover:shadow-xl text-white hidden sm:block transition-all duration-300 hover:scale-110"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+                <div id="similar-slider" class="flex gap-6 overflow-x-auto pb-4 -mx-4 px-4 snap-x snap-mandatory scroll-smooth horizontal-slider">
+                    <a href="property.html?id=4" class="group block flex-shrink-0 snap-start w-80">
+                        <div class="light-card rounded-2xl overflow-hidden h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-gray-200">
+                            <div class="relative h-48 overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=2070&auto:format&fit=crop" alt="Similar Property 1" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                <div class="absolute top-3 left-3 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold">For Boys</div>
+                            </div>
+                            <div class="p-5">
+                                <h3 class="font-bold text-lg mt-1 truncate text-gray-900">Modern Student Hub</h3>
+                                <div class="flex items-center space-x-1 text-gray-600 text-sm mt-2">
+                                    <i data-lucide="map-pin" class="w-4 h-4"></i>
+                                    <p class="truncate">Hinjawadi, Pune</p>
+                                </div>
+                                <div class="flex justify-between items-end mt-4 pt-4 border-t border-gray-200">
+                                    <p class="font-bold text-lg text-gray-900">₹11,000 <span class="text-sm font-normal text-gray-500">/ mo</span></p>
+                                    <button class="text-emerald-600 hover:text-emerald-700 font-bold text-sm">View →</button>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="property.html?id=5" class="group block flex-shrink-0 snap-start w-80">
+                        <div class="light-card rounded-2xl overflow-hidden h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-gray-200">
+                            <div class="relative h-48 overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto:format&fit=crop" alt="Similar Property 2" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                <div class="absolute top-3 left-3 bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-bold">Co-Ed</div>
+                            </div>
+                            <div class="p-5">
+                                <h3 class="font-bold text-lg mt-1 truncate text-gray-900">The Scholar's Den</h3>
+                                <div class="flex items-center space-x-1 text-gray-600 text-sm mt-2">
+                                    <i data-lucide="map-pin" class="w-4 h-4"></i>
+                                    <p class="truncate">Wakad, Pune</p>
+                                </div>
+                                <div class="flex justify-between items-end mt-4 pt-4 border-t border-gray-200">
+                                    <p class="font-bold text-lg text-gray-900">₹14,500 <span class="text-sm font-normal text-gray-500">/ mo</span></p>
+                                    <button class="text-emerald-600 hover:text-emerald-700 font-bold text-sm">View →</button>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="property.html?id=3" class="group block flex-shrink-0 snap-start w-80">
+                        <div class="light-card rounded-2xl overflow-hidden h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-gray-200">
+                            <div class="relative h-48 overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1580587771525-78b9dba3b914?q=80&w=1974&auto:format&fit=crop" alt="Similar Property 3" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                <div class="absolute top-3 left-3 bg-pink-600 text-white px-3 py-1 rounded-full text-xs font-bold">For Girls</div>
+                            </div>
+                            <div class="p-5">
+                                <h3 class="font-bold text-lg mt-1 truncate text-gray-900">Campus Comforts PG</h3>
+                                <div class="flex items-center space-x-1 text-gray-600 text-sm mt-2">
+                                    <i data-lucide="map-pin" class="w-4 h-4"></i>
+                                    <p class="truncate">Hinjawadi, Pune</p>
+                                </div>
+                                <div class="flex justify-between items-end mt-4 pt-4 border-t border-gray-200">
+                                    <p class="font-bold text-lg text-gray-900">₹10,500 <span class="text-sm font-normal text-gray-500">/ mo</span></p>
+                                    <button class="text-emerald-600 hover:text-emerald-700 font-bold text-sm">View →</button>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <button id="similar-next" class="absolute -right-3 top-1/2 -translate-y-1/2 z-10 p-3 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full shadow-lg hover:shadow-xl text-white hidden sm:block transition-all duration-300 hover:scale-110"><i data-lucide="chevron-right" class="w-6 h-6"></i></button>
+            </div>
+        </section>
+
+    </main>
+
+    <a href="index.html#contact" class="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white p-4 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 hover:-translate-y-1 group">
+        <i data-lucide="message-circle" class="w-8 h-8 group-hover:rotate-12 transition-transform duration-300"></i>
+        <span class="absolute bottom-16 right-0 bg-gray-900 text-white px-3 py-2 rounded-lg text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none">Need help? Chat with us</span>
+    </a>
+
+    <footer class="bg-gradient-to-b from-gray-900 to-black text-gray-300 flex-shrink-0 mt-auto border-t border-gray-800"> 
+        <div class="container mx-auto px-6 py-16">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8 mb-12">
+                <div class="md:col-span-1">
+                    <a href="index.html" class="mb-4 inline-block">
+                        <img src="logo.svg" alt="Roomhy Logo" class="h-10 w-auto brightness-0 invert">
+                    </a>
+                    <p class="text-gray-400 text-sm leading-relaxed mt-3">Your trusted partner in finding the perfect student accommodation. Live, learn, and grow with us.</p>
+                    <div class="flex space-x-5 mt-6">
+                        <a href="#" class="text-gray-400 hover:text-blue-400 transition-colors hover:scale-110 duration-300">
+                            <i data-lucide="facebook" class="w-5 h-5"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-pink-400 transition-colors hover:scale-110 duration-300">
+                            <i data-lucide="instagram" class="w-5 h-5"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-cyan-400 transition-colors hover:scale-110 duration-300">
+                            <i data-lucide="twitter" class="w-5 h-5"></i>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-lg mb-5 text-white flex items-center space-x-2">
+                        <i data-lucide="home" class="w-5 h-5 text-blue-400"></i>
+                        <span>Explore</span>
+                    </h4>
+                    <ul class="space-y-3">
+                        <li><a href="stays.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>→</span><span>Apartments</span></a></li>
+                        <li><a href="stays.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>→</span><span>Hostels</span></a></li>
+                        <li><a href="stays.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>→</span><span>Co-Living</span></a></li>
+                        <li><a href="stays.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>→</span><span>PGs</span></a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-lg mb-5 text-white flex items-center space-x-2">
+                        <i data-lucide="building-2" class="w-5 h-5 text-emerald-400"></i>
+                        <span>Company</span>
+                    </h4>
+                    <ul class="space-y-3">
+                        <li><a href="about.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>→</span><span>About Us</span></a></li>
+                        <li><a href="list.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>→</span><span>List Your Property</span></a></li>
+                        <li><a href="privacy.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>→</span><span>Privacy Policy</span></a></li>
+                        <li><a href="terms.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>→</span><span>Terms of Service</span></a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-lg mb-5 text-white flex items-center space-x-2">
+                        <i data-lucide="headphones" class="w-5 h-5 text-orange-400"></i>
+                        <span>Get in Touch</span>
+                    </h4>
+                    <ul class="space-y-3">
+                        <li class="flex items-start space-x-3 group cursor-pointer">
+                            <i data-lucide="mail" class="w-4 h-4 text-orange-400 mt-1 flex-shrink-0 group-hover:scale-110 transition-transform"></i>
+                            <a href="mailto:support@roomhy.com" class="text-gray-300 hover:text-white transition-colors">support@roomhy.com</a>
+                        </li>
+                        <li class="flex items-start space-x-3 group cursor-pointer">
+                            <i data-lucide="phone" class="w-4 h-4 text-orange-400 mt-1 flex-shrink-0 group-hover:scale-110 transition-transform"></i>
+                            <a href="tel:+911234567890" class="text-gray-300 hover:text-white transition-colors">+91 12345 67890</a>
+                        </li>
+                        <li class="flex items-start space-x-3">
+                            <i data-lucide="map-pin" class="w-4 h-4 text-orange-400 mt-1 flex-shrink-0"></i>
+                            <span class="text-gray-300">Bengaluru, India</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-12 border-t border-gray-700 pt-8 text-center text-gray-400 text-sm">
+                <p class="flex items-center justify-center space-x-2">
+                    <span>© 2025 Roomhy. All Rights Reserved. Built with</span>
+                    <i data-lucide="heart" class="w-4 h-4 text-red-500 fill-red-500"></i>
+                    <span>for students.</span>
+                </p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Gallery Lightbox Modal (zoom / pan / scroll) -->
+    <div id="galleryModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[60] backdrop-blur-sm" onclick="closeGallery()">
+        <div class="w-full max-w-6xl p-4 h-[80vh] flex flex-col" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-2">
+                <div class="flex items-center gap-2">
+                    <button id="gallery-prev" class="p-2 bg-white/10 text-white rounded hover:bg-white/20"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                    <button id="gallery-next" class="p-2 bg-white/10 text-white rounded hover:bg-white/20"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="gallery-zoom-in" class="p-2 bg-white/10 text-white rounded hover:bg-white/20">+</button>
+                    <button id="gallery-zoom-out" class="p-2 bg-white/10 text-white rounded hover:bg-white/20">−</button>
+                    <button id="gallery-reset" class="p-2 bg-white/10 text-white rounded hover:bg-white/20">Reset</button>
+                    <button id="gallery-close" class="p-2 bg-white/10 text-white rounded hover:bg-white/20"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+
+            <div id="galleryContent" class="relative flex-1 bg-black rounded overflow-hidden flex items-center justify-center">
+                <img id="gallery-main-img" src="" alt="" class="select-none max-h-full max-w-none" style="transform-origin: center center; transform: translate(0px,0px) scale(1); cursor: grab;">
+            </div>
+
+            <div id="gallery-thumbs" class="mt-3 flex gap-2 overflow-x-auto"></div>
+        </div>
+    </div>
+
+    <!-- Auth required modal shown when non-logged-in user attempts protected actions -->
+    <div id="auth-required-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center border border-gray-200">
+            <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="lock" class="w-6 h-6 text-white"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-2 text-gray-900">Login Required</h3>
+            <p class="text-sm text-gray-600 mb-6">You need an account to Request or Bid. Please login or signup to proceed.</p>
+            <div class="flex gap-3 justify-center flex-col sm:flex-row">
+                <button id="auth-modal-login" class="px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300">Login</button>
+                <button id="auth-modal-signup" class="px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300">Sign up</button>
+            </div>
+            <div class="mt-4">
+                <button id="auth-modal-close" class="text-sm text-gray-500 hover:text-gray-700 transition-colors">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="share-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md border border-gray-200" id="share-modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-900">Share this Property</h3>
+                <button id="close-modal-button" class="text-gray-400 hover:text-gray-800 transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <p class="text-gray-600 mb-6">Copy the link below to share this amazing find with your friends!</p>
+            <div class="flex items-center space-x-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                <input type="text" id="share-link-input" readonly class="w-full px-3 py-2 bg-gray-50 text-gray-700 text-sm font-medium focus:outline-none">
+                <button id="copy-link-button" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 whitespace-nowrap flex-shrink-0">Copy</button> 
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment & Bidding Modal -->
+    <div id="payment-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full my-8" onclick="event.stopPropagation()">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-6 rounded-t-2xl">
+                <button id="payment-close-btn" class="absolute top-4 right-4 text-white/80 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+                <h2 id="payment-modal-title" class="text-2xl font-bold">Place Your Bid</h2>
+                <p id="payment-modal-subtitle" class="text-blue-100 mt-1">Send bid to matching properties</p>
+            </div>
+
+            <!-- Body -->
+            <div class="px-6 py-6 space-y-6">
+                <!-- Property Summary -->
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h3 id="payment-property-name" class="font-bold text-gray-900 mb-2">Property Name</h3>
+                    <div class="space-y-2 text-sm text-gray-600">
+                        <div class="flex justify-between">
+                            <span>Budget</span>
+                            <span id="payment-budget" class="font-semibold text-gray-900">₹0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Bid Type</span>
+                            <span id="payment-bid-type" class="font-semibold text-blue-600">Bid to All</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fee Breakdown -->
+                <div class="space-y-3 border-b border-gray-200 pb-4">
+                    <div class="flex justify-between items-center text-sm">
+                        <label class="text-gray-600">Bid Amount <span class="text-xs text-gray-500">(Refundable)</span></label>
+                        <span class="font-semibold text-gray-900">₹500</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <label class="text-gray-600">Processing Fee</label>
+                        <span class="font-semibold text-gray-900">₹0</span>
+                    </div>
+                </div>
+
+                <!-- Total -->
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-semibold text-gray-900">Total Amount</span>
+                        <span id="payment-total" class="text-2xl font-bold text-yellow-700">₹500</span>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-2">✓ Fully refundable bid amount. If you don't like the place after visits, full refund will be processed.</p>
+                </div>
+
+                <!-- Terms & Conditions -->
+                <div class="space-y-2">
+                    <label class="flex items-start space-x-3 cursor-pointer">
+                        <input type="checkbox" id="accept-terms" class="mt-1 w-4 h-4 rounded border-gray-300">
+                        <span class="text-sm text-gray-600">I agree to the <a href="terms.html" target="_blank" class="text-blue-600 hover:underline">terms & conditions</a> and refund policy</span>
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <button id="submit-bid-btn" class="w-full glow-button text-white font-bold py-3 px-4 rounded-lg text-lg flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i data-lucide="lock" class="w-5 h-5"></i>
+                    <span>Proceed to Payment</span>
+                </button>
+
+                <!-- Secure Badge -->
+                <div class="text-center text-xs text-gray-500 flex items-center justify-center space-x-1">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-green-600"></i>
+                    <span>SSL Secure • PCI Compliant</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto-expiry Alert Modal -->
+    <div id="bid-info-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full">
+            <div class="px-6 py-6 space-y-4">
+                <div class="flex items-start space-x-3">
+                    <i data-lucide="info" class="w-6 h-6 text-blue-600 mt-0.5 flex-shrink-0"></i>
+                    <div>
+                        <h3 class="font-bold text-lg text-gray-900">How Bidding Works</h3>
+                        <p class="text-gray-600 text-sm mt-2">Your bid will:</p>
+                        <ul class="text-sm text-gray-600 space-y-1 mt-2 ml-4 list-disc">
+                            <li>Be sent to all matching properties</li>
+                            <li>Expire in 7 days if not accepted</li>
+                            <li>Open chat only after owner accepts</li>
+                            <li>Allow up to 2 visits per bid</li>
+                        </ul>
+                    </div>
+                </div>
+                <button id="close-info-modal" class="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700">Got It</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        lucide.createIcons();
+
+        // Function to load and display website banner photo
+        function loadWebsiteBannerPhoto() {
+            const photoData = localStorage.getItem('roomhy_website_photo');
+            if (photoData) {
+                const bannerSection = document.getElementById('websiteBannerSection');
+                const bannerImg = document.getElementById('websiteBannerImg');
+                bannerImg.src = photoData;
+                bannerSection.classList.remove('hidden');
+                console.log('Website banner photo loaded successfully');
+            } else {
+                console.log('No website banner photo found in localStorage');
+            }
+        }
+
+        // Dynamic property loader - reads ?id= from URL and populates the page
+        (function() {
+            function getParam(name) {
+                const params = new URLSearchParams(window.location.search);
+                return params.get(name);
+            }
+
+            function getVisitsFromStorage() {
+                try { return JSON.parse(localStorage.getItem('roomhy_visits') || '[]'); } catch (e) { return []; }
+            }
+
+            function populateFromVisit(v) {
+                if (!v) return;
+                const prop = v.propertyInfo || {};
+                const titleEl = document.getElementById('property-title');
+                const locEl = document.getElementById('property-location');
+                const badgeEl = document.getElementById('property-badge');
+                const img1 = document.getElementById('property-img-1');
+                const img2 = document.getElementById('property-img-2');
+                const img3 = document.getElementById('property-img-3');
+                const img1Desktop = document.getElementById('property-img-1-desktop');
+                const img2Desktop = document.getElementById('property-img-2-desktop');
+                const img3Desktop = document.getElementById('property-img-3-desktop');
+                const ratingEl = document.getElementById('property-rating');
+                const verifiedEl = document.getElementById('property-verified');
+
+                // Show Nearby Location if available
+                const nearbyLoc = v.nearbyLocation || v.nearbyLocations || prop.nearbyLocation || prop.nearbyLocations || '';
+                const locationSection = document.querySelector('#location .light-card');
+                if (locationSection && nearbyLoc) {
+                    let el = document.getElementById('visit-nearby-location');
+                    if (!el) {
+                        el = document.createElement('div');
+                        el.id = 'visit-nearby-location';
+                        el.className = 'mt-4 p-3 bg-blue-50 border-l-4 border-blue-600 rounded text-blue-900 font-semibold';
+                        locationSection.insertBefore(el, locationSection.firstChild.nextSibling);
+                    }
+                    el.innerHTML = `<i data-lucide="navigation-2" class="w-5 h-5 mr-2 text-blue-600 inline"></i>Nearby Location: <span>${nearbyLoc}</span>`;
+                }
+
+                const title = prop.name || prop.title || prop.propertyName || v.title || 'Property';
+                const area = prop.area || prop.locality || '';
+                const city = prop.city || prop.cityName || '';
+                const locationText = [area, city].filter(Boolean).join(', ') || prop.address || '';
+                const badge = prop.propertyType || v.propertyType || 'Listing';
+                // Prioritize professional photos only; fall back to regular captured photos if not available
+                const images = (Array.isArray(v.professionalPhotos) && v.professionalPhotos.length > 0) 
+                    ? v.professionalPhotos.slice() 
+                    : (Array.isArray(v.photos) && v.photos.length > 0 ? v.photos.slice() : []);
+                const img0 = images[0] || img1?.src || '';
+                const imgA = images[1] || img2?.src || '';
+                const imgB = images[2] || img3?.src || '';
+                const rating = v.rating || v.reviewsAvg || v.ratingScore || '4.5';
+                const verified = !!v.isVerified || !!v.verified || !!v.generatedCredentials;
+
+                if (titleEl) titleEl.textContent = title;
+                if (locEl) locEl.innerHTML = '<i data-lucide="map-pin" class="w-4 h-4 mr-2"></i>' + locationText;
+                if (badgeEl) badgeEl.textContent = badge;
+                function safeSetImg(el, src){
+                    if(!el) return;
+                    try{ el.src = src || el.src || 'https://images.unsplash.com/photo-1567016432779-1fee749a1532?q=80&w=1974&auto=format&fit=crop'; }catch(e){}
+                    el.onerror = function(){ el.onerror = null; el.src = 'https://images.unsplash.com/photo-1567016432779-1fee749a1532?q=80&w=1974&auto=format&fit=crop'; };
+                }
+                if (img1) safeSetImg(img1, img0);
+                if (img2) safeSetImg(img2, imgA);
+                if (img3) safeSetImg(img3, imgB);
+                // Also update desktop gallery images (they are in DOM but visible only on large screens)
+                if (img1Desktop) safeSetImg(img1Desktop, img0);
+                if (img2Desktop) safeSetImg(img2Desktop, imgA);
+                if (img3Desktop) safeSetImg(img3Desktop, imgB);
+                if (ratingEl) ratingEl.textContent = rating;
+                if (verifiedEl) {
+                    verifiedEl.style.display = verified ? 'inline-flex' : 'none';
+                }
+
+                // Owner & Contact
+                const ownerContactEl = document.getElementById('property-owner-contact');
+                if (ownerContactEl) {
+                    const owner = prop.ownerName || prop.owner || '-';
+                    const phone = prop.contactPhone || prop.contact || '-';
+                    ownerContactEl.innerHTML = `<div>Owner: <strong>${owner}</strong> • <a href="tel:${phone}" class="text-blue-600 hover:underline">${phone}</a></div>`;
+                }
+
+                // Quick Facts
+                const factIconMap = (key) => {
+                    const k = (key || '').toLowerCase();
+                    if (k.includes('property id')) return ['hash','blue'];
+                    if (k.includes('type')) return ['home','blue'];
+                    if (k.includes('room') && k.includes('type')) return ['door-open','purple'];
+                    if (k.includes('bed')) return ['bed-double','green'];
+                    if (k.includes('bathroom')) return ['droplet','cyan'];
+                    if (k.includes('furnishing')) return ['sofa','yellow'];
+                    if (k.includes('ventilation')) return ['wind','cyan'];
+                    if (k.includes('min stay')) return ['calendar','indigo'];
+                    if (k.includes('rent')) return ['wallet','green'];
+                    if (k.includes('deposit')) return ['lock','orange'];
+                    return ['info','slate'];
+                };
+
+                const quickFactsGrid = document.getElementById('quickFactsGrid');
+                if (quickFactsGrid) {
+                    const facts = [];
+                    if (prop.propertyId) facts.push({k:'Property ID', v: prop.propertyId});
+                    if (prop.propertyType) facts.push({k:'Type', v: prop.propertyType});
+                    if (v.roomsAvailable) facts.push({k:'Rooms', v: v.roomsAvailable});
+                    if (v.roomType) facts.push({k:'Room Type', v: v.roomType});
+                    if (v.bedCount) facts.push({k:'Beds', v: v.bedCount});
+                    if (v.bathroomType) facts.push({k:'Bathroom', v: v.bathroomType});
+                    if (v.furnishing) facts.push({k:'Furnishing', v: v.furnishing});
+                    if (v.ventilation) facts.push({k:'Ventilation', v: v.ventilation});
+                    if (v.minStay) facts.push({k:'Min Stay (months)', v: v.minStay});
+                    if (v.monthlyRent) facts.push({k:'Rent', v: '₹' + v.monthlyRent});
+                    if (v.deposit) facts.push({k:'Deposit', v: '₹' + v.deposit});
+
+                    if (facts.length === 0) {
+                        quickFactsGrid.innerHTML = '<div class="text-sm text-gray-500 col-span-2 md:col-span-3">No quick facts available.</div>';
+                    } else {
+                        quickFactsGrid.innerHTML = facts.map(f => {
+                            const [icon, theme] = factIconMap(f.k);
+                            const colorFrom = {
+                                blue: 'from-blue-50 to-blue-100 border-blue-200 text-blue-600',
+                                green: 'from-green-50 to-green-100 border-green-200 text-green-600',
+                                purple: 'from-purple-50 to-purple-100 border-purple-200 text-purple-600',
+                                cyan: 'from-cyan-50 to-cyan-100 border-cyan-200 text-cyan-600',
+                                yellow: 'from-yellow-50 to-yellow-100 border-yellow-200 text-yellow-600',
+                                orange: 'from-orange-50 to-orange-100 border-orange-200 text-orange-600',
+                                indigo: 'from-indigo-50 to-indigo-100 border-indigo-200 text-indigo-600',
+                                slate: 'from-gray-50 to-gray-100 border-gray-200 text-gray-700'
+                            }[theme] || 'from-gray-50 to-gray-100 border-gray-200 text-gray-700';
+
+                            return `<div class="flex flex-col items-center text-center p-5 rounded-xl bg-gradient-to-br ${colorFrom} hover:shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 border border-${theme}-200"><i data-lucide="${icon}" class="w-6 h-6 mb-2 flex-shrink-0"></i><div class="text-xs text-gray-600 font-medium">${f.k}</div><div class="text-sm font-bold text-gray-800 mt-1">${f.v}</div></div>`;
+                        }).join('');
+                    }
+                }
+
+                // Amenities
+                const amenitiesGrid = document.getElementById('amenitiesGrid');
+                if (amenitiesGrid) {
+                    const am = Array.isArray(v.amenities) ? v.amenities : (prop.amenities || []);
+                    // Helper: map amenity text to icon + color theme
+                    const iconMap = (text) => {
+                        const t = (text || '').toLowerCase();
+                        if (t.includes('wifi')) return ['wifi','blue'];
+                        if (t.includes('air') || t.includes('ac')) return ['wind','cyan'];
+                        if (t.includes('tv')) return ['tv','purple'];
+                        if (t.includes('laundry') || t.includes('washing')) return ['washing-machine','pink'];
+                        if (t.includes('parking')) return ['car','indigo'];
+                        if (t.includes('power') || t.includes('backup')) return ['plug-zap','violet'];
+                        if (t.includes('house') || t.includes('housekeeping')) return ['sparkles','yellow'];
+                        if (t.includes('fridge') || t.includes('refrigerator')) return ['box','orange'];
+                        if (t.includes('gaming') || t.includes('game')) return ['gamepad-2','green'];
+                        if (t.includes('security') || t.includes('cctv')) return ['shield-check','red'];
+                        return ['check','slate'];
+                    };
+
+                    if (!am || am.length === 0) {
+                        amenitiesGrid.innerHTML = '<div class="text-sm text-gray-500 col-span-2">No amenities listed.</div>';
+                    } else {
+                        amenitiesGrid.innerHTML = am.map(a => {
+                            const [icon, theme] = iconMap(a);
+                            const colorFrom = {
+                                blue: 'from-blue-50 to-blue-100 border-blue-200 text-blue-600',
+                                cyan: 'from-cyan-50 to-cyan-100 border-cyan-200 text-cyan-600',
+                                purple: 'from-purple-50 to-purple-100 border-purple-200 text-purple-600',
+                                pink: 'from-pink-50 to-pink-100 border-pink-200 text-pink-600',
+                                red: 'from-red-50 to-red-100 border-red-200 text-red-600',
+                                yellow: 'from-yellow-50 to-yellow-100 border-yellow-200 text-yellow-600',
+                                orange: 'from-orange-50 to-orange-100 border-orange-200 text-orange-600',
+                                green: 'from-green-50 to-green-100 border-green-200 text-green-600',
+                                indigo: 'from-indigo-50 to-indigo-100 border-indigo-200 text-indigo-600',
+                                violet: 'from-violet-50 to-violet-100 border-violet-200 text-violet-600',
+                                slate: 'from-gray-50 to-gray-100 border-gray-200 text-gray-700'
+                            }[theme] || 'from-gray-50 to-gray-100 border-gray-200 text-gray-700';
+
+                            return `<div class="flex flex-col items-center text-center p-5 rounded-xl bg-gradient-to-br ${colorFrom} hover:shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 border ${colorFrom.split(' ').slice(-1)[0]}"><i data-lucide="${icon}" class="w-8 h-8 mb-3"></i><span class="font-bold text-sm text-gray-800">${a}</span></div>`;
+                        }).join('');
+                    }
+                }
+
+                // House rules / behaviour section with styled cards
+                const houseRulesContainer = document.createElement('div');
+                houseRulesContainer.className = 'col-span-2 md:col-span-3 mt-4 pt-6 border-t border-gray-200';
+                
+                const ruleIconMap = (key) => {
+                    const k = (key || '').toLowerCase();
+                    if (k.includes('visitor')) return ['users','blue'];
+                    if (k.includes('cooking')) return ['utensils-crossed','orange'];
+                    if (k.includes('smoking')) return ['flame','red'];
+                    if (k.includes('pet')) return ['dog','purple'];
+                    if (k.includes('behaviour') || k.includes('behavior')) return ['smile','green'];
+                    if (k.includes('clean')) return ['sparkles','cyan'];
+                    return ['check','slate'];
+                };
+
+                const houseRulesData = [];
+                if (v.visitorsAllowed) houseRulesData.push({k:'Visitors Allowed', v: v.visitorsAllowed});
+                if (v.cookingAllowed) houseRulesData.push({k:'Cooking Allowed', v: v.cookingAllowed});
+                if (v.smokingAllowed) houseRulesData.push({k:'Smoking Allowed', v: v.smokingAllowed});
+                if (v.petsAllowed) houseRulesData.push({k:'Pets Allowed', v: v.petsAllowed});
+                if (v.ownerBehaviourPublic) houseRulesData.push({k:'Owner Behaviour', v: v.ownerBehaviourPublic});
+                if (v.cleanlinessRating) houseRulesData.push({k:'Cleanliness Rating', v: v.cleanlinessRating + '/5'});
+
+                if (houseRulesData.length > 0) {
+                    const rulesHtml = houseRulesData.map(rule => {
+                        const [icon, theme] = ruleIconMap(rule.k);
+                        const colorTheme = {
+                            blue: 'from-blue-50 to-blue-100 border-blue-200 text-blue-600',
+                            orange: 'from-orange-50 to-orange-100 border-orange-200 text-orange-600',
+                            red: 'from-red-50 to-red-100 border-red-200 text-red-600',
+                            purple: 'from-purple-50 to-purple-100 border-purple-200 text-purple-600',
+                            green: 'from-green-50 to-green-100 border-green-200 text-green-600',
+                            cyan: 'from-cyan-50 to-cyan-100 border-cyan-200 text-cyan-600',
+                            slate: 'from-gray-50 to-gray-100 border-gray-200 text-gray-700'
+                        }[theme] || 'from-gray-50 to-gray-100 border-gray-200 text-gray-700';
+
+                        const statusColor = rule.v === 'Yes' || rule.v === 'Good' ? 'bg-green-100 text-green-700' : rule.v === 'No' || rule.v === 'Poor' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700';
+                        return `<div class="flex flex-col items-center text-center p-4 rounded-xl bg-gradient-to-br ${colorTheme} hover:shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 border"><i data-lucide="${icon}" class="w-6 h-6 mb-2"></i><div class="text-xs text-gray-600 font-medium">${rule.k}</div><div class="text-sm font-bold ${statusColor} px-2 py-1 rounded mt-1">${rule.v}</div></div>`;
+                    }).join('');
+                    houseRulesContainer.innerHTML = `<h3 class="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2"><i data-lucide="home" class="w-5 h-5 text-amber-600"></i>House Rules</h3><div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">${rulesHtml}</div>`;
+                    if (amenitiesGrid && amenitiesGrid.parentNode) {
+                        amenitiesGrid.parentNode.appendChild(houseRulesContainer);
+                    }
+                }
+
+                // Map update with nearby places (user-entered or auto-detected)
+                const mapIframe = document.getElementById('propertyMapIframe');
+                if (mapIframe && v.latitude && v.longitude) {
+                    const lat = v.latitude;
+                    const lng = v.longitude;
+                    mapIframe.src = `https://maps.google.com?q=${lat},${lng}&z=16&output=embed`;
+                    
+                    // Check if user entered nearby locations in visit form
+                    let places = [];
+                    
+                    if (v.nearbyLocations && v.nearbyLocations.trim().length > 0) {
+                        // Parse user-entered nearby locations (comma or newline separated)
+                        const userLocations = v.nearbyLocations
+                            .split(/[,\n]/)
+                            .map(s => s.trim())
+                            .filter(s => s.length > 0)
+                            .slice(0, 4); // Limit to 4 places
+                        
+                        // Convert user entries to place objects with default styling
+                        const iconOptions = ['map-pin', 'navigation-2', 'landmark', 'compass'];
+                        const colorOptions = ['blue', 'emerald', 'orange', 'red'];
+                        
+                        places = userLocations.map((location, idx) => {
+                            // Try to parse "Name, Distance" format
+                            const parts = location.split(',').map(p => p.trim());
+                            const name = parts[0] || location;
+                            const distance = parts[1] || 'Nearby';
+                            
+                            return {
+                                name: name,
+                                icon: iconOptions[idx % iconOptions.length],
+                                distance: distance,
+                                color: colorOptions[idx % colorOptions.length]
+                            };
+                        });
+                    } else {
+                        // Auto-detect area and populate area-specific nearby places
+                        const detectedArea = (prop.area || prop.locality || v.areaLocality || 'Unknown').toLowerCase().trim();
+                        
+                        // Area-specific nearby places database
+                        const areaPlaces = {
+                            'hinjawadi': [
+                                {name: 'Symbiosis Institute', icon: 'graduation-cap', distance: '1.5 km', color: 'blue'},
+                                {name: 'Pimpri-Chinchwad Bus Stop', icon: 'bus', distance: '800 m', color: 'emerald'},
+                                {name: 'D-Mart Hinjawadi', icon: 'shopping-cart', distance: '1.2 km', color: 'orange'},
+                                {name: 'Ruby Hall Clinic', icon: 'hospital', distance: '2 km', color: 'red'}
+                            ],
+                            'wakad': [
+                                {name: 'Pune University', icon: 'graduation-cap', distance: '3 km', color: 'blue'},
+                                {name: 'Wakad Bus Depot', icon: 'bus', distance: '600 m', color: 'emerald'},
+                                {name: 'Westend Mall', icon: 'shopping-cart', distance: '1.8 km', color: 'orange'},
+                                {name: 'Yashoda Hospital', icon: 'hospital', distance: '2.5 km', color: 'red'}
+                            ],
+                            'koramangala': [
+                                {name: 'IIM Bangalore', icon: 'graduation-cap', distance: '2 km', color: 'blue'},
+                                {name: 'Metro Station', icon: 'bus', distance: '400 m', color: 'emerald'},
+                                {name: 'Koramangala Market', icon: 'shopping-cart', distance: '1 km', color: 'orange'},
+                                {name: 'Apollo Hospital', icon: 'hospital', distance: '1.5 km', color: 'red'}
+                            ],
+                            'delhi': [
+                                {name: 'Delhi University', icon: 'graduation-cap', distance: '2.5 km', color: 'blue'},
+                                {name: 'Delhi Metro', icon: 'bus', distance: '500 m', color: 'emerald'},
+                                {name: 'CP Market', icon: 'shopping-cart', distance: '3 km', color: 'orange'},
+                                {name: 'AIIMS Delhi', icon: 'hospital', distance: '4 km', color: 'red'}
+                            ],
+                            'indore': [
+                                {name: 'IISER Indore', icon: 'graduation-cap', distance: '8 km', color: 'blue'},
+                                {name: 'Indore Bus Station', icon: 'bus', distance: '3 km', color: 'emerald'},
+                                {name: 'Treasure Island', icon: 'shopping-cart', distance: '2.5 km', color: 'orange'},
+                                {name: 'Choithram Hospital', icon: 'hospital', distance: '1.5 km', color: 'red'}
+                            ]
+                        };
+
+                        // Get area-specific places or use default
+                        for (const areaKey in areaPlaces) {
+                            if (detectedArea.includes(areaKey)) {
+                                places = areaPlaces[areaKey];
+                                break;
+                            }
+                        }
+                        
+                        // Fallback to generic nearby places if area not matched
+                        if (places.length === 0) {
+                            places = [
+                                {name: 'Metro/Bus Station', icon: 'bus', distance: '500 m', color: 'emerald'},
+                                {name: 'Shopping Mall', icon: 'shopping-cart', distance: '1.2 km', color: 'orange'},
+                                {name: 'Hospital/Clinic', icon: 'hospital', distance: '1.8 km', color: 'red'},
+                                {name: 'College/University', icon: 'graduation-cap', distance: '2 km', color: 'blue'}
+                            ];
+                        }
+                    }
+
+                    // Update nearby places in the page
+                    const nearbyPlacesSection = document.querySelector('h3:has(i[data-lucide="map-pin"])');
+                    if (nearbyPlacesSection) {
+                        const nearbyContainer = nearbyPlacesSection.closest('section');
+                        if (nearbyContainer) {
+                            const nearbyGrid = nearbyContainer.querySelector('.grid:has(> div[class*="border-l-4"])');
+                            if (nearbyGrid) {
+                                const placesHtml = places.map(p => {
+                                    const colorMap = {
+                                        blue: 'blue-50 border-blue-600 text-blue-900',
+                                        emerald: 'emerald-50 border-emerald-600 text-emerald-900',
+                                        orange: 'orange-50 border-orange-600 text-orange-900',
+                                        red: 'red-50 border-red-600 text-red-900'
+                                    };
+                                    return `<div class="flex items-start p-4 bg-${colorMap[p.color].split(' ')[0]} rounded-lg border-l-4 border-${p.color}-600 hover:shadow-md transition-all duration-300"><i data-lucide="${p.icon}" class="w-6 h-6 mr-4 text-${p.color}-600 flex-shrink-0 mt-1"></i><div><span class="font-bold text-gray-900">${p.name}</span><p class="text-sm text-gray-600">${p.distance} away</p></div></div>`;
+                                }).join('');
+                                nearbyGrid.innerHTML = placesHtml;
+                            }
+                        }
+                    }
+                }
+
+                // Gallery: populate modal grid with professional photos only
+                const galleryImages = (Array.isArray(v.professionalPhotos) && v.professionalPhotos.length > 0) 
+                    ? v.professionalPhotos.slice() 
+                    : (Array.isArray(v.photos) && v.photos.length > 0 ? v.photos.slice() : []);
+
+                const galleryGrid = document.getElementById('galleryGrid');
+                if (galleryGrid) {
+                    galleryGrid.innerHTML = galleryImages.map(src => `<div class="p-1"><img src="${src}" class="w-full h-48 object-cover rounded"></div>`).join('');
+                }
+
+                // attach click handlers to open gallery
+                const openHandler = () => openGallery(galleryImages);
+                [img1, img2, img3].forEach(i => { if (i) { i.style.cursor = 'pointer'; i.removeEventListener('click', openHandler); i.addEventListener('click', openHandler); } });
+
+                // Update price card if available
+                const priceCard = document.querySelector('.sticky-booking-card p.text-3xl');
+                if (priceCard) {
+                    const rent = v.monthlyRent || v.rent || v.price || prop.monthlyRent || prop.rent || 0;
+                    priceCard.innerHTML = `₹${rent} <span class="text-base font-normal text-gray-500">/ bed</span>`;
+                }
+
+                document.title = `${title} - Roomhy`;
+                if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                    window.lucide.createIcons();
+                }
+            }
+
+            // Fallback sample props (kept for demo if localStorage is empty)
+            const sampleProps = {
+                '1': { title: 'Athena House', location: 'Hinjawadi, Pune', badge: 'For Girls', images: ['https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2000&auto=format&fit=crop','https://images.unsplash.com/photo-1615875605825-5eb9bb5c6896?q=80&w=1974&auto=format&fit=crop','https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1932&auto=format&fit=crop'], rating:'4.7', verified:true }
+            };
+
+            function populateFromSample(id) {
+                const data = sampleProps[id];
+                if (!data) return;
+                const titleEl = document.getElementById('property-title');
+                const locEl = document.getElementById('property-location');
+                const badgeEl = document.getElementById('property-badge');
+                const img1 = document.getElementById('property-img-1');
+                const img2 = document.getElementById('property-img-2');
+                const img3 = document.getElementById('property-img-3');
+                const ratingEl = document.getElementById('property-rating');
+                const verifiedEl = document.getElementById('property-verified');
+
+                if (titleEl) titleEl.textContent = data.title;
+                if (locEl) locEl.innerHTML = '<i data-lucide="map-pin" class="w-4 h-4 mr-2"></i>' + data.location;
+                if (badgeEl) badgeEl.textContent = data.badge;
+                if (img1) img1.src = data.images[0] || img1.src;
+                if (img2) img2.src = data.images[1] || img2.src;
+                if (img3) img3.src = data.images[2] || img3.src;
+                // desktop gallery images
+                const img1Desktop = document.getElementById('property-img-1-desktop');
+                const img2Desktop = document.getElementById('property-img-2-desktop');
+                const img3Desktop = document.getElementById('property-img-3-desktop');
+                if (img1Desktop) img1Desktop.src = data.images[0] || img1Desktop.src;
+                if (img2Desktop) img2Desktop.src = data.images[1] || img2Desktop.src;
+                if (img3Desktop) img3Desktop.src = data.images[2] || img3Desktop.src;
+                if (ratingEl) ratingEl.textContent = data.rating;
+                if (verifiedEl) verifiedEl.style.display = data.verified ? 'inline-flex' : 'none';
+                document.title = `${data.title} - Roomhy`;
+                if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
+            }
+
+            // Gallery controls with zoom / pan / scroll
+            (function() {
+                let galleryState = { images: [], index: 0, scale: 1, tx: 0, ty: 0 };
+
+                function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+                function applyTransform() {
+                    const img = document.getElementById('gallery-main-img');
+                    if (!img) return;
+                    img.style.transform = `translate(${galleryState.tx}px, ${galleryState.ty}px) scale(${galleryState.scale})`;
+                }
+
+                function loadImageAt(i) {
+                    const idx = clamp(i, 0, galleryState.images.length - 1);
+                    galleryState.index = idx;
+                    galleryState.scale = 1; galleryState.tx = 0; galleryState.ty = 0;
+                    const img = document.getElementById('gallery-main-img');
+                    if (img) img.src = galleryState.images[idx] || '';
+                    applyTransform();
+                    // highlight thumb
+                    const thumbs = document.querySelectorAll('#gallery-thumbs img');
+                    thumbs.forEach((t, n) => t.classList.toggle('ring-2 ring-blue-500', n === idx));
+                }
+
+                window.openGallery = function(images, startIndex = 0) {
+                    if (!Array.isArray(images) || !images.length) return;
+                    galleryState.images = images.slice();
+                    const modal = document.getElementById('galleryModal');
+                    const thumbs = document.getElementById('gallery-thumbs');
+                    if (!modal || !thumbs) return;
+                    thumbs.innerHTML = galleryState.images.map((s, i) => `<img src="${s}" data-idx="${i}" class="h-20 rounded cursor-pointer object-cover">`).join('');
+                    // attach thumb clicks
+                    thumbs.querySelectorAll('img').forEach(img => img.addEventListener('click', (e) => { loadImageAt(Number(img.dataset.idx)); }));
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                    loadImageAt(startIndex);
+                };
+
+                window.closeGallery = function() {
+                    const modal = document.getElementById('galleryModal');
+                    if (!modal) return;
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                };
+
+                // Controls
+                document.addEventListener('click', (e) => {
+                    if (e.target && e.target.id === 'gallery-close') closeGallery();
+                    if (e.target && e.target.id === 'gallery-next') { loadImageAt(galleryState.index + 1); }
+                    if (e.target && e.target.id === 'gallery-prev') { loadImageAt(galleryState.index - 1); }
+                    if (e.target && e.target.id === 'gallery-zoom-in') { galleryState.scale = clamp(galleryState.scale * 1.25, 0.5, 5); applyTransform(); }
+                    if (e.target && e.target.id === 'gallery-zoom-out') { galleryState.scale = clamp(galleryState.scale / 1.25, 0.5, 5); applyTransform(); }
+                    if (e.target && e.target.id === 'gallery-reset') { galleryState.scale = 1; galleryState.tx = 0; galleryState.ty = 0; applyTransform(); }
+                });
+
+                // Mouse wheel to zoom
+                const content = document.getElementById('galleryContent');
+                const mainImg = document.getElementById('gallery-main-img');
+                if (content && mainImg) {
+                    content.addEventListener('wheel', function(ev) {
+                        ev.preventDefault();
+                        const delta = ev.deltaY;
+                        const factor = Math.exp(-delta * 0.0015);
+                        const oldScale = galleryState.scale;
+                        galleryState.scale = clamp(galleryState.scale * factor, 0.5, 5);
+                        // adjust translate to zoom on pointer
+                        const rect = mainImg.getBoundingClientRect();
+                        const cx = ev.clientX - rect.left - rect.width / 2;
+                        const cy = ev.clientY - rect.top - rect.height / 2;
+                        galleryState.tx += cx - (cx * (galleryState.scale / oldScale));
+                        galleryState.ty += cy - (cy * (galleryState.scale / oldScale));
+                        applyTransform();
+                    }, { passive: false });
+                }
+
+                // Drag to pan
+                let dragging = false, lastX = 0, lastY = 0;
+                function startDrag(e) {
+                    dragging = true; lastX = e.clientX || (e.touches && e.touches[0].clientX); lastY = e.clientY || (e.touches && e.touches[0].clientY);
+                    document.body.style.cursor = 'grabbing';
+                }
+                function moveDrag(e) {
+                    if (!dragging) return;
+                    const cx = e.clientX || (e.touches && e.touches[0].clientX);
+                    const cy = e.clientY || (e.touches && e.touches[0].clientY);
+                    const dx = cx - lastX; const dy = cy - lastY;
+                    lastX = cx; lastY = cy;
+                    galleryState.tx += dx; galleryState.ty += dy; applyTransform();
+                }
+                function endDrag() { dragging = false; document.body.style.cursor = ''; }
+                if (mainImg) {
+                    mainImg.addEventListener('mousedown', (e) => { e.preventDefault(); startDrag(e); });
+                    window.addEventListener('mousemove', moveDrag);
+                    window.addEventListener('mouseup', endDrag);
+                    // touch
+                    mainImg.addEventListener('touchstart', (e) => { if (e.touches.length === 1) startDrag(e.touches[0]); }, { passive: true });
+                    window.addEventListener('touchmove', (e) => { if (e.touches.length === 1) moveDrag(e.touches[0]); }, { passive: false });
+                    window.addEventListener('touchend', endDrag);
+                    // double click to zoom
+                    mainImg.addEventListener('dblclick', () => { galleryState.scale = galleryState.scale > 1 ? 1 : 2; applyTransform(); });
+                }
+            })();
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const id = getParam('id') || '1';
+                const visits = getVisitsFromStorage();
+                let found = null;
+                if (visits && visits.length) {
+                    // direct id match (_id or id)
+                    found = visits.find(x => String(x._id) === String(id) || String(x.id) === String(id));
+                    // try matching by propertyInfo.propertyId or propertyInfo.id
+                    if (!found) {
+                        found = visits.find(x => String(x.propertyInfo?.propertyId) === String(id) || String(x.propertyInfo?.id) === String(id));
+                    }
+                    // try slugified property name match if id looks like a slug or name
+                    if (!found) {
+                        const slug = s => (s||'').toString().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+                        const target = slug(id);
+                        if (target) {
+                            found = visits.find(x => slug(x.propertyInfo?.name) === target || slug(x.propertyInfo?.title) === target);
+                        }
+                    }
+                }
+
+                if (found) {
+                    populateFromVisit(found);
+                    // --- Dynamic What's Nearby Section ---
+                    const whatsNearby = found.nearbyLocation || found.nearbyLocations || (found.propertyInfo && (found.propertyInfo.nearbyLocation || found.propertyInfo.nearbyLocations)) || '';
+                    const whatsNearbyDiv = document.getElementById('whats-nearby-dynamic');
+                    if (whatsNearbyDiv) {
+                        whatsNearbyDiv.innerHTML = whatsNearby
+                            ? `<div class="flex items-start p-4 bg-blue-50 rounded-lg border-l-4 border-blue-600 hover:shadow-md transition-all duration-300"><i data-lucide="navigation-2" class="w-6 h-6 mr-4 text-blue-600 flex-shrink-0 mt-1"></i><div><span class="font-bold text-gray-900">${whatsNearby}</span></div></div>`
+                            : '<div class="text-gray-400">No nearby location data available.</div>';
+                    }
+                    // Roomhy Recommended & Similar Properties (only professional photos)
+                    const allVisits = getVisitsFromStorage();
+                    const thisNearby = found.nearbyLocation || found.nearbyLocations || (found.propertyInfo && (found.propertyInfo.nearbyLocation || found.propertyInfo.nearbyLocations)) || '';
+                    // Filter for recommended: same city/area, not this property
+                    const recommended = allVisits.filter(x => x !== found && (x.city === found.city || (x.propertyInfo && x.propertyInfo.city === found.city)) ).slice(0,4);
+                    const similar = allVisits.filter(x => x !== found && (x.nearbyLocation === thisNearby || (x.propertyInfo && x.propertyInfo.nearbyLocation === thisNearby)) ).slice(0,4);
+
+                    // Render Roomhy Recommended (only professional photos)
+                    const recSlider = document.getElementById('recommended-slider');
+                    if (recSlider && recommended.length) {
+                        recSlider.innerHTML = recommended.map(r => {
+                            const p = r.propertyInfo || {};
+                            const img = (Array.isArray(r.professionalPhotos) && r.professionalPhotos[0]) || 'https://images.unsplash.com/photo-1567016432779-1fee749a1532?q=80&w=1974&auto=format&fit=crop';
+                            const title = p.name || p.title || r.title || 'Property';
+                            const loc = p.area || p.locality || r.city || '';
+                            const price = r.monthlyRent || r.rent || p.monthlyRent || p.rent || 'N/A';
+                            return `<a href="property.html?id=${r._id||r.id||''}" class="group block flex-shrink-0 snap-start w-80"><div class="light-card rounded-xl overflow-hidden h-full"><img src="${img}" alt="Recommended Property" class="w-full h-48 object-cover"><div class="p-4"><h3 class="font-bold text-lg mt-1 truncate">${title}</h3><p class="text-gray-500 text-sm mt-1 truncate">${loc}</p><p class="font-bold mt-2">₹${price} <span class=\"text-sm font-normal text-gray-500\">/ mo</span></p></div></div></a>`;
+                        }).join('');
+                    }
+                    // Render Similar Properties (only professional photos)
+                    const simSlider = document.getElementById('similar-slider');
+                    if (simSlider && similar.length) {
+                        simSlider.innerHTML = similar.map(r => {
+                            const p = r.propertyInfo || {};
+                            const img = (Array.isArray(r.professionalPhotos) && r.professionalPhotos[0]) || 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=2070&auto=format&fit=crop';
+                            const title = p.name || p.title || r.title || 'Property';
+                            const loc = p.area || p.locality || r.city || '';
+                            const price = r.monthlyRent || r.rent || p.monthlyRent || p.rent || 'N/A';
+                            return `<a href="property.html?id=${r._id||r.id||''}" class="group block flex-shrink-0 snap-start w-80"><div class="light-card rounded-2xl overflow-hidden h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-gray-200"><div class="relative h-48 overflow-hidden"><img src="${img}" alt="Similar Property" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"></div><div class="p-5"><h3 class="font-bold text-lg mt-1 truncate text-gray-900">${title}</h3><div class="flex items-center space-x-1 text-gray-600 text-sm mt-2"><i data-lucide=\"map-pin\" class=\"w-4 h-4\"></i><p class="truncate">${loc}</p></div><div class="flex justify-between items-end mt-4 pt-4 border-t border-gray-200"><p class="font-bold text-lg text-gray-900">₹${price} <span class=\"text-sm font-normal text-gray-500\">/ mo</span></p><button class=\"text-emerald-600 hover:text-emerald-700 font-bold text-sm\">View →</button></div></div></div></a>`;
+                        }).join('');
+                    }
+                } else {
+                    populateFromSample(id);
+                }
+
+                // Load and display website banner photo
+                loadWebsiteBannerPhoto();
+            });
+        })();
+
+        /* Mobile Side Menu JS */
+        const menuToggle = document.getElementById('menu-toggle');
+        const menuClose = document.getElementById('menu-close');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuOverlay = document.getElementById('menu-overlay');
+
+        if (menuToggle && mobileMenu && menuClose && menuOverlay) {
+            menuToggle.addEventListener('click', () => {
+                mobileMenu.classList.remove('translate-x-full');
+                menuOverlay.classList.remove('hidden');
+            });
+            const closeMenu = () => {
+                mobileMenu.classList.add('translate-x-full');
+                menuOverlay.classList.add('hidden');
+            };
+            menuClose.addEventListener('click', closeMenu);
+            menuOverlay.addEventListener('click', closeMenu);
+            mobileMenu.querySelectorAll('a').forEach(link => { link.addEventListener('click', closeMenu); });
+        }
+
+         /* FAQ Accordion Logic with Smooth Animations */
+         const faqContainer = document.getElementById('faq-container');
+         if(faqContainer) {
+            const faqItems = faqContainer.querySelectorAll('.faq-item');
+            
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question');
+                const answer = item.querySelector('.faq-answer');
+                const icon = item.querySelector('.icon-plus');
+                
+                question.addEventListener('click', () => {
+                    const isActive = item.classList.contains('active');
+                    
+                    // Close all other items
+                    faqItems.forEach(otherItem => {
+                        if(otherItem !== item && otherItem.classList.contains('active')) {
+                            otherItem.classList.remove('active');
+                            const otherIcon = otherItem.querySelector('.icon-plus');
+                            if(otherIcon) {
+                                otherIcon.style.transform = 'rotate(0deg)';
+                            }
+                            const otherAnswer = otherItem.querySelector('.faq-answer');
+                            if(otherAnswer) {
+                                otherAnswer.style.maxHeight = '0px';
+                                otherAnswer.classList.add('hidden');
+                            }
+                        }
+                    });
+                    
+                    // Toggle current item
+                    item.classList.toggle('active');
+                    
+                    if(answer && icon) {
+                        if(!isActive) {
+                            item.classList.add('active');
+                            answer.classList.remove('hidden');
+                            answer.style.maxHeight = answer.scrollHeight + 'px';
+                            icon.style.transform = 'rotate(45deg)';
+                        } else {
+                            item.classList.remove('active');
+                            answer.style.maxHeight = '0px';
+                            setTimeout(() => {
+                                answer.classList.add('hidden');
+                            }, 300);
+                            icon.style.transform = 'rotate(0deg)';
+                        }
+                    }
+                });
+            });
+         }
+        
+        /* Roomhy Recommended Slider (NEW) */
+        const recommendedSlider = document.getElementById('recommended-slider');
+        const recommendedPrev = document.getElementById('recommended-prev');
+        const recommendedNext = document.getElementById('recommended-next');
+        
+        if (recommendedSlider && recommendedPrev && recommendedNext) {
+            const recommendedCardWidth = recommendedSlider.querySelector(':first-child')?.offsetWidth + 24 || 344; // w-80 + gap-6
+            recommendedNext.addEventListener('click', () => {
+                recommendedSlider.scrollBy({ left: recommendedCardWidth, behavior: 'smooth' });
+            });
+            recommendedPrev.addEventListener('click', () => {
+                recommendedSlider.scrollBy({ left: -recommendedCardWidth, behavior: 'smooth' });
+            });
+        }
+
+        /* Similar Properties Slider */
+        const similarSlider = document.getElementById('similar-slider');
+        const similarPrev = document.getElementById('similar-prev');
+        const similarNext = document.getElementById('similar-next');
+        
+        if (similarSlider && similarPrev && similarNext) {
+            const similarCardWidth = similarSlider.querySelector(':first-child')?.offsetWidth + 24 || 344; // w-80 + gap-6
+            similarNext.addEventListener('click', () => {
+                similarSlider.scrollBy({ left: similarCardWidth, behavior: 'smooth' });
+            });
+            similarPrev.addEventListener('click', () => {
+                similarSlider.scrollBy({ left: -similarCardWidth, behavior: 'smooth' });
+            });
+        }
+
+
+        /* Share Modal Logic */
+        const shareButton = document.getElementById('share-button');
+        const shareModal = document.getElementById('share-modal');
+        const closeModalButton = document.getElementById('close-modal-button');
+        const shareLinkInput = document.getElementById('share-link-input');
+        const copyLinkButton = document.getElementById('copy-link-button');
+
+        if(shareButton && shareModal && closeModalButton && shareLinkInput && copyLinkButton) {
+            shareButton.addEventListener('click', () => {
+                shareLinkInput.value = window.location.href; // Get current URL
+                shareModal.classList.remove('hidden');
+                shareModal.classList.add('flex');
+                 setTimeout(() => copyLinkButton.textContent = 'Copy', 100); // Reset copy button text
+            });
+
+            const hideModal = () => {
+                shareModal.classList.add('hidden');
+                shareModal.classList.remove('flex');
+            };
+
+            closeModalButton.addEventListener('click', hideModal);
+            shareModal.addEventListener('click', (e) => {
+                if (e.target === shareModal) { 
+                    hideModal();
+                }
+            });
+            
+            copyLinkButton.addEventListener('click', () => {
+                shareLinkInput.select();
+                shareLinkInput.setSelectionRange(0, 99999); 
+                
+                try {
+                     if (navigator.clipboard && navigator.clipboard.writeText) {
+                         navigator.clipboard.writeText(shareLinkInput.value).then(() => {
+                            copyLinkButton.textContent = 'Copied!';
+                            setTimeout(() => copyLinkButton.textContent = 'Copy', 2000);
+                         }).catch(err => {
+                             console.error('Async: Could not copy text: ', err);
+                             legacyCopy(); 
+                         });
+                     } else {
+                        legacyCopy(); 
+                     }
+                } catch (err) {
+                    console.error('Failed to copy text: ', err);
+                }
+            });
+
+            function legacyCopy() {
+                 try {
+                    document.execCommand('copy');
+                    copyLinkButton.textContent = 'Copied!';
+                    setTimeout(() => copyLinkButton.textContent = 'Copy', 2000);
+                 } catch (err) {
+                     console.error('Fallback copy failed: ', err);
+                 }
+            }
+        }
+
+        /* Save Button Placeholder Logic */
+        const saveButton = document.getElementById('save-button');
+        if (saveButton) {
+            let isSaved = false;
+            // lucide may replace the <i> element with an <svg>, so try both
+            function getHeartIcon() {
+                return saveButton.querySelector('i[data-lucide="heart"]') || saveButton.querySelector('svg') || null;
+            }
+
+            function updateSaveButton() {
+                const heartIcon = getHeartIcon();
+                if (isSaved) {
+                    if (heartIcon && heartIcon.classList) {
+                        heartIcon.classList.add('fill-red-500', 'text-red-500');
+                    }
+                    saveButton.classList.remove('text-gray-600', 'hover:text-red-600');
+                    saveButton.classList.add('text-red-600');
+                } else {
+                    if (heartIcon && heartIcon.classList) {
+                        heartIcon.classList.remove('fill-red-500', 'text-red-500');
+                    }
+                    saveButton.classList.remove('text-red-600');
+                    saveButton.classList.add('text-gray-600', 'hover:text-red-600');
+                }
+            }
+
+            saveButton.addEventListener('click', () => {
+                isSaved = !isSaved;
+                updateSaveButton();
+                console.log('Save status toggled:', isSaved);
+            });
+
+            updateSaveButton();
+        }
+
+        /* Auth-required modal + toast helper */
+        (function(){
+            // Insert simple toast utility (used across this page)
+            window.showToast = function(message, type='info', duration=3000){
+                try{
+                    const toast = document.createElement('div');
+                    toast.className = 'toast-notification fixed z-50 right-6 bottom-6 max-w-xs px-4 py-3 rounded shadow-lg text-sm text-white';
+                    toast.style.transition = 'transform 240ms ease, opacity 240ms ease';
+                    toast.style.opacity = '0';
+                    if(type === 'success') toast.style.background = 'linear-gradient(90deg,#10b981,#059669)';
+                    else if(type === 'error') toast.style.background = 'linear-gradient(90deg,#ef4444,#dc2626)';
+                    else toast.style.background = 'linear-gradient(90deg,#3b82f6,#06b6d4)';
+                    toast.textContent = message;
+                    document.body.appendChild(toast);
+                    requestAnimationFrame(()=>{ toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; });
+                    setTimeout(()=>{ toast.style.opacity = '0'; toast.style.transform = 'translateY(10px)'; setTimeout(()=>toast.remove(),300); }, duration);
+                }catch(e){ console.warn('showToast failed', e); }
+            };
+
+            window.isAuthenticated = function(){
+                try{
+                    const t = localStorage.getItem('tenant_user');
+                    const u = localStorage.getItem('user');
+                    if(t && t.length>5) return true;
+                    if(u && u.length>5) return true;
+                    return false;
+                }catch(e){ return false; }
+            };
+
+            window.promptLogin = function(){
+                // Show modal and then redirect to login after short delay
+                const m = document.getElementById('auth-required-modal');
+                if(m){ m.classList.remove('hidden'); m.classList.add('flex'); }
+            };
+
+            window.redirectToLogin = function(){
+                // optional: preserve current page to return after login
+                try{ localStorage.setItem('post_login_redirect', window.location.href); }catch(e){}
+                window.location.href = 'login.html';
+            };
+        })();
+
+        /* Bid Now Button Logic - with ₹500 refundable bid */
+        const bidNowBtn = document.getElementById('bid-now-btn');
+        const paymentModal = document.getElementById('payment-modal');
+        const paymentCloseBtn = document.getElementById('payment-close-btn');
+        const submitBidBtn = document.getElementById('submit-bid-btn');
+        const acceptTermsCheckbox = document.getElementById('accept-terms');
+
+        if (bidNowBtn && paymentModal) {
+            bidNowBtn.addEventListener('click', () => {
+                if (!window.isAuthenticated || !window.isAuthenticated()) {
+                    window.promptLogin();
+                    return;
+                }
+                const propertyName = document.getElementById('property-title')?.textContent || 'Property';
+                const propertyBudget = document.getElementById('property-budget')?.textContent || '₹0';
+                
+                document.getElementById('payment-property-name').textContent = propertyName;
+                document.getElementById('payment-budget').textContent = propertyBudget;
+                document.getElementById('payment-total').textContent = '₹500';
+                
+                paymentModal.classList.remove('hidden');
+                paymentModal.classList.add('flex');
+            });
+        }
+
+        if (paymentCloseBtn && paymentModal) {
+            paymentCloseBtn.addEventListener('click', () => {
+                paymentModal.classList.add('hidden');
+                paymentModal.classList.remove('flex');
+            });
+        }
+
+        // Update submit button state based on terms acceptance
+        if (acceptTermsCheckbox && submitBidBtn) {
+            acceptTermsCheckbox.addEventListener('change', () => {
+                submitBidBtn.disabled = !acceptTermsCheckbox.checked;
+            });
+            submitBidBtn.disabled = true; // Initially disabled
+        }
+
+        // Submit Bid Button
+        if (submitBidBtn) {
+            submitBidBtn.addEventListener('click', async () => {
+                if (!window.isAuthenticated || !window.isAuthenticated()) {
+                    window.promptLogin();
+                    return;
+                }
+                const tenantData = JSON.parse(localStorage.getItem('tenant_user') || '{}');
+                const propertyName = document.getElementById('payment-property-name')?.textContent || 'Unknown Property';
+                
+                const bidRecord = {
+                    bidId: 'BID_' + Date.now(),
+                    tenantId: tenantData.id || tenantData._id || 'unknown',
+                    tenantName: tenantData.name || tenantData.username || 'Anonymous',
+                    tenantPhone: tenantData.phone || 'Not provided',
+                    tenantEmail: tenantData.email || 'Not provided',
+                    propertyName: propertyName,
+                    bidAmount: 500,
+                    refundable: true,
+                    status: 'pending',
+                    priority: 'high', // Higher priority for bid
+                    createdAt: new Date().toISOString(),
+                    expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
+                    visitSlots: [], // Will be populated after owner accepts
+                    chatEnabled: false, // Will be enabled after owner accepts
+                };
+
+                // Save bid to localStorage (for owner panel)
+                const ownerBids = JSON.parse(localStorage.getItem('owner_property_bids') || '[]');
+                ownerBids.unshift(bidRecord);
+                localStorage.setItem('owner_property_bids', JSON.stringify(ownerBids));
+
+                // Save payment record
+                const tenantBids = JSON.parse(localStorage.getItem('tenant_bids') || '[]');
+                tenantBids.push(bidRecord);
+                localStorage.setItem('tenant_bids', JSON.stringify(tenantBids));
+
+                // Show success message
+                submitBidBtn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i><span>Bid Placed Successfully!</span>';
+                submitBidBtn.disabled = true;
+                submitBidBtn.classList.add('bg-green-600');
+                if (window.showToast) window.showToast('Bid placed successfully', 'success');
+
+                setTimeout(() => {
+                    paymentModal.classList.add('hidden');
+                    paymentModal.classList.remove('flex');
+                    
+                    // Enhanced success message with chat link
+                    const goToChat = confirm('✓ Bid of ₹500 placed successfully!\n\nYour bid has been sent to the property owner with HIGH PRIORITY.\n\nYour bid is valid for 7 days.\n\nWould you like to go to Chat now?\n(Chat will be available after owner accepts your bid)');
+                    
+                    if (goToChat) {
+                        window.location.href = '../chat.html';
+                    }
+                    
+                    // Reset
+                    submitBidBtn.innerHTML = '<i data-lucide="lock" class="w-5 h-5"></i><span>Proceed to Payment</span>';
+                    submitBidBtn.disabled = !acceptTermsCheckbox.checked;
+                    submitBidBtn.classList.remove('bg-green-600');
+                    acceptTermsCheckbox.checked = false;
+                    if (window.lucide) window.lucide.createIcons();
+                }, 1500);
+
+                console.log('Bid record created:', bidRecord);
+            });
+        }
+
+
+        /* Request Button Logic - Send notification to owner admin panel */
+                // Connect Owner Button Logic
+                const connectOwnerBtn = document.getElementById('connect-owner-btn');
+                if (connectOwnerBtn) {
+                    connectOwnerBtn.addEventListener('click', async () => {
+                        if (!window.isAuthenticated || !window.isAuthenticated()) {
+                            window.promptLogin();
+                            return;
+                        }
+                        const tenantData = JSON.parse(localStorage.getItem('user') || localStorage.getItem('tenant_user') || '{}');
+                        let ownerLoginId = 'default_owner';
+                        try {
+                            const propertyDataStr = sessionStorage.getItem('currentProperty');
+                            if (propertyDataStr) {
+                                const propData = JSON.parse(propertyDataStr);
+                                ownerLoginId = propData.ownerLoginId || propData.ownerId || propData.owner_id || 'default_owner';
+                            }
+                        } catch (e) {}
+                        const propertyData = {
+                            propertyId: document.getElementById('property-title')?.textContent || 'Unknown Property',
+                            propertyName: document.getElementById('property-title')?.textContent || 'Unknown Property',
+                            location: document.getElementById('property-location')?.textContent || 'Unknown Location',
+                            budget: document.getElementById('property-budget')?.textContent || '₹0',
+                        };
+                        const enquiryRecord = {
+                            type: 'enquiry',
+                            studentId: tenantData.id || tenantData._id || tenantData.email || 'unknown',
+                            studentName: tenantData.name || tenantData.username || 'Anonymous Tenant',
+                            studentEmail: tenantData.email || 'Not provided',
+                            studentPhone: tenantData.phone || 'Not provided',
+                            propertyId: propertyData.propertyId,
+                            propertyName: propertyData.propertyName,
+                            location: propertyData.location,
+                            ts: new Date().toISOString(),
+                            status: 'request to connect',
+                            paidAmount: 0,
+                        };
+                        // Send to backend enquiryController
+                        try {
+                            await fetch(`/api/owners/${ownerLoginId}/enquiries`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(enquiryRecord)
+                            });
+                        } catch (e) {
+                            // fallback to localStorage if backend fails
+                            const ownerEnquiries = JSON.parse(localStorage.getItem('owner_enquiries_' + ownerLoginId) || '[]');
+                            ownerEnquiries.unshift(enquiryRecord);
+                            localStorage.setItem('owner_enquiries_' + ownerLoginId, JSON.stringify(ownerEnquiries));
+                        }
+                        // Optionally emit socket event if available
+                        if (window.io) {
+                            try {
+                                const socket = window.io();
+                                socket.emit('enquiry_notification', {
+                                    ...enquiryRecord,
+                                    ownerEmail: 'owner@property.com'
+                                });
+                            } catch (e) {}
+                        }
+                        connectOwnerBtn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i><span>Request Sent!</span>';
+                        connectOwnerBtn.disabled = true;
+                        connectOwnerBtn.classList.add('opacity-60');
+                        if (window.showToast) window.showToast('Your request has been sent successfully', 'success');
+                        setTimeout(() => {
+                            connectOwnerBtn.innerHTML = 'Connect Owner';
+                            connectOwnerBtn.disabled = false;
+                            connectOwnerBtn.classList.remove('opacity-60');
+                            if (window.lucide) window.lucide.createIcons();
+                        }, 2000);
+                    });
+                }
+        const requestBtn = document.getElementById('request-btn');
+
+        if (requestBtn) {
+            requestBtn.addEventListener('click', async () => {
+                if (!window.isAuthenticated || !window.isAuthenticated()) {
+                    window.promptLogin();
+                    return;
+                }
+                const tenantData = JSON.parse(localStorage.getItem('user') || localStorage.getItem('tenant_user') || '{}');
+                
+                // Try to get property owner ID from the page or use default
+                let ownerId = 'default_owner';
+                try {
+                    // Try to extract from property data if available
+                    const propertyDataStr = sessionStorage.getItem('currentProperty');
+                    if (propertyDataStr) {
+                        const propData = JSON.parse(propertyDataStr);
+                        ownerId = propData.ownerId || propData.ownerLoginId || propData.owner_id || 'default_owner';
+                    }
+                } catch (e) {
+                    // Fall back to default
+                }
+                
+                const propertyData = {
+                    propertyId: document.getElementById('property-title')?.textContent || 'Unknown Property',
+                    propertyName: document.getElementById('property-title')?.textContent || 'Unknown Property',
+                    location: document.getElementById('property-location')?.textContent || 'Unknown Location',
+                    budget: document.getElementById('property-budget')?.textContent || '₹0',
+                };
+
+                const enquiryRecord = {
+                    id: Date.now().toString(),
+                    type: 'enquiry',
+                    studentId: tenantData.id || tenantData._id || tenantData.email || 'unknown',
+                    studentName: tenantData.name || tenantData.username || 'Anonymous Tenant',
+                    studentEmail: tenantData.email || 'Not provided',
+                    studentPhone: tenantData.phone || 'Not provided',
+                    propertyId: propertyData.propertyId,
+                    propertyName: propertyData.propertyName,
+                    location: propertyData.location,
+                    ts: new Date().toISOString(),
+                    status: 'pending',
+                    paidAmount: 0,
+                };
+
+                // Store in localStorage for owner dashboard - use the key that admin.html expects
+                const ownerEnquiries = JSON.parse(localStorage.getItem('owner_enquiries_' + ownerId) || '[]');
+                ownerEnquiries.unshift(enquiryRecord);
+                localStorage.setItem('owner_enquiries_' + ownerId, JSON.stringify(ownerEnquiries));
+
+                // Emit socket event if available
+                if (window.io) {
+                    try {
+                        const socket = window.io();
+                        socket.emit('enquiry_notification', {
+                            ...enquiryRecord,
+                            ownerEmail: 'owner@property.com' // Replace with actual owner email
+                        });
+                    } catch (e) {
+                        console.log('Socket not available, using localStorage');
+                    }
+                }
+
+                // Show confirmation (no chat dialog)
+                const confirmBtn = requestBtn;
+                const originalText = confirmBtn.innerHTML;
+                confirmBtn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i><span>Request Sent!</span>';
+                confirmBtn.disabled = true;
+                confirmBtn.classList.add('opacity-60');
+                if (window.showToast) window.showToast('Your request has been sent successfully', 'success');
+                
+                setTimeout(() => {
+                    confirmBtn.innerHTML = originalText;
+                    confirmBtn.disabled = false;
+                    confirmBtn.classList.remove('opacity-60');
+                    if (window.lucide) window.lucide.createIcons();
+                }, 2000);
+
+                // Log enquiry for debugging
+                console.log('Enquiry created:', enquiryRecord);
+            });
+        }
+
+        // Auth modal button handlers
+        (function(){
+            const loginBtn = document.getElementById('auth-modal-login');
+            const signupBtn = document.getElementById('auth-modal-signup');
+            const closeBtn = document.getElementById('auth-modal-close');
+            const modal = document.getElementById('auth-required-modal');
+            if (loginBtn) loginBtn.addEventListener('click', () => { try{ if(modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); } }catch(e){}; window.redirectToLogin(); });
+            if (signupBtn) signupBtn.addEventListener('click', () => { try{ if(modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); } }catch(e){}; window.location.href = 'signup.html'; });
+            if (closeBtn) closeBtn.addEventListener('click', () => { if(modal){ modal.classList.add('hidden'); modal.classList.remove('flex'); } });
+        })();
+
+
+    </script>
+    <script>
+        // Gallery JS: populate professional photos from roomhy_visits
+        (function(){
+            const thumbnailsEl = document.getElementById('galleryThumbnails');
+            const mainImg = document.getElementById('mainGalleryImage');
+            const mainContainer = document.getElementById('mainImageContainer');
+            const imageCounter = document.getElementById('imageCounter');
+            const totalImages = document.getElementById('totalImages');
+            const zoomModal = document.getElementById('imageZoomModal');
+            const zoomedImage = document.getElementById('zoomedImage');
+            const zoomLevelEl = document.getElementById('zoomLevel');
+            const zoomImageCounter = document.getElementById('zoomImageCounter');
+            const zoomTotalImages = document.getElementById('zoomTotalImages');
+
+            let galleryPhotos = [];
+            let currentIndex = 0;
+            let zoomLevel = 1;
+
+            function loadProfessionalPhotos() {
+                try {
+                    // Collect professionalPhotos arrays from visits for this property (if property id available in query)
+                    const params = new URLSearchParams(window.location.search);
+                    const propertyId = params.get('id') || null;
+                    const visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+                    // Filter visits for this propertyId (or show all professionalPhotos if none)
+                    let photos = [];
+                    visits.forEach(v => {
+                        if (Array.isArray(v.professionalPhotos) && v.professionalPhotos.length>0) {
+                            if (!propertyId || (v.propertyId && String(v.propertyId) === String(propertyId)) || (v._id && String(v._id) === String(propertyId))) {
+                                photos = photos.concat(v.professionalPhotos);
+                            }
+                        }
+                    });
+
+                    // Deduplicate and limit to 50 (safe guard)
+                    const unique = Array.from(new Set(photos)).slice(0, 50);
+                    galleryPhotos = unique;
+                    renderGallery();
+                } catch (e) { console.warn('Failed loading professional photos', e); }
+            }
+
+            function renderGallery() {
+                if (!thumbnailsEl || !mainImg) return;
+                thumbnailsEl.innerHTML = '';
+                if (!galleryPhotos || galleryPhotos.length === 0) {
+                    thumbnailsEl.innerHTML = '<div class="text-xs text-gray-400">No professional photos available</div>';
+                    mainImg.src = mainImg.src; // keep default
+                    totalImages.textContent = 0;
+                    return;
+                }
+                totalImages.textContent = galleryPhotos.length;
+                zoomTotalImages.textContent = galleryPhotos.length;
+                galleryPhotos.forEach((src, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'w-32 h-20 flex-shrink-0 overflow-hidden rounded-lg gallery-thumbnail border border-gray-200 bg-white';
+                    div.innerHTML = `<img src="${src}" data-index="${i}" class="w-full h-full object-cover">`;
+                    div.addEventListener('click', () => { setActiveImage(i); });
+                    thumbnailsEl.appendChild(div);
+                });
+                // Activate first image
+                setActiveImage(0);
+            }
+
+            function setActiveImage(idx) {
+                if (!galleryPhotos || !galleryPhotos[idx]) return;
+                currentIndex = idx;
+                mainImg.src = galleryPhotos[idx];
+                imageCounter.textContent = idx + 1;
+                zoomImageCounter.textContent = idx + 1;
+                // Mark active thumbnail
+                const thumbs = thumbnailsEl.querySelectorAll('.gallery-thumbnail');
+                thumbs.forEach((t, i) => t.classList.toggle('active', i === idx));
+            }
+
+            // Zoom modal handlers
+            window.openImageZoom = function() {
+                if (!galleryPhotos || galleryPhotos.length === 0) return;
+                zoomedImage.src = galleryPhotos[currentIndex];
+                zoomModal.classList.remove('hidden');
+                zoomModal.classList.add('flex');
+                zoomLevel = 1; updateZoom();
+            }
+            window.closeImageZoom = function() {
+                zoomModal.classList.add('hidden');
+                zoomModal.classList.remove('flex');
+            }
+            window.zoomIn = function() { zoomLevel = Math.min(4, zoomLevel + 0.25); updateZoom(); }
+            window.zoomOut = function() { zoomLevel = Math.max(1, zoomLevel - 0.25); updateZoom(); }
+            window.resetZoom = function() { zoomLevel = 1; updateZoom(); }
+            function updateZoom() { if (zoomedImage) { zoomedImage.style.transform = `scale(${zoomLevel})`; zoomLevelEl.textContent = Math.round(zoomLevel*100) + '%'; } }
+
+            window.nextImage = function() { if (!galleryPhotos || galleryPhotos.length===0) return; currentIndex = (currentIndex + 1) % galleryPhotos.length; zoomedImage.src = galleryPhotos[currentIndex]; setActiveImage(currentIndex); }
+            window.previousImage = function() { if (!galleryPhotos || galleryPhotos.length===0) return; currentIndex = (currentIndex - 1 + galleryPhotos.length) % galleryPhotos.length; zoomedImage.src = galleryPhotos[currentIndex]; setActiveImage(currentIndex); }
+
+            // Keyboard support for modal
+            document.addEventListener('keydown', (e) => {
+                if (!zoomModal || zoomModal.classList.contains('hidden')) return;
+                if (e.key === 'ArrowRight') nextImage();
+                if (e.key === 'ArrowLeft') previousImage();
+                if (e.key === 'Escape') closeImageZoom();
+                if (e.key === '+' || e.key === '=') zoomIn();
+                if (e.key === '-') zoomOut();
+            });
+
+            // Initialize
+            loadProfessionalPhotos();
+        })();
+    </script>
+</body>
+</html>

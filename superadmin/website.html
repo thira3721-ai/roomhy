@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roomhy - Website Properties</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="../js/cloudinary-upload.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .sidebar { background-color: #111827; color: #9ca3af; }
+        .sidebar-link {
+            display: flex; align-items: center; padding: 0.75rem 1.5rem; 
+            color: #9ca3af; font-weight: 500; font-size: 0.9rem;
+            transition: all 0.2s; border-left: 3px solid transparent; cursor: pointer;
+        }
+        .sidebar-link:hover { background-color: #1f2937; color: #f3f4f6; }
+        .sidebar-link.active { background-color: #1f2937; color: #ffffff; border-left-color: #a855f7; }
+        .submenu { background-color: #0f172a; overflow: hidden; transition: max-height 0.3s ease-in-out; max-height: 0; }
+        .submenu.open { max-height: 500px; }
+        .submenu a { padding-left: 3.5rem; font-size: 0.85rem; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="text-slate-800">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar w-72 flex-shrink-0 hidden md:flex flex-col z-20 overflow-y-auto custom-scrollbar">
+            <div class="h-16 flex items-center px-6 border-b border-gray-800 sticky top-0 bg-[#111827] z-10">
+                 <div class="flex items-center gap-3">
+                     <div class="bg-purple-600 p-1.5 rounded-lg"><i data-lucide="building-2" class="w-5 h-5 text-white"></i></div>
+                     <div><h1 class="text-xl font-bold text-white">RoomHy</h1><span class="text-[10px] text-gray-500">SUPER ADMIN</span></div>
+                 </div>
+            </div>
+            <nav class="flex-1 py-6 space-y-1">
+                <div class="px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Overview</div>
+                <a href="../superadmin.html" class="sidebar-link"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard</a>
+
+                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Management</div>
+                <a href="manager.html" class="sidebar-link"><i data-lucide="map-pin" class="w-5 h-5 mr-3"></i> Teams</a>
+                <a href="owner.html" class="sidebar-link"><i data-lucide="briefcase" class="w-5 h-5 mr-3"></i> Property Owners</a>
+                <a href="properties.html" class="sidebar-link"><i data-lucide="home" class="w-5 h-5 mr-3"></i> Properties</a>
+                <a href="tenant.html" class="sidebar-link"><i data-lucide="users" class="w-5 h-5 mr-3"></i> Tenants</a>
+                <a href="kyc_verification.html" class="sidebar-link"><i data-lucide="file-badge" class="w-5 h-5 mr-3"></i> KYC Verification</a>
+                <a href="new_signups.html" class="sidebar-link"><i data-lucide="user-plus" class="w-5 h-5 mr-3"></i> New Signups</a>
+
+                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Operations</div>
+                <a href="tenant_rec.html" class="sidebar-link"><i data-lucide="folder-open" class="w-5 h-5 mr-3"></i> Tenant Records</a>
+                <a href="enquiry.html" class="sidebar-link"><i data-lucide="help-circle" class="w-5 h-5 mr-3"></i> Enquiries</a>
+                <a href="booking.html" class="sidebar-link"><i data-lucide="calendar-check" class="w-5 h-5 mr-3"></i> Bookings</a>
+                <a href="reviews.html" class="sidebar-link"><i data-lucide="star" class="w-5 h-5 mr-3"></i> Reviews</a>
+                <a href="complaint-history.html" class="sidebar-link"><i data-lucide="alert-circle" class="w-5 h-5 mr-3"></i> Complaint History</a>
+
+                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Website</div>
+                <a href="website.html" class="sidebar-link active"><i data-lucide="globe" class="w-5 h-5 mr-3"></i> Live Properties</a>
+
+                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Finance</div>
+                <div class="group">
+                    <div class="sidebar-link justify-between" onclick="toggleSubmenu('finance-submenu', this)">
+                        <div class="flex items-center"><i data-lucide="wallet" class="w-5 h-5 mr-3"></i> Finance</div>
+                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
+                    </div>
+                    <div id="finance-submenu" class="submenu">
+                        <a href="rentcollection.html" class="sidebar-link">Rent Collections</a>
+                        <a href="platform.html" class="sidebar-link">Commissions</a>
+                        <a href="refund.html" class="sidebar-link">Refunds</a>
+                        <a href="payment_disputes.html" class="sidebar-link">Payment Disputes</a>
+                    </div>
+                </div>
+
+                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">System</div>
+                 <a href="chatadmin.html" class="sidebar-link"><i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Chats</a>
+                 <a href="location.html" class="sidebar-link"><i data-lucide="globe" class="w-5 h-5 mr-3"></i> Locations</a>
+                 <a href="settings.html" class="sidebar-link"><i data-lucide="settings" class="w-5 h-5 mr-3"></i> Settings</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden bg-[#f3f4f6]">
+            <header class="bg-white h-16 flex items-center justify-between px-8 shadow-sm z-10 border-b border-gray-200">
+                <div class="flex items-center">
+                    <button id="mobile-menu-open" class="md:hidden mr-4 text-slate-500"><i data-lucide="menu" class="w-6 h-6"></i></button>
+                    <h1 class="text-xl font-bold text-gray-800">Live Properties on Website</h1>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="loadWebsite()" class="text-sm text-purple-600 hover:underline flex items-center gap-1"><i data-lucide="refresh-cw" class="w-3 h-3"></i> Refresh</button>
+                    <button onclick="exportToExcel()" class="text-sm text-gray-600 hover:underline flex items-center gap-1"><i data-lucide="download" class="w-3 h-3"></i> Export</button>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-8">
+                <div class="max-w-[1600px] mx-auto">
+                    <!-- Website Photo Section -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                        <h2 class="text-lg font-bold text-gray-800 mb-4">Website Banner Photo</h2>
+                        <div class="flex flex-col md:flex-row gap-6 items-start">
+                            <div class="flex-1">
+                                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition-colors" onclick="document.getElementById('websitePhotoInput').click()">
+                                    <i data-lucide="image-plus" class="w-12 h-12 text-gray-400 mx-auto mb-2"></i>
+                                    <p class="text-sm font-medium text-gray-700">Click to upload or drag and drop</p>
+                                    <p class="text-xs text-gray-500 mt-1">PNG, JPG, GIF up to 10MB</p>
+                                    <input type="file" id="websitePhotoInput" class="hidden" accept="image/*" onchange="handleWebsitePhotoUpload(event)">
+                                </div>
+                            </div>
+                            <div id="websitePhotoPreview" class="flex-1 hidden">
+                                <img id="websitePhotoImg" src="" alt="Preview" class="max-w-full h-auto rounded-lg border border-gray-200">
+                                <button onclick="removeWebsitePhoto()" class="mt-3 px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition">Remove Photo</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="flex items-center gap-3 mb-4">
+                        <button id="tabOnline" onclick="setWebsiteFilter('online')" class="px-3 py-2 bg-purple-600 text-white rounded">Online</button>
+                        <button id="tabOffline" onclick="setWebsiteFilter('offline')" class="px-3 py-2 bg-gray-100 text-gray-700 rounded">Offline</button>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                            <p class="text-xs text-gray-500 uppercase tracking-wider">Total Live Properties</p>
+                            <h3 id="totalCount" class="text-3xl font-bold text-gray-900 mt-1">0</h3>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                            <p class="text-xs text-gray-500 uppercase tracking-wider">With Prof. Photos</p>
+                            <h3 id="profCount" class="text-3xl font-bold text-green-600 mt-1">0</h3>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                            <p class="text-xs text-gray-500 uppercase tracking-wider">Without Prof. Photos</p>
+                            <h3 id="noProfCount" class="text-3xl font-bold text-orange-600 mt-1">0</h3>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-gray-50 text-gray-500 text-[10px] uppercase border-b">
+                                    <tr>
+                                        <th class="px-4 py-3">Visit ID</th>
+                                        <th class="px-4 py-3">Date</th>
+                                        <th class="px-4 py-3">Property Name</th>
+                                        <th class="px-4 py-3">Type</th>
+                                        <th class="px-4 py-3">Area</th>
+                                        <th class="px-4 py-3">Gender</th>
+                                        <th class="px-4 py-3">Owner</th>
+                                        <th class="px-4 py-3">Contact</th>
+                                        <th class="px-4 py-3">Rent</th>
+                                        <th class="px-4 py-3">Prof. Photos</th>
+                                        <th class="px-4 py-3">Web Status</th>
+                                        <th class="px-4 py-3 text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="websiteBody" class="divide-y divide-gray-100">
+                                    <tr><td colspan="11" class="px-6 py-12 text-center text-gray-400">Loading properties...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[60] backdrop-blur-sm" onclick="closeImageModal()">
+        <div class="relative w-full max-w-4xl p-4" onclick="event.stopPropagation()">
+            <button onclick="closeImageModal()" class="absolute -top-10 right-0 text-white"><i data-lucide="x" class="w-8 h-8"></i></button>
+            <div id="galleryGrid" class="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-[80vh] overflow-y-auto p-4"></div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function toggleSubmenu(id, element) {
+            const submenu = document.getElementById(id);
+            if (submenu.classList.contains('open')) submenu.classList.remove('open');
+            else submenu.classList.add('open');
+        }
+
+        let currentWebsiteFilter = 'online';
+
+        function setWebsiteFilter(f) {
+            currentWebsiteFilter = f;
+            document.getElementById('tabOnline').classList.toggle('bg-purple-600', f === 'online');
+            document.getElementById('tabOnline').classList.toggle('text-white', f === 'online');
+            document.getElementById('tabOnline').classList.toggle('bg-gray-100', f !== 'online');
+            document.getElementById('tabOnline').classList.toggle('text-gray-700', f !== 'online');
+
+            document.getElementById('tabOffline').classList.toggle('bg-purple-600', f === 'offline');
+            document.getElementById('tabOffline').classList.toggle('text-white', f === 'offline');
+            document.getElementById('tabOffline').classList.toggle('bg-gray-100', f !== 'offline');
+            document.getElementById('tabOffline').classList.toggle('text-gray-700', f !== 'offline');
+
+            loadWebsite();
+        }
+
+        function loadWebsite() {
+            const tbody = document.getElementById('websiteBody');
+            
+            // 📊 Load from both localStorage and sessionStorage
+            let visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+            let sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
+            
+            // 🔄 If sessionStorage has more data (localStorage quota exceeded), use that
+            if (sessionVisits.length > visits.length) {
+                visits = sessionVisits;
+            } else if (sessionVisits.length > 0) {
+                // Merge both sources to avoid data loss
+                const ids = new Set(visits.map(v => v._id));
+                visits = [...visits, ...sessionVisits.filter(v => !ids.has(v._id))];
+            }
+            
+            // 🔍 Filter for approved and online/offline based on current filter
+            visits = visits.filter(v => v.status === 'approved' && ((currentWebsiteFilter === 'online' && v.isLiveOnWebsite === true) || (currentWebsiteFilter === 'offline' && v.isLiveOnWebsite === false)));
+
+            if(visits.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" class="px-6 py-12 text-center text-gray-400">No live properties found.</td></tr>';
+                updateStats([]);
+                return;
+            }
+
+            tbody.innerHTML = visits.map(v => {
+                const prop = v.propertyInfo || {};
+                const profPhotos = v.professionalPhotos || [];
+                const fieldPhotos = v.photos || [];
+                const allPhotos = [...profPhotos, ...fieldPhotos];
+
+                return `
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-4 py-3 font-mono text-xs text-gray-600">${v._id ? v._id.slice(-8).toUpperCase() : '-'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600">${v.submittedAt ? new Date(v.submittedAt).toLocaleDateString() : '-'}</td>
+                    <td class="px-4 py-3 font-semibold text-gray-800">${prop.name || '-'}</td>
+                    <td class="px-4 py-3">${prop.propertyType || '-'}</td>
+                    <td class="px-4 py-3">${prop.area || '-'}</td>
+                    <td class="px-4 py-3">${v.gender || '-'}</td>
+                    <td class="px-4 py-3">${prop.ownerName || '-'}</td>
+                    <td class="px-4 py-3 text-sm">${prop.contactPhone || '-'}</td>
+                    <td class="px-4 py-3 font-bold">₹${v.monthlyRent || 0}</td>
+                    <td class="px-4 py-3">
+                        <span class="text-[10px] font-bold ${profPhotos.length ? 'text-green-600 bg-green-50' : 'text-orange-600 bg-orange-50'} px-2 py-1 rounded">
+                            ${profPhotos.length ? 'Yes (' + profPhotos.length + ')' : 'Pending'}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <button onclick="toggleWebStatus('${v._id}')" class="px-3 py-1 rounded text-xs font-medium transition-all ${v.isLiveOnWebsite ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
+                            ${v.isLiveOnWebsite ? '● ONLINE' : '● OFFLINE'}
+                        </button>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            ${allPhotos.length > 0 ? `<button onclick='viewGallery(${JSON.stringify(allPhotos)})' class="p-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition" title="View Photos"><i data-lucide="images" class="w-4 h-4"></i></button>` : ''}
+                            <button onclick="deleteProperty('${v._id}')" class="p-2 bg-red-50 text-red-600 rounded hover:bg-red-100 transition" title="Delete Property"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+            lucide.createIcons();
+            updateStats(visits);
+            updateTabCounts();
+        }
+
+        function updateStats(visits) {
+            document.getElementById('totalCount').innerText = visits.length;
+            const withProf = visits.filter(v => v.professionalPhotos && v.professionalPhotos.length > 0).length;
+            document.getElementById('profCount').innerText = withProf;
+            document.getElementById('noProfCount').innerText = visits.length - withProf;
+        }
+
+        function updateTabCounts() {
+            // 📊 Load from both sources
+            let visitsAll = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+            let sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
+            
+            // 🔄 Merge if needed
+            if (sessionVisits.length > visitsAll.length) {
+                visitsAll = sessionVisits;
+            } else if (sessionVisits.length > 0) {
+                const ids = new Set(visitsAll.map(v => v._id));
+                visitsAll = [...visitsAll, ...sessionVisits.filter(v => !ids.has(v._id))];
+            }
+            
+            visitsAll = visitsAll.filter(v => v.status === 'approved');
+            const online = visitsAll.filter(v => v.isLiveOnWebsite === true).length;
+            const offline = visitsAll.filter(v => !v.isLiveOnWebsite).length;
+            const onlineBtn = document.getElementById('tabOnline');
+            const offlineBtn = document.getElementById('tabOffline');
+            if (onlineBtn) onlineBtn.innerText = `Online (${online})`;
+            if (offlineBtn) offlineBtn.innerText = `Offline (${offline})`;
+        }
+
+        // === WEBSITE PHOTO FUNCTIONS ===
+        async function handleWebsitePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Check file size (10MB limit)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File size must be less than 10MB');
+                return;
+            }
+
+            // Check file type
+            if (!file.type.startsWith('image/')) {
+                alert('Please select a valid image file');
+                return;
+            }
+
+            try {
+                // Show loading
+                const preview = document.getElementById('websitePhotoPreview');
+                document.getElementById('websitePhotoImg').src = '';
+                preview.classList.remove('hidden');
+                
+                // Upload to Cloudinary
+                const cloudinaryUrl = await uploadToCloudinary(file, 'website');
+                
+                // Store the Cloudinary URL in localStorage
+                storeImageUrl('roomhy_website_photo', cloudinaryUrl);
+                
+                // Show preview
+                displayWebsitePhotoPreview(cloudinaryUrl);
+                alert('Website banner photo uploaded to Cloudinary successfully!');
+            } catch (err) {
+                alert('Error uploading photo: ' + err.message);
+                console.error('Error uploading website photo:', err);
+            }
+        }
+
+        function displayWebsitePhotoPreview(imageUrl) {
+            const preview = document.getElementById('websitePhotoPreview');
+            const img = document.getElementById('websitePhotoImg');
+            img.src = imageUrl;
+            preview.classList.remove('hidden');
+            console.log('Website photo uploaded and saved to Cloudinary');
+        }
+
+        function removeWebsitePhoto() {
+            localStorage.removeItem('roomhy_website_photo');
+            document.getElementById('websitePhotoPreview').classList.add('hidden');
+            document.getElementById('websitePhotoInput').value = '';
+        }
+
+        // Load existing website photo on page load
+        function loadWebsitePhoto() {
+            const storedData = localStorage.getItem('roomhy_website_photo');
+            if (storedData) {
+                try {
+                    const data = JSON.parse(storedData);
+                    displayWebsitePhotoPreview(data.url);
+                } catch (e) {
+                    // Fallback for old format (direct URL or data URL)
+                    displayWebsitePhotoPreview(storedData);
+                }
+            }
+        }
+
+        function viewGallery(photos) {
+            const grid = document.getElementById('galleryGrid');
+            grid.innerHTML = (photos && photos.length) ? photos.map(src => `<img src="${src}" class="w-full h-48 object-cover rounded-xl shadow-lg border border-gray-200">`).join('') : '<p class="text-white text-center py-20">No images available.</p>';
+            document.getElementById('imageModal').classList.remove('hidden');
+            document.getElementById('imageModal').classList.add('flex');
+        }
+
+        function closeImageModal() { 
+            document.getElementById('imageModal').classList.add('hidden'); 
+        }
+
+        function toggleWebStatus(id) {
+            const visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+            const idx = visits.findIndex(v => v._id === id);
+            if(idx !== -1) {
+                visits[idx].isLiveOnWebsite = !visits[idx].isLiveOnWebsite;
+                if (window.safeStorage) { window.safeStorage.setVisits(visits); } else { localStorage.setItem('roomhy_visits', JSON.stringify(visits)); }
+                // reload current tab
+                loadWebsite();
+                const msg = visits[idx].isLiveOnWebsite ? "Property is now ONLINE." : "Property is now OFFLINE.";
+                alert(msg);
+            }
+        }
+
+        function deleteProperty(id) {
+            if(!confirm("Are you sure you want to delete this property permanently? This action cannot be undone.")) return;
+            const visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+            const idx = visits.findIndex(v => v._id === id);
+            if(idx !== -1) {
+                const prop = visits[idx].propertyInfo || {};
+                visits.splice(idx, 1);
+                if (window.safeStorage) { window.safeStorage.setVisits(visits); } else { localStorage.setItem('roomhy_visits', JSON.stringify(visits)); }
+                loadWebsite();
+                alert(`Property "${prop.name}" has been deleted.`);
+            }
+        }
+
+        function takeOffline(id) {
+            if(!confirm("Are you sure you want to take this property offline?")) return;
+            const visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+            const idx = visits.findIndex(v => v._id === id);
+            if(idx !== -1) {
+                visits[idx].isLiveOnWebsite = false;
+                if (window.safeStorage) { window.safeStorage.setVisits(visits); } else { localStorage.setItem('roomhy_visits', JSON.stringify(visits)); }
+                loadWebsite();
+                alert('Property taken offline.');
+            }
+        }
+
+        function exportToExcel() {
+            // 📊 Load from both sources
+            let visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+            let sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
+            
+            // 🔄 Merge if needed
+            if (sessionVisits.length > visits.length) {
+                visits = sessionVisits;
+            } else if (sessionVisits.length > 0) {
+                const ids = new Set(visits.map(v => v._id));
+                visits = [...visits, ...sessionVisits.filter(v => !ids.has(v._id))];
+            }
+            
+            visits = visits.filter(v => v.status === 'approved' && ((currentWebsiteFilter === 'online' && v.isLiveOnWebsite === true) || (currentWebsiteFilter === 'offline' && v.isLiveOnWebsite === false)));
+            
+            if(!visits.length) return alert('No data to export');
+            
+            let csv = 'Visit ID,Date,Property Name,Type,Area,Owner,Contact,Rent,Prof Photos,Status\n';
+            visits.forEach(v => {
+                const prop = v.propertyInfo || {};
+                const profPhotos = (v.professionalPhotos || []).length;
+                csv += `"${v._id}","${v.submittedAt}","${prop.name}","${prop.propertyType}","${prop.area}","${prop.ownerName}","${prop.contactPhone}","${v.monthlyRent}","${profPhotos}","ONLINE"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'website-properties.csv';
+            a.click();
+        }
+
+        document.addEventListener('DOMContentLoaded', function(){ 
+            setWebsiteFilter('online');
+            loadWebsitePhoto();
+        });
+    </script>
+    <script src="../website/js/safe-storage.js"></script>
+</body>
+</html>

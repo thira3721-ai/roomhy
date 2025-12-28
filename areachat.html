@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roomhy - Manager Communication</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        // Load Socket.IO client from the backend server (avoid origin mismatch)
+        (function(){
+            const SOCKET_HOST = 'http://localhost:5000';
+            window.__SOCKET_HOST = SOCKET_HOST;
+            const s = document.createElement('script');
+            s.src = SOCKET_HOST + '/socket.io/socket.io.js';
+            s.async = true;
+            s.onload = function(){ console.debug('socket.io client loaded'); };
+            s.onerror = function(){ console.warn('Failed to load socket.io client from', SOCKET_HOST); };
+            document.head.appendChild(s);
+        })();
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .sidebar { background-color: #111827; }
+        .sidebar-link { transition: all 0.2s; }
+        .sidebar-link:hover, .sidebar-link.active { background-color: #1f2937; color: white; }
+        .active-tab { background-color: #f3e8ff; color: #7e22ce; border-color: #7e22ce; }
+        .chat-scroll::-webkit-scrollbar { width: 4px; }
+        .chat-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="text-slate-800 h-screen overflow-hidden flex">
+
+    <!-- Sidebar -->
+    <aside class="sidebar w-72 flex-shrink-0 hidden md:flex flex-col z-20 overflow-y-auto custom-scrollbar">
+        <div class="h-16 flex items-center px-6 border-b border-gray-800 sticky top-0 bg-[#111827] z-10">
+                <div class="flex items-center gap-3">
+                    <div class="bg-purple-600 p-1.5 rounded-lg"><i data-lucide="map" class="w-5 h-5 text-white"></i></div>
+                    <div><h1 class="text-xl font-bold text-white">RoomHy</h1><span class="text-[10px] text-gray-500">AREA ADMIN</span></div>
+                </div>
+        </div>
+        <nav class="flex-1 py-6 space-y-1">
+            <a href="areaadmin.html" class="sidebar-link flex items-center px-6 py-3 text-gray-400 hover:text-white"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard</a>
+            <a href="areaproperty.html" class="sidebar-link flex items-center px-6 py-3 text-gray-400 hover:text-white"><i data-lucide="home" class="w-5 h-5 mr-3"></i> Properties</a>
+            <a href="visit.html" class="sidebar-link flex items-center px-6 py-3 text-gray-400 hover:text-white"><i data-lucide="clipboard-list" class="w-5 h-5 mr-3"></i> Visit Reports</a>
+            <a href="areatenant.html" class="sidebar-link flex items-center px-6 py-3 text-gray-400 hover:text-white"><i data-lucide="users" class="w-5 h-5 mr-3"></i> Tenants</a>
+            <a href="areaowner.html" class="sidebar-link flex items-center px-6 py-3 text-gray-400 hover:text-white"><i data-lucide="briefcase" class="w-5 h-5 mr-3"></i> Owners</a>
+            <a href="areachat.html" class="sidebar-link active flex items-center px-6 py-3 text-white bg-gray-800 border-l-4 border-purple-500"><i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Chat</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col h-full overflow-hidden bg-white">
+        <!-- Chat Layout -->
+        <div class="flex flex-1 overflow-hidden">
+            
+            <!-- Left Panel: Chat List -->
+            <div class="w-full md:w-80 lg:w-96 border-r border-gray-200 flex flex-col bg-gray-50 h-full">
+                
+                <!-- Search & Header -->
+                <div class="p-4 border-b border-gray-200 bg-white flex-shrink-0">
+                    <h2 class="text-xl font-bold text-slate-800 mb-4">Area Chats</h2>
+                    <div class="relative">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                        <input type="text" id="mgrSearch" placeholder="Search owners..." class="w-full pl-9 pr-4 py-2 bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-purple-500 rounded-lg text-sm outline-none">
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="px-2 py-2 bg-white border-b border-gray-200 flex justify-between gap-1">
+                    <button id="mgrOwnersBtn" class="flex-1 py-2 text-xs font-medium bg-purple-100 text-purple-700 rounded text-center border border-purple-200">Owners</button>
+                    <button id="mgrSupportBtn" class="flex-1 py-2 text-xs font-medium text-gray-500 hover:text-gray-800 rounded text-center border border-gray-100">Support</button>
+                </div>
+
+                <!-- List -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar" id="mgrChatList">
+                    <!-- Dynamic Content -->
+                </div>
+            </div>
+
+            <!-- Right Panel: Chat Window -->
+            <div id="mgrRightPanel" class="hidden md:flex flex-1 flex-col h-full relative bg-[#f8fafc]">
+                
+                <!-- Chat Header -->
+                    <div class="h-16 px-6 bg-white border-b border-gray-200 flex items-center justify-between flex-shrink-0 shadow-sm z-10" id="mgrChatHeader">
+                        <div class="flex items-center gap-4">
+                            <button id="mgrBackBtn" class="md:hidden mr-2 text-sm text-purple-600 bg-purple-50 px-2 py-1 rounded" onclick="hideChatMobile()" style="display:none">Back</button>
+                            <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-500" id="headerAvatar">-</div>
+                            <div>
+                                <h2 class="text-sm font-bold text-slate-800" id="headerName">Select a chat</h2>
+                                <div class="flex items-center gap-2"><div class="text-xs text-gray-500" id="headerSub">Property Owner</div><div id="mgrSyncStatus" class="text-[10px] text-gray-400"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                <!-- Messages -->
+                <div class="flex-1 overflow-y-auto p-6 chat-scroll flex flex-col gap-4 bg-slate-50" id="mgrMessages">
+                    <div class="text-center mt-20 text-gray-400">Select an owner from the left to start chatting.</div>
+                </div>
+
+                <!-- Input -->
+                <div class="p-4 bg-white border-t border-gray-200 flex-shrink-0">
+                    <div class="flex items-center gap-3">
+                        <input type="text" id="mgrInput" placeholder="Type a message..." class="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-purple-500 outline-none">
+                        <button id="mgrSendBtn" class="bg-purple-600 text-white p-2 rounded-full hover:bg-purple-700 transition">
+                            <i data-lucide="send" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <div class="mt-2 flex items-center gap-3">
+                        <button id="mgrTestReplyBtn" class="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded">Send Test Reply (superadmin)</button>
+                        <div id="mgrDebug" class="text-xs text-gray-500">Last poll: <span id="mgrLastPoll">-</span> · Last send: <span id="mgrLastSend">-</span></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        // Socket.IO client (wait for script to load then connect to backend)
+        (function initSocket(){
+            if (typeof io === 'undefined') { setTimeout(initSocket, 200); return; }
+            try {
+                const socket = io(window.__SOCKET_HOST || 'http://localhost:5000');
+                socket.emit('join', managerId);
+                socket.on('chat:message', async (msg) => {
+                    try {
+                        if (!msg) return;
+                        if (msg.from === currentChatId || msg.to === currentChatId || msg.from === managerId || msg.to === managerId) {
+                            messagesCache = await getMsgs(managerId, currentChatId || msg.from || msg.to);
+                            await renderMessages();
+                        } else {
+                            await loadOwnerList();
+                        }
+                    } catch (e) { console.warn('socket msg handler error', e && e.message); }
+                });
+            } catch (e) { console.warn('initSocket error', e && e.message); }
+        })();
+        
+        const user = JSON.parse(sessionStorage.getItem('manager_user') || sessionStorage.getItem('user') || localStorage.getItem('manager_user') || localStorage.getItem('user') || 'null');
+        if (!user || user.role !== 'areamanager') {
+            // alert("Access Denied");
+            // window.location.href = '../index.html'; // Adjust redirect in real app
+        }
+
+        const managerId = user.loginId || 'MGR001'; 
+        const areaCode = user.areaCode || 'KO'; // Filter by area
+        let currentChatId = null;
+
+        const ownersDb = JSON.parse(localStorage.getItem('roomhy_owners_db') || '{}');
+        let messagesCache = [];
+
+        async function getMsgs(fromId, toId) {
+            try {
+                const resp = await fetch('http://localhost:5000/api/chat/messages?from=' + encodeURIComponent(fromId) + '&to=' + encodeURIComponent(toId) + '&limit=500');
+                if (!resp.ok) return [];
+                const json = await resp.json();
+                return json.data || [];
+            } catch (e) { console.warn('getMsgs error', e && e.message); return []; }
+        }
+
+        function escapeHtml(s) {
+            if (!s) return '';
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadOwnerList();
+        });
+
+        async function loadOwnerList() {
+            const list = document.getElementById('mgrChatList');
+            const search = document.getElementById('mgrSearch').value.toLowerCase();
+            list.innerHTML = '';
+
+            // Filter owners by Area Code prefix (e.g. KO starts with KO)
+            const areaOwners = Object.keys(ownersDb).filter(id => id.startsWith(areaCode));
+
+            if (areaOwners.length === 0) {
+                list.innerHTML = `<div class="p-4 text-center text-sm text-gray-500">No owners found in ${areaCode}.</div>`;
+                return;
+            }
+
+            await Promise.all(areaOwners.map(async (ownerId) => {
+                const owner = ownersDb[ownerId].profile || { name: 'Unknown', loginId: ownerId };
+                if (!owner.name.toLowerCase().includes(search) && !ownerId.toLowerCase().includes(search)) return;
+
+                const thread = await getMsgs(managerId, ownerId);
+                const last = thread.length ? thread[thread.length - 1] : null;
+                const lastMsg = last ? { text: (last.message || '').substring(0, 20) + '...', time: new Date(last.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) } : { text: '', time: '' };
+
+                const item = document.createElement('div');
+                item.className = 'p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition flex items-center gap-3';
+                item.onclick = () => openChat(ownerId, owner.name);
+                
+                item.innerHTML = `
+                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">${owner.name.charAt(0)}</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-baseline mb-1">
+                            <h3 class="text-sm font-semibold text-slate-800 truncate">${owner.name}</h3>
+                            <span class="text-[10px] text-gray-400">${lastMsg.time}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 truncate">${lastMsg.text || 'Click to chat'}</p>
+                    </div>
+                `;
+                list.appendChild(item);
+            }));
+        }
+
+        // getLastMessage is now retrieved from server in loadOwnerList via getMsgs
+
+        let mgrPollInterval = null;
+        function showChatMobile() {
+            const right = document.getElementById('mgrRightPanel');
+            const left = document.getElementById('mgrChatList');
+            const back = document.getElementById('mgrBackBtn');
+            if (right) {
+                right.classList.remove('hidden');
+                right.classList.add('flex');
+                right.style.position = 'relative';
+                right.style.zIndex = 50;
+            }
+            if (left) left.style.display = 'none';
+            if (back) back.style.display = 'inline-block';
+        }
+
+        function hideChatMobile() {
+            const right = document.getElementById('mgrRightPanel');
+            const left = document.getElementById('mgrChatList');
+            const back = document.getElementById('mgrBackBtn');
+            if (right) {
+                right.classList.add('hidden');
+                right.classList.remove('flex');
+                right.style.position = '';
+                right.style.zIndex = '';
+            }
+            if (left) left.style.display = '';
+            if (back) back.style.display = 'none';
+            // stop polling when hiding on mobile to save requests
+            if (mgrPollInterval) { clearInterval(mgrPollInterval); mgrPollInterval = null; }
+        }
+
+        async function openChat(id, name) {
+            // clear existing poll
+            if (mgrPollInterval) { clearInterval(mgrPollInterval); mgrPollInterval = null; }
+            // if on mobile, show the chat panel
+            if (window.innerWidth < 768) showChatMobile();
+
+            currentChatId = id;
+            document.getElementById('headerAvatar').innerText = name.charAt(0);
+            document.getElementById('headerName').innerText = name;
+            document.getElementById('headerSub').innerText = `Owner ID: ${id}`;
+            messagesCache = await getMsgs(managerId, currentChatId);
+            await renderMessages();
+
+            // start polling to get new messages for this conversation
+            mgrPollInterval = setInterval(async () => {
+                try {
+                    const updated = await getMsgs(managerId, currentChatId);
+                    const lastOld = messagesCache && messagesCache.length ? messagesCache[messagesCache.length - 1] : null;
+                    const lastNew = updated && updated.length ? updated[updated.length - 1] : null;
+                    const oldTs = lastOld ? new Date(lastOld.timestamp).getTime() : 0;
+                    const newTs = lastNew ? new Date(lastNew.timestamp).getTime() : 0;
+                    // update if new message or different length
+                    if (newTs > oldTs || updated.length !== (messagesCache ? messagesCache.length : 0)) {
+                        // update cache + UI
+                        messagesCache = updated;
+                        await renderMessages();
+                        await loadOwnerList();
+                        const status = document.getElementById('mgrSyncStatus');
+                        if (status) status.innerText = 'synced ' + new Date().toLocaleTimeString();
+                        // update debug last poll
+                        try { document.getElementById('mgrLastPoll').innerText = JSON.stringify(updated[updated.length-1] || {}); } catch(e){}
+                    }
+                } catch (e) { console.warn('mgr poll error', e && e.message); const status = document.getElementById('mgrSyncStatus'); if(status) status.innerText = 'sync error'; }
+            }, 2500);
+        }
+
+        async function renderMessages() {
+            if(!currentChatId) return;
+            const container = document.getElementById('mgrMessages');
+            container.innerHTML = '';
+
+            const msgs = messagesCache || await getMsgs(managerId, currentChatId);
+
+            if(!msgs || msgs.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-400 mt-10">No history. Start chatting!</div>`;
+                return;
+            }
+
+            msgs.forEach(msg => {
+                const isMe = msg.from === managerId;
+                const bubble = document.createElement('div');
+                bubble.className = `flex ${isMe ? 'justify-end' : 'justify-start'}`;
+                bubble.innerHTML = `
+                    <div class="max-w-[70%] ${isMe ? 'bg-purple-600 text-white rounded-l-xl rounded-tr-xl' : 'bg-white border border-gray-200 rounded-r-xl rounded-tl-xl'} p-3 shadow-sm text-sm">
+                        <p>${escapeHtml(msg.message)}</p>
+                        <span class="text-[9px] block text-right mt-1 opacity-70">${new Date(msg.timestamp).toLocaleTimeString([],{hour:'2-digit', minute:'2-digit'})}</span>
+                    </div>
+                `;
+                container.appendChild(bubble);
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        document.getElementById('mgrSendBtn').addEventListener('click', () => sendMessage());
+        document.getElementById('mgrInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage() });
+        document.getElementById('mgrSearch').addEventListener('input', () => loadOwnerList());
+        // Support tab handler
+        const supportBtn = document.getElementById('mgrSupportBtn');
+        const ownersBtn = document.getElementById('mgrOwnersBtn');
+        if (supportBtn) {
+            supportBtn.addEventListener('click', async () => {
+                // open a conversation with superadmin
+                await openChat('superadmin', 'Support');
+                // visually mark Support tab active
+                supportBtn.classList.remove('text-gray-500');
+                supportBtn.classList.add('bg-purple-100', 'text-purple-700');
+                if (ownersBtn) {
+                    ownersBtn.classList.remove('bg-purple-100','text-purple-700');
+                    ownersBtn.classList.add('text-gray-500');
+                }
+            });
+        }
+
+        if (ownersBtn) {
+            ownersBtn.addEventListener('click', async () => {
+                // reset to owners list
+                if (mgrPollInterval) { clearInterval(mgrPollInterval); mgrPollInterval = null; }
+                currentChatId = null;
+                document.getElementById('headerAvatar').innerText = '-';
+                document.getElementById('headerName').innerText = 'Select a chat';
+                document.getElementById('headerSub').innerText = 'Property Owner';
+                ownersBtn.classList.add('bg-purple-100','text-purple-700');
+                if (supportBtn) { supportBtn.classList.remove('bg-purple-100','text-purple-700'); supportBtn.classList.add('text-gray-500'); }
+                await loadOwnerList();
+            });
+        }
+
+        async function sendMessage() {
+            if(!currentChatId) return;
+            const input = document.getElementById('mgrInput');
+            const text = input.value.trim();
+            if(!text) return;
+
+            const payload = { from: managerId, to: currentChatId, message: text, type: 'text' };
+            try {
+                const resp = await fetch('http://localhost:5000/api/chat/send', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+                if (resp.ok) {
+                    input.value = '';
+                    messagesCache = await getMsgs(managerId, currentChatId);
+                    await renderMessages();
+                    await loadOwnerList();
+                    try { document.getElementById('mgrLastSend').innerText = JSON.stringify(payload); } catch(e){}
+                } else {
+                    console.error('sendMessage failed', await resp.text());
+                }
+            } catch (e) { console.error('sendMessage error', e && e.message); }
+        }
+
+        // Test reply helper: call backend to create a message from superadmin to manager
+        document.getElementById('mgrTestReplyBtn').addEventListener('click', async () => {
+            try {
+                const target = currentChatId || 'superadmin';
+                // if not currently viewing support, target manager as recipient of superadmin reply
+                const to = (target === 'superadmin') ? managerId : managerId;
+                const resp = await fetch('http://localhost:5000/api/chat/test-reply', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ to, message: 'Hello from superadmin (test)' }) });
+                const j = await resp.json();
+                if (resp.ok) {
+                    // refresh messages for support thread if open
+                    if (currentChatId === 'superadmin') {
+                        messagesCache = await getMsgs(managerId, 'superadmin');
+                        await renderMessages();
+                    }
+                    alert('Test reply created');
+                } else {
+                    alert('Test reply failed: ' + (j.error || JSON.stringify(j)));
+                }
+            } catch (e) { alert('Test reply error: ' + e.message); }
+        });
+
+    </script>
+</body>
+</html>

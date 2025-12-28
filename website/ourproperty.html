@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roomhy - Stays, PGs & Hostels</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    keyframes: {
+                        kenburns: {
+                            '0%': { transform: 'scale(1) translate(0, 0)' },
+                            '100%': { transform: 'scale(1.1) translate(-2%, 2%)' },
+                        }
+                    },
+                    animation: {
+                        kenburns: 'kenburns 30s ease-in-out infinite alternate',
+                    },
+                    colors: {
+                        // Custom colors from FilterSection.tsx context (approximated)
+                        'primary': '#3b82f6', // blue-500
+                        'secondary': '#e5e7eb', // gray-200
+                        'background': '#ffffff',
+                        'backgroundColor': '#3b82f6', // blue-600
+                        'backgroundColorHover': '#2563eb', // blue-700
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f2f6; 
+            color: #1F2937;
+        }
+
+        .text-shadow {
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .light-card {
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+        .light-card:hover {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            transform: translateY(-4px);
+        }
+        
+        .glow-button {
+            transition: all 0.3s ease;
+        }
+        .glow-button:hover {
+            transform: scale(1.02); /* Slightly less aggressive scale for filter buttons */
+        }
+        
+        .horizontal-slider::-webkit-scrollbar {
+            display: none;
+        }
+        .horizontal-slider {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        /* ENHANCED FOCUS RING FOR SELECT/INPUTS - MADE BORDER LOOK MORE SOLID */
+        .form-select, .form-input {
+            transition: all 0.2s ease-in-out;
+            /* Removed subtle box-shadow for a more solid, flat look */
+            
+            /* Custom arrow CSS */
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.2em 1.2em;
+            padding-right: 2.5rem; /* Make room for the custom arrow */
+        }
+        .form-input:focus, .form-select:focus, .form-checkbox:focus, .form-radio:focus {
+            outline: none;
+            border-color: #3b82f6; /* Primary blue border */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3); /* Softer, broader focus ring */
+        }
+        
+         @media (min-width: 1024px) {
+            #filter-sidebar {
+                top: 2.5rem; /* Adjust as needed */
+            }
+         }
+         
+         .filter-action-select {
+             /* This style block is kept for completeness in case it was used elsewhere, though the element was removed from the header. */
+             background-color: white;
+             border: 1px solid #D1D5DB; /* gray-300 */
+             padding: 0.5rem 0.75rem; /* py-2 px-3 */
+             border-radius: 0.5rem; /* rounded-lg */
+             font-size: 0.875rem; /* text-sm */
+             font-weight: 500;
+             color: #4B5563; /* text-gray-700 */
+             cursor: pointer;
+             transition: all 0.2s;
+             box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+         }
+         .filter-action-select:hover {
+             background-color: #F9FAFB; /* gray-50 */
+             border-color: #9CA3AF; /* gray-400 */
+         }
+
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="w-full bg-white/95 backdrop-blur-sm shadow-sm">
+        <div class="container mx-auto px-4 sm:px-6">
+            <div class="flex h-20 items-center justify-between">
+                
+                <div class="flex items-center">
+                    <a href="index.html" class="flex-shrink-0">
+                        <img src="logo.svg" alt="Roomhy Logo" class="h-10 w-auto">
+                    </a>
+                </div>
+                
+                <div class="flex items-center gap-3 sm:gap-6">
+                    
+                    <nav class="hidden">
+                        <a href="about.html" class="text-gray-600 hover:text-blue-600 font-medium transition-colors">About Us</a>
+                        <a href="contact.html" class="text-gray-600 hover:text-blue-600 font-medium transition-colors">Contact</a>
+                    </nav>
+
+                    <a href="list.html" class="flex-shrink-0 flex items-center space-x-1 bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>Post <span class="hidden sm:inline">Your</span> Property</span>
+                    </a>
+                    
+                    <button id="menu-toggle" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                        <i data-lucide="menu" class="w-7 h-7 text-gray-800"></i>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <section class="relative py-20 md:py-28 text-white">
+        <div id="hero-image-wrapper" class="absolute inset-0 w-full h-full overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=1980&auto:format&fit=crop" alt="Hero background 1" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out animate-kenburns opacity-100">
+            <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto:format&fit=crop" alt="Hero background 2" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out animate-kenburns opacity-0">
+            <img src="https://images.unsplash.com/photo-1494203484021-3c454daf695d?q=80&w=2070&auto:format&fit=crop" alt="Hero background 3" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out animate-kenburns opacity-0">
+            <div class="absolute inset-0 w-full h-full bg-black/60"></div> 
+        </div>
+        <div class="container mx-auto px-4 sm:px-6 text-center relative z-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-shadow mb-6">Find your perfect stay</h1>
+            <div class="relative w-full max-w-2xl mx-auto">
+                <input type="text" id="property-search-input" placeholder="Search location e.g., 'Koramangala, Bangalore'" class="w-full p-4 pl-5 pr-14 rounded-lg bg-white text-gray-900 border-transparent focus:ring-4 focus:ring-cyan-300/50 focus:outline-none placeholder-gray-500 shadow-lg">
+                <button type="submit" id="property-search-btn" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-2.5 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+                    <i data-lucide="search" class="w-5 h-5 text-white"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <div id="menu-overlay" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
+    
+    <div id="mobile-menu" class="fixed top-0 right-0 w-80 h-full bg-white z-50 shadow-xl transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+        <div class="flex justify-end p-4 flex-shrink-0">
+            <button id="menu-close" class="p-2">
+                <i data-lucide="x" class="w-6 h-6 text-gray-700"></i>
+            </button>
+        </div>
+
+        <div class="flex justify-between items-center px-6 py-2">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                    <i data-lucide="users" class="w-6 h-6 text-gray-600"></i>
+                </div>
+                <span class="text-lg font-semibold text-gray-800">Hi ,welcome👋</span>
+            </div>
+            <a href="profile.html" class="text-sm font-medium text-blue-600 hover:underline">Profile</a>
+        </div>
+
+        <div class="px-6 py-4">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 relative overflow-hidden">
+                <img src="images/post-property-bg.svg" alt="Illustartion of people with house" class="absolute right-0 bottom-0 opacity-80 w-32 h-auto" style="pointer-events: none;">
+                <p class="font-semibold text-gray-800 mb-3 relative z-10">Looking to Sell/Rent your Property?</p>
+                <a href="list.html" class="block text-center w-full bg-blue-600 text-white font-medium py-2 px-4 rounded-lg text-sm hover:bg-blue-700 transition-colors relative z-10">
+                    Post Property for Free
+                </a>
+            </div>
+        </div>
+
+        <nav class="flex-grow p-4 space-y-1 overflow-y-auto">
+            <a href="stays.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="home" class="w-5 h-5 text-blue-600"></i>
+                </div>
+                <span>Our Properties</span>
+            </a>
+            <a href="fav.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="heart" class="w-5 h-5 text-red-600"></i>
+                </div>
+                <span>Favorites</span>
+            </a>
+            <a href="chathome.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                 <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="message-square" class="w-5 h-5 text-green-600"></i>
+                </div>
+                <span>Chats</span>
+            </a>
+            <a href="mystays.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="building" class="w-5 h-5 text-purple-600"></i>
+                </div>
+                <span>My Stays</span>
+            </a>
+            <a href="about.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="info" class="w-5 h-5 text-yellow-600"></i>
+                </div>
+                <span>About Us</span>
+            </a>
+            <a href="index.html#contact" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <div class="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="phone" class="w-5 h-5 text-cyan-600"></i>
+                </div>
+                <span>Contact Us</span>
+            </a>
+        </nav>
+        
+        <div class="p-4 border-t flex-shrink-0">
+            <a href="logout.html" class="flex items-center space-x-4 p-3 rounded-lg text-red-600 hover:bg-red-50">
+                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="log-out" class="w-5 h-5 text-gray-600"></i>
+                </div>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <main class="container mx-auto px-4 sm:px-6 py-8 md:py-12 mt-8">
+        
+         <div class="mb-6 lg:hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-900">4 Properties Found</h2>
+                <span class="text-sm font-medium bg-gray-100 text-gray-700 px-3 py-1 rounded-md">Page 1 of 1</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+                <button id="filter-toggle" class="flex-shrink-0 flex items-center justify-center space-x-2 bg-white text-gray-700 font-medium px-4 py-3 rounded-lg shadow border border-gray-300">
+                    <i data-lucide="filter" class="w-5 h-5"></i>
+                    <span>Filters</span>
+                </button>
+                <button class="flex-shrink-0 flex items-center justify-center space-x-2 bg-white text-gray-700 font-medium px-4 py-3 rounded-lg shadow border border-gray-300">
+                    <span>Bid</span>
+                </button>
+                <div class="flex-grow">
+                     <label for="sort-mobile" class="sr-only">Sort by</label>
+                    <select id="sort-mobile" name="sort-mobile" class="form-select w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 py-3 h-full">
+                        <option>Sort by</option>
+                        <option>Bidding: Ending Soonest</option>
+                        <option>Price: Low to High</option>
+                        <option>Price: High to Low</option>
+                        <option>Newest Listings</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div id="filter-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
+
+        <!-- Mobile Filter Drawer (Simulated FilterSection.tsx) -->
+        <div id="mobile-filter-drawer" class="fixed top-0 right-0 w-80 max-w-full h-full bg-white z-50 shadow-xl transform translate-x-full transition-transform duration-300 ease-in-out lg:hidden">
+            <div class="p-4 border-b flex justify-between items-center shadow-sm">
+                <h3 class="text-xl font-bold">Filters</h3>
+                <button id="close-filter-mobile" class="p-2 text-gray-600 hover:text-gray-800">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 h-full overflow-y-auto pb-24">
+                <div class='space-y-6'>
+                    
+                    <!-- City Dropdown (Simulated SearchableSelect) -->
+                    <div>
+                        <label class='block text-sm font-semibold text-gray-800 mb-2'>Select City</label>
+                        <select id="mobile-select-city" class="form-select w-full rounded-xl border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 py-3 px-4">
+                            <option value="">Select a city</option>
+                            <option value="kota">Kota, Rajasthan</option>
+                            <option value="indore">Indore, Madhya Pradesh</option>
+                            <option value="sikar">Sikar, Rajasthan</option>
+                        </select>
+                    </div>
+
+                    <!-- Area Dropdown (Simulated SearchableSelect) -->
+                    <div>
+                        <label class='block text-sm font-semibold text-gray-800 mb-2'>Select Area</label>
+                        <select id="mobile-select-area" class="form-select w-full rounded-xl border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 py-3 px-4">
+                            <option value="">First select a city</option>
+                            <option value="north-campus" disabled>North Campus (Requires City)</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Simulated: Select a city first to see areas.</p>
+                    </div>
+
+                    <!-- Price Range (Simulated Selects) -->
+                    <div>
+                        <label class='block text-sm font-semibold text-gray-800 mb-2'>Price Range</label>
+                        <div class='flex gap-2'>
+                            <select id="mobile-min-price" class='form-select w-1/2 rounded-xl border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 py-3 px-4'>
+                                <option value="4000">Min Price</option>
+                                <option value="1500">₹1500</option>
+                                <option value="4000">₹4000</option>
+                                <option value="8000">₹8000</option>
+                            </select>
+                            <select id="mobile-max-price" class='form-select w-1/2 rounded-xl border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 py-3 px-4'>
+                                <option value="50000_plus">Max Price</option>
+                                <option value="15000">₹15000</option>
+                                <option value="25000">₹25000</option>
+                            <option value="50000_plus">₹50000+</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Gender Selection (Dropdown) -->
+                    <div>
+                        <label class='block text-sm font-semibold text-gray-800 mb-2'>Gender</label>
+                        <select id="mobile-gender" class="form-select w-full rounded-xl border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 py-3 px-4">
+                            <option value="">Select Gender</option>
+                            <option value="boys">Boys</option>
+                            <option value="girls">Girls</option>
+                            <option value="co-ed">Co-ed</option>
+                        </select>
+                    </div>
+
+                    <!-- Property Type Selection (Dropdown) -->
+                    <div>
+                        <label class='block text-sm font-semibold text-gray-800 mb-2'>Property Type</label>
+                        <select id="mobile-property-type" class="form-select w-full rounded-xl border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 py-3 px-4">
+                            <option value="">Select Property Type</option>
+                            <option value="pg">PG / Co-Living</option>
+                            <option value="hostel">Hostel</option>
+                            <option value="flat">Flat / Studio</option>
+                        </select>
+                    </div>
+
+                    <!-- Occupancy (Dropdown) -->
+                    <div>
+                        <label class='block text-sm font-semibold text-gray-800 mb-2'>Occupancy</label>
+                        <select id="mobile-occupancy" class="form-select w-full rounded-xl border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 py-3 px-4">
+                            <option value="">Select Occupancy</option>
+                            <option value="single">Single Room</option>
+                            <option value="double">Double Sharing</option>
+                            <option value="triple">Triple Sharing</option>
+                            <option value="multi">Multi Sharing</option>
+                        </select>
+                    </div>
+
+                    <!-- Apply & Clear Filters (Simulated Buttons) -->
+                    <div class='flex flex-col gap-3 mt-6'>
+                        <button id="mobile-apply-filters" class='w-full bg-backgroundColor hover:bg-backgroundColorHover text-white font-bold py-3 rounded-xl transition-colors shadow-md glow-button'>
+                            Apply Filters
+                        </button>
+                        <button class='w-full border border-backgroundColor text-backgroundColor hover:bg-blue-50 bg-transparent font-bold py-3 rounded-xl transition-colors shadow-sm glow-button'>
+                            Clear Filters
+                        </button>
+                        <button class='w-full border-2 border-green-600 text-green-600 hover:bg-green-50 bg-transparent font-bold py-3 rounded-xl transition-colors shadow-md glow-button'>
+                            Bid on all
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="lg:grid lg:grid-cols-4 lg:gap-8">
+            
+            <!-- Desktop Filter Sidebar (Simulated FilterSection.tsx) -->
+            <aside id="filter-sidebar" class="lg:col-span-1 lg:sticky h-fit mb-8 lg:mb-0 hidden lg:block lg:w-72 p-6 light-card rounded-xl transition-all duration-300 top-[150px]">
+                <!-- Removed Actions Dropdown and adjusted for cleaner title -->
+                <div class='mb-6 text-2xl font-bold flex items-center justify-start border-b pb-4'>
+                    <span class="text-gray-900 flex items-center">
+                         <i data-lucide="filter" class="w-6 h-6 mr-2 text-blue-600"></i>
+                        Filters
+                    </span>
+                </div>
+                
+                <div class='space-y-6'>
+                    
+                    <!-- City Dropdown (Simulated SearchableSelect) -->
+                    <div>
+                        <label class='block text-sm font-semibold text-gray-800 mb-2'>Select City</label>
+                        <select id="desktop-select-city" class="form-select w-full rounded-xl border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 py-3 px-4">
+                            <option value="">Select a city</option>
+                            <option value="kota">Kota, Rajasthan</option>
+                            <option value="indore">Indore, Madhya Pradesh</option>
+                            <option value="sikar">Sikar, Rajasthan</option>
+                        </select>
+                    </div>
+
+                    <!-- Area Dropdown (Simulated SearchableSelect) -->
+                    <div>
+                        <label class='block text-sm font-semibold text-gray-800 mb-2'>Select Area</label>
+                        <select id="desktop-select-area" class="form-select w-full rounded-xl border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 py-3 px-4">
+                            <option value="">First select a city</option>
+                            <option value="north-campus" disabled>North Campus (Requires City)</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Simulated: Select a city first to see areas.</p>
+                    </div>
+                    
+                    <!-- Price Range (Simulated Selects) -->
+                    <div>
+                        <label class='block text-sm font-semibold text-gray-800 mb-2'>Price Range</label>
+                        <div class='flex gap-2'>
+                            <select id="desktop-min-price" class='form-select w-1/2 rounded-xl border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 py-3 px-4'>
+                                <option value="4000">Min Price</option>
+                                <option value="1500">₹1500</option>
+                                <option value="4000">₹4000</option>
+                                <option value="8000">₹8000</option>
+                            </select>
+                            <select id="desktop-max-price" class='form-select w-1/2 rounded-xl border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 py-3 px-4'>
+                                <option value="50000_plus">Max Price</option>
+                                <option value="15000">₹15000</option>
+                                <option value="25000">₹25000</option>
+                                <option value="50000_plus">₹50000+</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Gender Selection (Dropdown) -->
+                    <div>
+                        <label class='block text-sm font-semibold text-gray-800 mb-2'>Gender</label>
+                        <select id="desktop-gender" class="form-select w-full rounded-xl border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 py-3 px-4">
+                            <option value="">Select Gender</option>
+                            <option value="boys">Boys</option>
+                            <option value="girls">Girls</option>
+                            <option value="co-ed">Co-ed</option>
+                        </select>
+                    </div>
+
+                    <!-- Property Type Selection (Dropdown) -->
+                    <div>
+                        <label class='block text-sm font-semibold text-gray-800 mb-2'>Property Type</label>
+                        <select id="desktop-property-type" class="form-select w-full rounded-xl border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 py-3 px-4">
+                            <option value="">Select Property Type</option>
+                            <option value="pg">PG / Co-Living</option>
+                            <option value="hostel">Hostel</option>
+                            <option value="flat">Flat / Studio</option>
+                        </select>
+                    </div>
+
+                    <!-- Occupancy (Dropdown) -->
+                    <div>
+                        <label class='block text-sm font-semibold text-gray-800 mb-2'>Occupancy</label>
+                        <select id="desktop-occupancy" class="form-select w-full rounded-xl border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 py-3 px-4">
+                            <option value="">Select Occupancy</option>
+                            <option value="single">Single Room</option>
+                            <option value="double">Double Sharing</option>
+                            <option value="triple">Triple Sharing</option>
+                            <option value="multi">Multi Sharing</option>
+                        </select>
+                    </div>
+
+                    <!-- Apply & Clear Filters (Original Buttons Reinstated) -->
+                    <div class='flex flex-col gap-3 pt-4'>
+                        <button class='w-full bg-backgroundColor hover:bg-backgroundColorHover text-white font-bold py-3 rounded-xl transition-colors shadow-lg glow-button'>
+                            Apply Filters
+                        </button>
+                        <button class='w-full border border-backgroundColor text-backgroundColor hover:bg-blue-50 bg-transparent font-bold py-3 rounded-xl transition-colors shadow-sm glow-button'>
+                            Clear Filters
+                        </button>
+                        <button class='w-full border-2 border-green-600 text-green-600 hover:bg-green-50 bg-transparent font-bold py-3 rounded-xl transition-colors shadow-md glow-button'>
+                            Bid on all
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <div id="main-content-area" class="lg:col-span-3"> 
+                 
+                 <div class="hidden lg:flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-4">
+                        <h2 class="text-3xl font-bold text-gray-900">4 Properties Found</h2>
+                        <span class="text-sm font-medium bg-gray-100 text-gray-700 px-3 py-1 rounded-md">Page 1 of 1</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button id="filter-toggle-desktop" class="flex-shrink-0 flex items-center justify-center space-x-2 bg-blue-50 text-blue-600 font-medium px-4 py-3 rounded-lg shadow-sm border border-gray-300 hover:bg-gray-50 transition-colors">
+                            <i data-lucide="filter" class="w-5 h-5"></i>
+                            <span>Filters</span>
+                        </button>
+                        <button class="flex-shrink-0 flex items-center justify-center space-x-2 bg-white text-gray-700 font-medium px-4 py-3 rounded-lg shadow-sm border border-gray-300 hover:bg-gray-50 transition-colors">
+                            <span>Bid</span>
+                        </button>
+                         <div>
+                             <label for="sort-desktop" class="sr-only">Sort by</label>
+                            <select id="sort-desktop" name="sort-desktop" class="form-select w-full sm:w-auto rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-3">
+                                <option>Sort by</option>
+                                <option>Bidding: Ending Soonest</option>
+                                <option>Price: Low to High</option>
+                                <option>Price: High to Low</option>
+                                <option>Newest Listings</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="stays-list-view">
+                    <section>
+                        <div id="propertiesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Live properties will be rendered here based on approved & online visits -->
+                        </div>
+                        <nav class="flex items-center justify-between border-t border-gray-200 px-4 sm:px-0 mt-12 pt-8">
+                            <div class="flex-1 flex justify-between sm:hidden"> <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"> Previous </a> <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"> Next </a></div>
+                            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                <div><p class="text-sm text-gray-700">Showing <span id="showingFrom" class="font-medium">1</span> to <span id="showingTo" class="font-medium">12</span> of <span id="showingTotal" class="font-medium">0</span> results</p></div>
+                                <div><nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination"><a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"><span class="sr-only">Previous</span><i data-lucide="chevron-left" class="h-5 w-5"></i></a><a href="#" aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium"> 1 </a><a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium"> 2 </a><a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 hidden md:inline-flex relative items-center px-4 py-2 border text-sm font-medium"> 3 </a><span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"> ... </span><a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 hidden md:inline-flex relative items-center px-4 py-2 border text-sm font-medium"> 8 </a><a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"><span class="sr-only">Next</span><i data-lucide="chevron-right" class="h-5 w-5"></i></a></nav></div>
+                            </div>
+                        </nav>
+                    </section>
+                </div>
+                        <nav class="flex items-center justify-between border-t border-gray-200 px-4 sm:px-0 mt-12 pt-8">
+                            <div class="flex-1 flex justify-between sm:hidden"> <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"> Previous </a> <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"> Next </a></div>
+                            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                <div><p class="text-sm text-gray-700">Showing <span class="font-medium">1</span> to <span class="font-medium">12</span> of <span class="font-medium">45</span> results</p></div>
+                                <div><nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination"><a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"><span class="sr-only">Previous</span><i data-lucide="chevron-left" class="h-5 w-5"></i></a><a href="#" aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium"> 1 </a><a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium"> 2 </a><a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 hidden md:inline-flex relative items-center px-4 py-2 border text-sm font-medium"> 3 </a><span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"> ... </span><a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 hidden md:inline-flex relative items-center px-4 py-2 border text-sm font-medium"> 8 </a><a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"><span class="sr-only">Next</span><i data-lucide="chevron-right" class="h-5 w-5"></i></a></nav></div>
+                            </div>
+                        </nav>
+                    </section>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <a href="index.html#contact" class="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg transition-transform hover:scale-110">
+        <i data-lucide="message-circle" class="w-8 h-8"></i>
+    </a>
+    
+    <footer class="bg-gray-800 text-gray-300">
+        <div class="container mx-auto px-6 py-16">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
+                <div class="md:col-span-1"><a href="index.html" class="mb-4 inline-block"><img src="logo.svg" alt="Roomhy Logo" class="h-10 w-auto brightness-0 invert"></a><p class="text-gray-400 text-sm">Your trusted partner in finding the perfect student accommodation. Live, learn, and grow with us.</p><div class="flex space-x-5 mt-6"><a href="#" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="facebook" class="w-5 h-5"></i></a><a href="#" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="instagram" class="w-5 h-5"></i></a><a href="#" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="twitter" class="w-5 h-5"></i></a></div></div>
+                <div><h4 class="font-semibold text-lg mb-5 text-white">Explore</h4><ul class="space-y-3"><li><a href="#" class="text-gray-300 hover:text-white transition-colors">Apartments</a></li><li><a href="#" class="text-gray-300 hover:text-white transition-colors">Hostels</a></li><li><a href="#" class="text-gray-300 hover:text-white transition-colors">Co-Living</a></li><li><a href="#" class="text-gray-300 hover:text-white transition-colors">PGs</a></li></ul></div>
+                <div><h4 class="font-semibold text-lg mb-5 text-white">Company</h4><ul class="space-y-3"><li><a href="about.html" class="text-gray-300 hover:text-white transition-colors">About Us</a></li><li><a href="list.html" class="text-gray-300 hover:text-white transition-colors">List Your Property</a></li><li><a href="privacy.html" class="text-gray-300 hover:text-white transition-colors">Privacy Policy</a></li><li><a href="terms.html" class="text-gray-300 hover:text-white transition-colors">Terms of Service</a></li></ul></div>
+                
+                <div>
+                    <h4 class="font-semibold text-lg mb-5 text-white">Get in Touch</h4>
+                    <ul class="space-y-3">
+                        <li class="flex items-start space-x-2">
+                            <i data-lucide="mail" class="w-4 h-4 text-gray-400 mt-1 flex-shrink-0"></i>
+                            <a href="mailto:support@roomhy.com" class="text-gray-300 hover:text-white transition-colors">support@roomhy.com</a>
+                        </li>
+                        <li class="flex items-start space-x-2">
+                            <i data-lucide="phone" class="w-4 h-4 text-gray-400 mt-1 flex-shrink-0"></i>
+                            <a href="tel:+911234567890" class="text-gray-300 hover:text-white transition-colors">+91 12345 67890</a>
+                        </li>
+                        <li class="flex items-start space-x-2">
+                            <i data-lucide="map-pin" class="w-4 h-4 text-gray-400 mt-1 flex-shrink-0"></i>
+                            <span class="text-gray-300">Bengaluru, India</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-12 border-t border-gray-700 pt-8 text-center text-gray-400 text-sm"><p>&copy; 2025 Roomhy. All Rights Reserved. Built with ❤️ for students.</p></div>
+        </div>
+    </footer>
+
+
+    <script>
+        lucide.createIcons();
+
+        // ======================================================
+        // START: Filter Properties by Type & City from URL Parameters
+        // ======================================================
+        
+        function getUrlParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        function filterPropertiesByTypeAndCity() {
+            const typeParam = getUrlParam('type'); // Get 'type' from URL
+            const cityParam = getUrlParam('city'); // Get 'city' from URL
+            const searchParam = getUrlParam('search'); // Get 'search' from URL
+
+            // Get all property cards
+            const properties = document.querySelectorAll('a.group[href*="#"]');
+            let visibleCount = 0;
+
+            properties.forEach(card => {
+                const badge = card.querySelector('span');
+                const locationText = card.textContent;
+                
+                if (!badge) return;
+
+                const badgeText = badge.textContent.toLowerCase();
+                let matchesType = true;
+                let matchesCity = true;
+                let matchesSearch = true;
+
+                // ===== FILTER BY TYPE =====
+                if (typeParam) {
+                    if (typeParam === 'hostel' && !badgeText.includes('hostel')) {
+                        matchesType = false;
+                    } else if (typeParam === 'pg' && !(badgeText.includes('pg') || badgeText.includes('co-living'))) {
+                        matchesType = false;
+                    } else if (typeParam === 'apartment' && !(badgeText.includes('apartment') || badgeText.includes('studio') || badgeText.includes('flat'))) {
+                        matchesType = false;
+                    }
+                }
+
+                // ===== FILTER BY CITY =====
+                if (cityParam) {
+                    const cityLower = cityParam.toLowerCase();
+                    // Check if city name appears in the location text
+                    if (!locationText.toLowerCase().includes(cityLower)) {
+                        matchesCity = false;
+                    }
+                }
+
+                // ===== FILTER BY AREA =====
+                let matchesArea = true;
+                const mobileAreaSelect = document.getElementById('mobile-select-area');
+                const desktopAreaSelect = document.getElementById('desktop-select-area');
+                const areaValue = (mobileAreaSelect?.value || desktopAreaSelect?.value || '').toLowerCase();
+                
+                if (areaValue) {
+                    // Check if the selected area appears in the location text
+                    if (!locationText.toLowerCase().includes(areaValue)) {
+                        matchesArea = false;
+                    }
+                }
+
+                // ===== FILTER BY SEARCH =====
+                if (searchParam) {
+                    const searchLower = searchParam.toLowerCase();
+                    if (!locationText.toLowerCase().includes(searchLower)) {
+                        matchesSearch = false;
+                    }
+                }
+
+                // Show card only if it matches all applied filters
+                const shouldShow = matchesType && matchesCity && matchesArea && matchesSearch;
+                card.style.display = shouldShow ? 'block' : 'none';
+                if (shouldShow) visibleCount++;
+            });
+
+            // Update the count
+            const countHeader = document.querySelector('h2');
+            if (countHeader) {
+                let filterText = '';
+                const mobileAreaSelect = document.getElementById('mobile-select-area');
+                const desktopAreaSelect = document.getElementById('desktop-select-area');
+                const areaValue = (mobileAreaSelect?.value || desktopAreaSelect?.value || '').toLowerCase();
+                
+                if (typeParam && cityParam && areaValue) {
+                    filterText = `${visibleCount} ${typeParam.charAt(0).toUpperCase() + typeParam.slice(1)} Properties in ${cityParam} (${areaValue.charAt(0).toUpperCase() + areaValue.slice(1)})`;
+                } else if (typeParam && cityParam) {
+                    filterText = `${visibleCount} ${typeParam.charAt(0).toUpperCase() + typeParam.slice(1)} Properties in ${cityParam}`;
+                } else if (cityParam && areaValue) {
+                    filterText = `${visibleCount} Properties in ${cityParam} (${areaValue.charAt(0).toUpperCase() + areaValue.slice(1)})`;
+                } else if (typeParam) {
+                    filterText = `${visibleCount} ${typeParam.charAt(0).toUpperCase() + typeParam.slice(1)} Properties Found`;
+                } else if (cityParam) {
+                    filterText = `${visibleCount} Properties in ${cityParam}`;
+                } else if (searchParam) {
+                    filterText = `${visibleCount} Results for "${searchParam}"`;
+                } else {
+                    filterText = `${visibleCount} Properties Found`;
+                }
+                countHeader.textContent = filterText;
+            }
+        }
+
+        // Call on page load
+        document.addEventListener('DOMContentLoaded', filterPropertiesByTypeAndCity);
+
+        // ======================================================
+        // Auto-select City in Dropdown if URL has city parameter
+        // ======================================================
+        function autoSelectCityInDropdowns() {
+            const cityParam = getUrlParam('city');
+            if (!cityParam) return;
+
+            // Map full city names to dropdown values
+            const cityMap = {
+                'kota': 'kota',
+                'indore': 'indore',
+                'sikar': 'sikar',
+                'pune': 'kota', // Default to kota if no exact match
+                'bangalore': 'kota',
+                'delhi': 'kota'
+            };
+
+            const cityValue = cityMap[cityParam.toLowerCase()] || cityParam.toLowerCase();
+
+            // Auto-select in mobile dropdown
+            const mobileSelect = document.getElementById('mobile-select-city');
+            if (mobileSelect) {
+                mobileSelect.value = cityValue;
+            }
+
+            // Auto-select in desktop dropdown
+            const desktopSelect = document.getElementById('desktop-select-city');
+            if (desktopSelect) {
+                desktopSelect.value = cityValue;
+            }
+        }
+
+        // Call after filter is applied
+        document.addEventListener('DOMContentLoaded', autoSelectCityInDropdowns);
+
+        // ======================================================
+        // START: Dynamic Live Properties Rendering (from localStorage)
+        // ======================================================
+
+        function getVisitsFromStorage() {
+            try { return JSON.parse(localStorage.getItem('roomhy_visits') || '[]'); } catch (e) { return []; }
+        }
+
+        function populateAreaOptionsFromVisits(cityValue) {
+            const visits = getVisitsFromStorage().filter(v => v.status === 'approved' && v.isLiveOnWebsite === true);
+            const areas = new Set();
+            visits.forEach(v => {
+                const area = (v.propertyInfo && (v.propertyInfo.area || v.propertyInfo.locality || v.propertyInfo.city)) || '';
+                const city = (v.propertyInfo && (v.propertyInfo.city || '') ).toString().toLowerCase();
+                if (cityValue && cityValue !== '' && city !== cityValue) return;
+                if (area) areas.add(area);
+            });
+
+            const desktopAreaSelect = document.getElementById('desktop-select-area');
+            const mobileAreaSelect = document.getElementById('mobile-select-area');
+            if (desktopAreaSelect) {
+                desktopAreaSelect.innerHTML = '<option value="">All Areas</option>' + Array.from(areas).map(a => `<option value="${a}">${a}</option>`).join('');
+            }
+            if (mobileAreaSelect) {
+                mobileAreaSelect.innerHTML = '<option value="">All Areas</option>' + Array.from(areas).map(a => `<option value="${a}">${a}</option>`).join('');
+            }
+        }
+
+        function renderPropertyCard(v) {
+            const prop = v.propertyInfo || {};
+            const title = prop.name || 'Property';
+            const area = prop.area || prop.locality || '';
+            const city = prop.city || prop.cityName || '';
+            const rent = v.monthlyRent || v.rent || 0;
+            const badge = prop.propertyType || '';
+            const photos = (v.professionalPhotos && v.professionalPhotos.length) ? v.professionalPhotos : (v.photos || []);
+            const img = photos && photos[0] ? photos[0] : 'https://images.unsplash.com/photo-1567016432779-1fee749a1532?q=80&w=1974&auto=format&fit=crop';
+
+            // Build thumbnail scroller (up to 4 thumbnails)
+            const thumbs = (photos && photos.length) ? photos.slice(0,4).map(s => `<img src="${s}" class="h-20 w-28 object-cover rounded cursor-pointer">`).join('') : '';
+
+            return `
+                <a href="property.html?id=${encodeURIComponent(v._id)}" class="group block">
+                    <div class="light-card rounded-xl overflow-hidden h-full">
+                        <div class="relative">
+                            <img src="${img}" alt="${title}" class="w-full h-56 object-cover">
+                            ${v.isVerified ? '<div class="absolute top-3 right-3 bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full flex items-center space-x-1"><i data-lucide="shield-check" class="w-4 h-4"></i><span>Verified</span></div>' : ''}
+                        </div>
+                        <div class="p-5 text-left bg-white">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <span class="text-xs text-pink-800 bg-pink-100 px-2 py-1 rounded-full font-medium">${badge}</span>
+                                    <h3 class="text-xl font-bold mt-3 mb-2 text-gray-900">${title}</h3>
+                                    <p class="text-gray-500 flex items-center mb-4"><i data-lucide="map-pin" class="w-4 h-4 mr-2"></i>${area}${city ? ', ' + city : ''}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-lg font-bold text-gray-900">₹${rent} <span class="text-sm font-normal text-gray-500">/ mo</span></p>
+                                    <div class="flex items-center justify-end space-x-1"><i data-lucide="star" class="w-5 h-5 text-yellow-500 fill-yellow-500"></i><span class="font-semibold text-gray-800">${v.rating || '4.5'}</span><span class="text-sm text-gray-500">(${v.reviewsCount || 0})</span></div>
+                                </div>
+                            </div>
+                            ${ thumbs ? `<div class="mt-4 overflow-x-auto horizontal-slider flex gap-2">${thumbs}</div>` : '' }
+                        </div>
+                    </div>
+                </a>`;
+        }
+
+        function loadWebsiteListing() {
+            // Get filter values from both desktop and mobile selects
+            const desktopCity = document.getElementById('desktop-select-city')?.value || '';
+            const mobileCity = document.getElementById('mobile-select-city')?.value || '';
+            const cityValue = (desktopCity || mobileCity).toString().toLowerCase();
+            
+            const desktopArea = document.getElementById('desktop-select-area')?.value || '';
+            const mobileArea = document.getElementById('mobile-select-area')?.value || '';
+            const areaValue = (desktopArea || mobileArea).toString();
+            
+            // Get price range filters
+            const desktopMinPrice = document.getElementById('desktop-min-price')?.value || '';
+            const mobileMinPrice = document.getElementById('mobile-min-price')?.value || '';
+            const minPrice = desktopMinPrice || mobileMinPrice || '';
+            
+            const desktopMaxPrice = document.getElementById('desktop-max-price')?.value || '';
+            const mobileMaxPrice = document.getElementById('mobile-max-price')?.value || '';
+            const maxPrice = desktopMaxPrice || mobileMaxPrice || '';
+            
+            // Get gender filter
+            const desktopGender = document.getElementById('desktop-gender')?.value || '';
+            const mobileGender = document.getElementById('mobile-gender')?.value || '';
+            const genderValue = desktopGender || mobileGender || '';
+            
+            // Get property type filter
+            const desktopPropertyType = document.getElementById('desktop-property-type')?.value || '';
+            const mobilePropertyType = document.getElementById('mobile-property-type')?.value || '';
+            const propertyTypeValue = desktopPropertyType || mobilePropertyType || '';
+            
+            // Get occupancy filter
+            const desktopOccupancy = document.getElementById('desktop-occupancy')?.value || '';
+            const mobileOccupancy = document.getElementById('mobile-occupancy')?.value || '';
+            const occupancyValue = desktopOccupancy || mobileOccupancy || '';
+
+            const visits = getVisitsFromStorage().filter(v => v.status === 'approved');
+            // Filter online only
+            let filtered = visits.filter(v => v.isLiveOnWebsite === true);
+
+            // Apply city filter if selected
+            if (cityValue) {
+                filtered = filtered.filter(v => ((v.propertyInfo && (v.propertyInfo.city || v.propertyInfo.cityName) || '')).toString().toLowerCase().includes(cityValue));
+            }
+            
+            // Apply area filter if selected
+            if (areaValue) {
+                filtered = filtered.filter(v => ((v.propertyInfo && (v.propertyInfo.area || v.propertyInfo.locality) || '')).toString() === areaValue);
+            }
+            
+            // Apply gender filter if selected
+            if (genderValue) {
+                filtered = filtered.filter(v => {
+                    const gender = (v.propertyInfo && v.propertyInfo.gender || '').toString().toLowerCase();
+                    return gender === genderValue.toLowerCase() || gender === 'co-ed' || genderValue.toLowerCase() === 'co-ed';
+                });
+            }
+            
+            // Apply property type filter if selected
+            if (propertyTypeValue) {
+                filtered = filtered.filter(v => {
+                    const propType = (v.propertyInfo && v.propertyInfo.propertyType || '').toString().toLowerCase();
+                    return propType.includes(propertyTypeValue.toLowerCase());
+                });
+            }
+            
+            // Apply occupancy filter if selected
+            if (occupancyValue) {
+                filtered = filtered.filter(v => {
+                    const occupancy = (v.roomInfo && v.roomInfo.occupancy || '').toString().toLowerCase();
+                    return occupancy === occupancyValue.toLowerCase();
+                });
+            }
+            
+            // Apply price range filters if selected
+            if (minPrice) {
+                const minPriceNum = parseInt(minPrice, 10);
+                filtered = filtered.filter(v => {
+                    const rent = parseInt(v.monthlyRent || v.rent || 0, 10);
+                    return rent >= minPriceNum;
+                });
+            }
+            
+            if (maxPrice && maxPrice !== '50000_plus') {
+                const maxPriceNum = parseInt(maxPrice, 10);
+                filtered = filtered.filter(v => {
+                    const rent = parseInt(v.monthlyRent || v.rent || 0, 10);
+                    return rent <= maxPriceNum;
+                });
+            }
+
+            const grid = document.getElementById('propertiesGrid');
+            if (!grid) return;
+            if (!filtered.length) {
+                grid.innerHTML = '<p class="text-gray-500 px-4">No properties found for selected filters.</p>';
+                document.getElementById('showingTotal').innerText = '0';
+                return;
+            }
+
+            grid.innerHTML = filtered.map(v => renderPropertyCard(v)).join('');
+            lucide.createIcons();
+            document.getElementById('showingTotal').innerText = filtered.length;
+            document.getElementById('showingFrom').innerText = filtered.length ? '1' : '0';
+            document.getElementById('showingTo').innerText = filtered.length;
+        }
+
+        // Wire up selects to reload list
+        document.getElementById('desktop-select-city')?.addEventListener('change', (e) => { populateAreaOptionsFromVisits(e.target.value); loadWebsiteListing(); });
+        document.getElementById('mobile-select-city')?.addEventListener('change', (e) => { populateAreaOptionsFromVisits(e.target.value); loadWebsiteListing(); });
+        document.getElementById('desktop-select-area')?.addEventListener('change', loadWebsiteListing);
+        document.getElementById('mobile-select-area')?.addEventListener('change', loadWebsiteListing);
+        
+        // Wire up price filters
+        document.getElementById('desktop-min-price')?.addEventListener('change', loadWebsiteListing);
+        document.getElementById('mobile-min-price')?.addEventListener('change', loadWebsiteListing);
+        document.getElementById('desktop-max-price')?.addEventListener('change', loadWebsiteListing);
+        document.getElementById('mobile-max-price')?.addEventListener('change', loadWebsiteListing);
+        
+        // Wire up gender filters
+        document.getElementById('desktop-gender')?.addEventListener('change', loadWebsiteListing);
+        document.getElementById('mobile-gender')?.addEventListener('change', loadWebsiteListing);
+        
+        // Wire up property type filters
+        document.getElementById('desktop-property-type')?.addEventListener('change', loadWebsiteListing);
+        document.getElementById('mobile-property-type')?.addEventListener('change', loadWebsiteListing);
+        
+        // Wire up occupancy filters
+        document.getElementById('desktop-occupancy')?.addEventListener('change', loadWebsiteListing);
+        document.getElementById('mobile-occupancy')?.addEventListener('change', loadWebsiteListing);
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function(){ populateAreaOptionsFromVisits(''); loadWebsiteListing(); });
+
+        // ======================================================
+        // END: Dynamic Live Properties Rendering
+        // ======================================================
+
+        // ======================================================
+        // END: Auto-select City in Dropdown
+        // ======================================================
+
+        // ======================================================
+        // START: Area Extraction and Dropdown Population
+        // ======================================================
+
+        // Map of cities and their areas extracted from properties
+        const cityAreaMap = {
+            'kota': ['Mahaveer Nagar', 'CP Nagar'],
+            'indore': ['Vijay Nagar', 'Bhawarkua', 'Saket Nagar'],
+            'sikar': ['Station Road'],
+            'pune': ['Hinjewadi'],
+            'bangalore': ['Koramangala'],
+            'delhi': ['North Campus']
+        };
+
+        // Function to populate area dropdown based on selected city
+        function updateAreaDropdown(cityValue) {
+            const areas = cityAreaMap[cityValue.toLowerCase()] || [];
+
+            // Update mobile area dropdown
+            const mobileAreaSelect = document.getElementById('mobile-select-area');
+            if (mobileAreaSelect) {
+                mobileAreaSelect.innerHTML = '<option value="">First select a city</option>';
+                if (areas.length > 0) {
+                    areas.forEach(area => {
+                        const option = document.createElement('option');
+                        option.value = area.toLowerCase();
+                        option.textContent = area;
+                        mobileAreaSelect.appendChild(option);
+                    });
+                }
+            }
+
+            // Update desktop area dropdown
+            const desktopAreaSelect = document.getElementById('desktop-select-area');
+            if (desktopAreaSelect) {
+                desktopAreaSelect.innerHTML = '<option value="">First select a city</option>';
+                if (areas.length > 0) {
+                    areas.forEach(area => {
+                        const option = document.createElement('option');
+                        option.value = area.toLowerCase();
+                        option.textContent = area;
+                        desktopAreaSelect.appendChild(option);
+                    });
+                }
+            }
+        }
+
+        // Add change event listeners to city and area dropdowns
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileSelectCity = document.getElementById('mobile-select-city');
+            const desktopSelectCity = document.getElementById('desktop-select-city');
+            const mobileSelectArea = document.getElementById('mobile-select-area');
+            const desktopSelectArea = document.getElementById('desktop-select-area');
+
+            if (mobileSelectCity) {
+                mobileSelectCity.addEventListener('change', (e) => {
+                    updateAreaDropdown(e.target.value);
+                    filterPropertiesByTypeAndCity(); // Re-filter when city changes
+                });
+            }
+
+            if (desktopSelectCity) {
+                desktopSelectCity.addEventListener('change', (e) => {
+                    updateAreaDropdown(e.target.value);
+                    filterPropertiesByTypeAndCity(); // Re-filter when city changes
+                });
+            }
+
+            // Add change event listeners to area dropdowns to trigger re-filtering
+            if (mobileSelectArea) {
+                mobileSelectArea.addEventListener('change', () => {
+                    filterPropertiesByTypeAndCity(); // Re-filter when area changes
+                });
+            }
+
+            if (desktopSelectArea) {
+                desktopSelectArea.addEventListener('change', () => {
+                    filterPropertiesByTypeAndCity(); // Re-filter when area changes
+                });
+            }
+
+            // If city is already selected (from URL), populate areas
+            const selectedCity = mobileSelectCity ? mobileSelectCity.value : desktopSelectCity.value;
+            if (selectedCity) {
+                updateAreaDropdown(selectedCity);
+            }
+        });
+
+        // ======================================================
+        // END: Area Extraction and Dropdown Population
+        // ======================================================
+
+        // ======================================================
+        // START: Search Functionality
+        // ======================================================
+
+        function performSearch() {
+            const searchInput = document.getElementById('property-search-input');
+            
+            if (!searchInput) return;
+
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            if (!searchTerm) {
+                // Show all properties if search is empty
+                document.querySelectorAll('a.group[href*="#"]').forEach(card => {
+                    card.style.display = 'block';
+                });
+                return;
+            }
+
+            let visibleCount = 0;
+            document.querySelectorAll('a.group[href*="#"]').forEach(card => {
+                const cardText = card.textContent.toLowerCase();
+                const matches = cardText.includes(searchTerm);
+                card.style.display = matches ? 'block' : 'none';
+                if (matches) visibleCount++;
+            });
+
+            // Update count
+            const countHeader = document.querySelector('h2');
+            if (countHeader) {
+                countHeader.textContent = `${visibleCount} Properties Found for "${searchTerm}"`;
+            }
+        }
+
+        // Handle initial search from URL parameter
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchParam = getUrlParam('search');
+            if (searchParam) {
+                const searchInput = document.getElementById('property-search-input');
+                if (searchInput) {
+                    searchInput.value = decodeURIComponent(searchParam);
+                    performSearch();
+                }
+            }
+
+            // Add search button functionality
+            const searchButton = document.getElementById('property-search-btn');
+            const searchInputField = document.getElementById('property-search-input');
+
+            if (searchButton && searchInputField) {
+                searchButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    performSearch();
+                });
+
+                searchInputField.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        performSearch();
+                    }
+                });
+            }
+        });
+
+        // ======================================================
+        // END: Search Functionality
+        // ======================================================
+
+        // Simple toast helper (used for notifications across this page)
+        window.showToast = function(message, type='info', duration=3500){
+            try{
+                const toast = document.createElement('div');
+                toast.className = 'fixed z-50 right-6 bottom-6 max-w-xs px-4 py-3 rounded shadow-lg text-sm text-white';
+                toast.style.transition = 'transform 240ms ease, opacity 240ms ease';
+                toast.style.opacity = '0';
+                if(type === 'success') toast.style.background = 'linear-gradient(90deg,#10b981,#059669)';
+                else if(type === 'error') toast.style.background = 'linear-gradient(90deg,#ef4444,#dc2626)';
+                else toast.style.background = 'linear-gradient(90deg,#3b82f6,#06b6d4)';
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                requestAnimationFrame(()=>{ toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; });
+                setTimeout(()=>{ toast.style.opacity = '0'; toast.style.transform = 'translateY(10px)'; setTimeout(()=>toast.remove(),300); }, duration);
+            }catch(e){ console.warn('showToast failed', e); }
+        };
+
+        // Listen for localStorage changes (admin/backend fallback) to reload listings and show notifications
+        window.addEventListener('storage', function(ev){
+            try{
+                if (!ev) return;
+                if (ev.key === 'roomhy_visits' || ev.key === 'new_property_added') {
+                    // reload area options and listings
+                    populateAreaOptionsFromVisits('');
+                    loadWebsiteListing();
+                    showToast('New property added', 'info');
+                }
+                // Optional: show toast for enquiries/bids saved in localStorage keys
+                if (ev.key && ev.key.indexOf('owner_enquiries') === 0) {
+                    showToast('New request received', 'info');
+                }
+                if (ev.key && ev.key.indexOf('owner_property_bids') === 0) {
+                    showToast('New bid placed', 'info');
+                }
+            }catch(e){/* ignore */}
+        });
+
+        // ======================================================
+        // START: Populate City Selects (dynamic from admin locations)
+        // ======================================================
+        (function(){
+            var s = document.createElement('script');
+            s.src = 'js/locations-sync.js';
+            s.onload = function(){
+                function fillCitySelects(){
+                    try{
+                        var cities = (window.roomhyLocations && typeof window.roomhyLocations.getCities === 'function') ? window.roomhyLocations.getCities() : [];
+                        var desktop = document.getElementById('desktop-select-city');
+                        var mobile = document.getElementById('mobile-select-city');
+                        var opts = '<option value="">Select a city</option>' + (cities.length ? cities.map(function(c){ return '<option value="'+c.name.toLowerCase()+'">'+c.name+'</option>'; }).join('') : '');
+                        if(desktop) desktop.innerHTML = opts;
+                        if(mobile) mobile.innerHTML = opts;
+                    }catch(e){/* ignore */}
+                }
+                fillCitySelects();
+                if(window.roomhyLocations && typeof window.roomhyLocations.onChange === 'function'){
+                    window.roomhyLocations.onChange(fillCitySelects);
+                }
+            };
+            document.head.appendChild(s);
+        })();
+        // ======================================================
+        // END: Populate City Selects
+        // ======================================================
+
+        /* Mobile Side Menu JS (Existing Logic) */
+        const menuToggle = document.getElementById('menu-toggle');
+        const menuClose = document.getElementById('menu-close');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuOverlay = document.getElementById('menu-overlay');
+
+        if (menuToggle && mobileMenu && menuClose && menuOverlay) {
+            menuToggle.addEventListener('click', () => {
+                mobileMenu.classList.remove('translate-x-full');
+                menuOverlay.classList.remove('hidden');
+            });
+            const closeMenu = () => {
+                mobileMenu.classList.add('translate-x-full');
+                menuOverlay.classList.add('hidden');
+            };
+            menuClose.addEventListener('click', closeMenu);
+            menuOverlay.addEventListener('click', closeMenu);
+            mobileMenu.querySelectorAll('a').forEach(link => { link.addEventListener('click', closeMenu); });
+        }
+        
+        /* Apply and Clear Filters Functionality */
+        function clearAllFilters() {
+            // Reset all filter dropdowns to default values
+            document.getElementById('desktop-select-city').value = '';
+            document.getElementById('mobile-select-city').value = '';
+            document.getElementById('desktop-select-area').value = '';
+            document.getElementById('mobile-select-area').value = '';
+            document.getElementById('desktop-min-price').value = '4000';
+            document.getElementById('mobile-min-price').value = '4000';
+            document.getElementById('desktop-max-price').value = '50000_plus';
+            document.getElementById('mobile-max-price').value = '50000_plus';
+            document.getElementById('desktop-gender').value = '';
+            document.getElementById('mobile-gender').value = '';
+            document.getElementById('desktop-property-type').value = '';
+            document.getElementById('mobile-property-type').value = '';
+            document.getElementById('desktop-occupancy').value = '';
+            document.getElementById('mobile-occupancy').value = '';
+            
+            // Reload listings
+            populateAreaOptionsFromVisits('');
+            loadWebsiteListing();
+        }
+        
+        // Wire up Apply Filters buttons (close mobile drawer after applying)
+        const mobileApplyFilterBtn = document.querySelector('#mobile-filter-drawer button:nth-child(1)');
+        if (mobileApplyFilterBtn && mobileApplyFilterBtn.textContent.includes('Apply Filters')) {
+            mobileApplyFilterBtn.addEventListener('click', loadWebsiteListing);
+        }
+        
+        // Wire up Clear Filters buttons (desktop and mobile)
+        document.querySelectorAll('button').forEach(btn => {
+            if (btn.textContent.includes('Clear Filters')) {
+                btn.addEventListener('click', clearAllFilters);
+            }
+        });
+        
+        /* Filter Toggle JS (Mobile & Desktop) - UPDATED LOGIC */
+        const filterToggleMobile = document.getElementById('filter-toggle'); 
+        const filterToggleDesktop = document.getElementById('filter-toggle-desktop'); 
+        const filterSidebar = document.getElementById('filter-sidebar'); 
+        const mainContentArea = document.getElementById('main-content-area'); 
+        
+        // New variables for the mobile drawer
+        const mobileFilterDrawer = document.getElementById('mobile-filter-drawer');
+        const closeFilterMobile = document.getElementById('close-filter-mobile');
+        const filterOverlay = document.getElementById('filter-overlay');
+
+        // Toggle function for the mobile drawer (Slide-in/out from right)
+        function toggleMobileFilterDrawer() {
+            if (!mobileFilterDrawer || !filterOverlay) return;
+            const isHidden = mobileFilterDrawer.classList.contains('translate-x-full');
+            
+            if (isHidden) {
+                // Show drawer
+                mobileFilterDrawer.classList.remove('translate-x-full');
+                mobileFilterDrawer.classList.add('translate-x-0');
+                filterOverlay.classList.remove('hidden');
+            } else {
+                // Hide drawer
+                mobileFilterDrawer.classList.remove('translate-x-0');
+                mobileFilterDrawer.classList.add('translate-x-full');
+                filterOverlay.classList.add('hidden');
+            }
+            lucide.createIcons();
+        }
+        
+        // Toggle function for the desktop sidebar (Show/Hide)
+        function toggleDesktopSidebar() {
+            if (!filterSidebar || !mainContentArea || !filterToggleDesktop) return;
+            
+            const isNowHidden = filterSidebar.classList.toggle('hidden');
+            
+            // On desktop, adjust grid
+            if (window.innerWidth >= 1024) {
+                // When sidebar is hidden, main content spans 4 cols
+                mainContentArea.classList.toggle('lg:col-span-4', isNowHidden);
+                // When sidebar is visible, main content spans 3 cols
+                mainContentArea.classList.toggle('lg:col-span-3', !isNowHidden);
+                // Ensure sidebar is shown/hidden correctly on desktop
+                filterSidebar.classList.toggle('lg:block', !isNowHidden);
+            }
+            
+            // Update desktop button style
+            filterToggleDesktop.classList.toggle('bg-blue-50', !isNowHidden);
+            filterToggleDesktop.classList.toggle('text-blue-600', !isNowHidden);
+            
+            lucide.createIcons();
+        }
+
+        // --- Attach Event Listeners ---
+        if (filterToggleMobile) {
+            filterToggleMobile.addEventListener('click', toggleMobileFilterDrawer);
+        }
+        if (closeFilterMobile) {
+            closeFilterMobile.addEventListener('click', toggleMobileFilterDrawer);
+        }
+        if (filterOverlay) {
+            filterOverlay.addEventListener('click', toggleMobileFilterDrawer);
+        }
+        // Also attach the apply button to close the drawer for convenience
+        const mobileApplyFilters = document.getElementById('mobile-apply-filters');
+        if (mobileApplyFilters) {
+            mobileApplyFilters.addEventListener('click', () => {
+                loadWebsiteListing();
+                toggleMobileFilterDrawer();
+            });
+        }
+        
+        if (filterToggleDesktop) {
+            filterToggleDesktop.addEventListener('click', toggleDesktopSidebar);
+        }
+        
+        /* Hero Slideshow JS */
+        const heroWrapper = document.getElementById('hero-image-wrapper');
+        if (heroWrapper) {
+            const heroImages = heroWrapper.querySelectorAll('img');
+            const totalHeroImages = heroImages.length;
+            let currentHeroIndex = 0;
+
+            if (totalHeroImages > 1) {
+                setInterval(() => {
+                    const nextHeroIndex = (currentHeroIndex + 1) % totalHeroImages;
+                    heroImages[currentHeroIndex].classList.remove('opacity-100');
+                    heroImages[currentHeroIndex].classList.add('opacity-0');
+                    heroImages[nextHeroIndex].classList.remove('opacity-0');
+                    heroImages[nextHeroIndex].classList.add('opacity-100');
+                    currentHeroIndex = nextHeroIndex;
+                }, 5000); 
+            }
+        }
+
+    </script>
+</body>
+
+</html>

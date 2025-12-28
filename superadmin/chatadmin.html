@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roomhy - Chats</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        
+        /* --- Sidebar Styling (Dark Theme) --- */
+        .sidebar {
+            background-color: #111827;
+            color: #9ca3af;
+        }
+        .sidebar-link {
+            color: #9ca3af;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.9rem;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+        }
+        .sidebar-link:hover {
+            color: #f3f4f6; 
+            background-color: #1f2937;
+        }
+        .sidebar-link.active {
+            background-color: #1f2937;
+            color: #ffffff;
+            border-left-color: #a855f7; /* Purple-500 */
+        }
+
+        /* Submenu Styling */
+        .submenu {
+            background-color: #0f172a;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+            max-height: 0;
+        }
+        .submenu.open {
+            max-height: 500px;
+        }
+        .submenu a {
+            padding-left: 3.5rem;
+            font-size: 0.85rem;
+            display: block;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            color: #9ca3af;
+        }
+        .submenu a:hover {
+            color: white;
+        }
+        
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        /* Chat Bubbles */
+        .chat-bubble-user {
+            background-color: #f3f4f6;
+            color: #1f2937;
+            border-radius: 12px 12px 12px 0;
+        }
+        .chat-bubble-admin {
+            background-color: #9333ea; /* Purple-600 */
+            color: white;
+            border-radius: 12px 12px 0 12px;
+        }
+        /* System Message Bubble */
+        .chat-bubble-system {
+            background-color: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.8rem;
+            width: 100%;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Active Chat Item */
+        .chat-item.active {
+            background-color: #f3f4f6;
+            border-left: 3px solid #9333ea;
+        }
+        
+        /* Recording Animation */
+        .recording-pulse {
+            animation: pulse-red 1.5s infinite;
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+    </style>
+</head>
+<body class="text-slate-800 h-screen overflow-hidden flex flex-col">
+    <div class="flex h-full overflow-hidden">
+       <!-- Sidebar -->
+          <aside class="sidebar w-72 flex-shrink-0 hidden md:flex flex-col z-20 overflow-y-auto custom-scrollbar">
+            <!-- Logo -->
+            <div class="h-16 flex items-center px-6 border-b border-gray-800 sticky top-0 bg-[#111827] z-10">
+                 <div class="flex items-center gap-3">
+                     <div class="bg-purple-600 p-1.5 rounded-lg">
+                        <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+                     </div>
+                     <div>
+                        <h1 class="text-xl font-bold text-white leading-none tracking-tight">RoomHy</h1>
+                        <span class="text-[10px] text-gray-500 font-medium tracking-wider">ADMIN PANEL</span>
+                     </div>
+                 </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex-1 py-6 space-y-1">
+                <div class="px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Overview</div>
+                <a href="superadmin.html" class="sidebar-link">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard
+                </a>
+
+                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Management</div>
+                <a href="manager.html" class="sidebar-link">
+                    <i data-lucide="map-pin" class="w-5 h-5 mr-3"></i> Teams
+                </a>
+                <a href="owner.html" class="sidebar-link">
+                    <i data-lucide="briefcase" class="w-5 h-5 mr-3"></i> Property Owners
+                </a>
+                <a href="properties.html" class="sidebar-link">
+                    <i data-lucide="home" class="w-5 h-5 mr-3"></i> Properties
+                </a>
+                <a href="tenant.html" class="sidebar-link">
+                    <i data-lucide="users" class="w-5 h-5 mr-3"></i> Tenants
+                </a>
+                 <a href="kyc_verification.html" class="sidebar-link">
+                    <i data-lucide="file-badge" class="w-5 h-5 mr-3"></i> KYC Verification
+                </a>
+
+                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Operations</div>
+                <a href="tenant_rec.html" class="sidebar-link">
+                    <i data-lucide="folder-open" class="w-5 h-5 mr-3"></i> Tenant Records
+                </a>
+                <a href="enquiry.html" class="sidebar-link">
+                    <i data-lucide="help-circle" class="w-5 h-5 mr-3"></i> Enquiries
+                </a>
+                <a href="booking.html" class="sidebar-link">
+                    <i data-lucide="calendar-check" class="w-5 h-5 mr-3"></i> Bookings
+                </a>
+                <a href="reviews.html" class="sidebar-link">
+                    <i data-lucide="star" class="w-5 h-5 mr-3"></i> Reviews
+                </a>
+                <a href="complaint-history.html" class="sidebar-link">
+                    <i data-lucide="alert-circle" class="w-5 h-5 mr-3"></i> Complaint History
+                </a>
+
+                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Website</div>
+                <a href="website.html" class="sidebar-link"><i data-lucide="globe" class="w-5 h-5 mr-3"></i> Live Properties</a>
+
+                <!-- Dropdown: Payment & Finance -->
+                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Finance</div>
+                <div class="group">
+                    <div class="sidebar-link justify-between" onclick="toggleSubmenu('finance-submenu', this)">
+                        <div class="flex items-center">
+                            <i data-lucide="wallet" class="w-5 h-5 mr-3"></i> Payment & Finance
+                        </div>
+                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
+                    </div>
+                    <div id="finance-submenu" class="submenu">
+                        <a href="rentcollection.html" class="sidebar-link text-sm hover:text-white">All Rent Collections</a>
+                        <a href="platform.html" class="sidebar-link text-sm hover:text-white">Platform Commissions</a>
+                        <a href="refund.html" class="sidebar-link text-sm hover:text-white">Refund Approvals</a>
+                        <a href="payment_disputes.html" class="sidebar-link text-sm hover:text-white">Payment Disputes</a>
+                    </div>
+                </div>
+
+                <!-- Dropdown: Reports -->
+                <div class="group">
+                    <div class="sidebar-link justify-between" onclick="toggleSubmenu('reports-submenu', this)">
+                        <div class="flex items-center">
+                            <i data-lucide="bar-chart-3" class="w-5 h-5 mr-3"></i> Reports
+                        </div>
+                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
+                    </div>
+                    <div id="reports-submenu" class="submenu">
+                        <a href="platform_reports.html" class="sidebar-link text-sm hover:text-white">Platform-wide Reports</a>
+                        <a href="monthly.html" class="sidebar-link text-sm hover:text-white">Monthly Revenue</a>
+                        <a href="#" class="sidebar-link text-sm hover:text-white text-purple-400 flex items-center"><i data-lucide="download" class="w-3 h-3 mr-2"></i> Export PDF/Excel</a>
+                    </div>
+                </div>
+
+                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">System</div>
+                 <a href="chatadmin.html" class="sidebar-link active">
+                    <i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Chats
+                </a>
+                 <a href="profile.html" class="sidebar-link">
+                    <i data-lucide="user" class="w-5 h-5 mr-3"></i> Profile
+                </a>
+                 <a href="settings.html" class="sidebar-link">
+                    <i data-lucide="settings" class="w-5 h-5 mr-3"></i> Settings
+                </a>
+                 <a href="location.html" class="sidebar-link">
+                    <i data-lucide="globe" class="w-5 h-5 mr-3"></i> RoomHy Location
+                </a>
+
+                <!-- 3-Dot Menu / Settings Section -->
+                <div class="group">
+                    <div class="sidebar-link justify-between" onclick="toggleSubmenu('settings-submenu', this)">
+                        <div class="flex items-center">
+                            <i data-lucide="more-horizontal" class="w-5 h-5 mr-3"></i> System Settings
+                        </div>
+                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
+                    </div>
+                    <div id="settings-submenu" class="submenu">
+                        <a href="log.html" class="sidebar-link text-sm hover:text-white">Login Logs</a>
+                        <a href="security.html" class="sidebar-link text-sm hover:text-white">Security Settings</a>
+                        <a href="backup.html" class="sidebar-link text-sm hover:text-white">Backup Settings</a>
+                    </div>
+                </div>
+                
+                <div class="h-20"></div> <!-- Spacer -->
+            </nav>
+        </aside>
+
+        <!-- Main Chat Interface -->
+        <div class="flex-1 flex flex-col overflow-hidden bg-white h-full relative">
+            <!-- Mobile Header -->
+            <div class="md:hidden h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 shadow-sm z-20">
+                <button id="mobile-menu-open" class="text-gray-500"><i data-lucide="menu" class="w-6 h-6"></i></button>
+                <span class="font-semibold text-gray-800">Chats</span>
+                <button class="text-gray-500"><i data-lucide="search" class="w-5 h-5"></i></button>
+            </div>
+
+            <div class="flex flex-1 overflow-hidden">
+                <!-- Chat List Sidebar -->
+                <div class="w-full md:w-80 border-r border-gray-200 flex flex-col bg-white h-full">
+                    <!-- Search & Filters -->
+                    <div class="p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
+                        <div class="relative mb-3">
+                            <input type="text" id="searchInput" placeholder="Search conversations..." class="w-full pl-9 pr-4 py-2 bg-gray-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-purple-500">
+                            <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3 top-2.5"></i>
+                        </div>
+                        
+                        <!-- Role Filters -->
+                        <div class="flex justify-between bg-gray-100 p-1 rounded-lg items-center">
+                            <div class="flex gap-1 w-full">
+                                <button onclick="filterChats('personal', event)" id="tab-personal" class="chat-filter-btn active flex-1 text-xs font-medium py-1.5 rounded-md text-center bg-white text-purple-600 shadow-sm">Team</button>
+                                <button onclick="filterChats('group', event)" id="tab-group" class="chat-filter-btn flex-1 text-xs font-medium py-1.5 rounded-md text-center text-gray-500 hover:text-gray-700">Group</button>
+                                <button onclick="filterChats('direct', event)" id="tab-direct" class="chat-filter-btn flex-1 text-xs font-medium py-1.5 rounded-md text-center text-gray-500 hover:text-gray-700">Direct Support</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Conversations List -->
+                    <div class="flex-1 overflow-y-auto custom-scrollbar" id="chatList">
+                        <!-- Contacts injected here -->
+                    </div>
+
+                    <!-- Create Group Button (Hidden unless Group tab active) -->
+                    <div id="createGroupArea" class="p-4 border-t hidden">
+                         <button onclick="createNewGroup()" class="w-full bg-purple-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-purple-700 flex items-center justify-center gap-2">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i> Create Group
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat Area -->
+                <div class="flex-1 flex flex-col bg-[#f8fafc] relative">
+                    <!-- Chat Header -->
+                    <div class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm">
+                        <div class="flex items-center">
+                            <div id="chatHeaderAvatarContainer" class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3 overflow-hidden">
+                                <img id="chatHeaderAvatar" src="" class="w-full h-full object-cover hidden">
+                                <span id="chatHeaderInitials" class="text-sm font-bold text-gray-500">?</span>
+                            </div>
+                            <div>
+                                <h3 id="chatHeaderName" class="text-sm font-bold text-gray-900">Select a Chat</h3>
+                                <p class="text-xs text-green-600 flex items-center hidden" id="chatHeaderStatus"><span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>Online</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 text-gray-500">
+                            <button id="startCallBtn" class="hover:text-purple-600 p-1.5 rounded-full hover:bg-purple-50" title="Start Call"><i data-lucide="phone" class="w-5 h-5"></i></button>
+                            <button id="startVideoBtn" class="hover:text-purple-600 p-1.5 rounded-full hover:bg-purple-50" title="Start Video Call"><i data-lucide="video" class="w-5 h-5"></i></button>
+                            <button id="toggleMeetingBtn" class="hover:text-purple-600 p-1.5 rounded-full hover:bg-purple-50" title="Start/End Meeting (Rec)"><i data-lucide="monitor-play" class="w-5 h-5"></i></button>
+                            <button class="hover:text-purple-600 p-1.5 rounded-full hover:bg-purple-50" title="More Options"><i data-lucide="more-vertical" class="w-5 h-5"></i></button>
+                            <button id="cancelChatBtn" class="hover:text-red-600 p-1.5 rounded-full hover:bg-red-50 ml-2" title="Close Chat" onclick="window.location.href = '../Areamanager/areachat.html';"><i data-lucide="x" class="w-5 h-5"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Messages Area -->
+                    <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar" id="messageContainer">
+                        <div class="flex flex-col items-center justify-center h-full text-gray-400">
+                            <i data-lucide="messages-square" class="w-16 h-16 mb-4 opacity-20"></i>
+                            <p>Select a contact to start messaging.</p>
+                        </div>
+                    </div>
+
+                    <!-- Input Area -->
+                    <div class="p-4 bg-white border-t border-gray-200">
+                        <div class="flex items-center gap-3 bg-gray-50 p-2 rounded-xl border border-gray-200 shadow-inner">
+                            <button id="attachBtn" class="text-gray-400 hover:text-purple-600 p-2 rounded-full hover:bg-gray-100 transition" title="Attach file"><i data-lucide="paperclip" class="w-5 h-5"></i></button>
+                            <input id="fileInput" type="file" class="hidden">
+                            
+                            <button id="recordBtn" class="text-gray-400 hover:text-red-600 p-2 rounded-full hover:bg-gray-100 transition" title="Hold to Record Audio"><i data-lucide="mic" class="w-5 h-5"></i></button>
+                            
+                            <input id="chatInput" type="text" placeholder="Type a message..." class="flex-1 bg-transparent border-none focus:ring-0 text-sm text-gray-700 placeholder-gray-400">
+                            
+                            <button id="sendBtn" class="bg-purple-600 text-white p-2.5 rounded-lg hover:bg-purple-700 transition-colors shadow-sm flex items-center justify-center" title="Send message">
+                                <i data-lucide="send" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div id="recordingIndicator" class="hidden text-xs text-red-500 font-bold mt-1 ml-12 animate-pulse">Recording audio...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Sidebar Overlay -->
+        <div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden backdrop-blur-sm" onclick="toggleMobileMenu()"></div>
+        <aside id="mobile-sidebar" class="fixed inset-y-0 left-0 w-72 bg-[#111827] z-40 transform -translate-x-full transition-transform duration-300 md:hidden flex flex-col">
+            <nav class="flex-1 py-4 space-y-1 px-2">
+                 <a href="superadmin.html" class="flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-400 hover:bg-gray-800">Dashboard</a>
+                 <a href="#" class="flex items-center px-4 py-3 text-sm font-medium rounded-md bg-gray-800 text-white border-l-4 border-purple-500">Chats</a>
+            </nav>
+        </aside>
+    </div>
+
+    <script>
+        // Ensure Lucide is loaded
+        window.addEventListener('load', () => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+
+        // Load Agora SDK dynamically
+        (function loadAgora(){
+            const s = document.createElement('script');
+            s.src = 'https://download.agora.io/sdk/release/AgoraRTC_N-4.17.0.js';
+            s.async = true;
+            s.onerror = () => console.warn("Agora SDK failed to load - video calls may not work.");
+            document.head.appendChild(s);
+        })();
+
+        // Load Socket.IO Client
+        const SOCKET_HOST = 'http://localhost:5000';
+        (function loadSocketIO() {
+            if (window.io) return;
+            const script = document.createElement('script');
+            script.src = 'https://cdn.socket.io/4.7.5/socket.io.min.js';
+            script.onload = () => { window.io = window.io || window.io; };
+            document.head.appendChild(script);
+        })();
+
+        let currentTab = 'personal';
+        let activeChatId = null;
+        let messagesCache = [];
+
+        // Initialize superadmin user ID
+        const user = JSON.parse(sessionStorage.getItem('superadmin_user') || localStorage.getItem('superadmin_user') || sessionStorage.getItem('user') || localStorage.getItem('user') || 'null');
+        const superadminId = user ? (user.loginId || user.id) : 'SUPERADMIN001';
+
+        // Socket.IO Connection (for real-time updates)
+        (function initSocketSuperadmin() {
+            let retries = 0;
+            const maxRetries = 20;
+            let socket = null;
+            const tryConnect = () => {
+                try {
+                    if (typeof io !== 'undefined') {
+                        socket = io(SOCKET_HOST, { transports: ['websocket'] });
+                        socket.on('connect', () => {
+                            socket.emit('join', superadminId);
+                        });
+                        socket.on('chat:message', (msg) => {
+                            if (activeChatId && (msg.from === activeChatId || msg.to === activeChatId)) {
+                                renderMessages();
+                            }
+                        });
+                        socket.on('disconnect', () => console.warn('Socket disconnected'));
+                        window._socket = socket;
+                    } else if (retries < maxRetries) {
+                        retries++;
+                        setTimeout(tryConnect, 200);
+                    } else {
+                        console.warn('Socket.IO library failed to load after retries');
+                    }
+                } catch (e) {
+                    console.warn('Socket.IO init failed:', e.message);
+                }
+            };
+            setTimeout(tryConnect, 100);
+        })();
+
+        // Data Helpers with Safety Checks
+        function getEmployees() { 
+            try { return JSON.parse(localStorage.getItem('roomhy_employees') || '[]'); } 
+            catch(e) { console.warn('Error parsing employees', e); return []; }
+        }
+        
+        // Fetch messages from MongoDB API
+        async function getChats(fromId, toId) {
+            try {
+                const resp = await fetch(`http://localhost:5000/api/chat/messages?from=${encodeURIComponent(fromId)}&to=${encodeURIComponent(toId)}&limit=500`);
+                if (!resp.ok) {
+                    console.warn('getChats API failed:', resp.status);
+                    return [];
+                }
+                const json = await resp.json();
+                return json.data || [];
+            } catch (e) {
+                console.warn('getChats error:', e.message);
+                return [];
+            }
+        }
+        
+        function getGroups() { 
+            try { return JSON.parse(localStorage.getItem('roomhy_chat_groups') || '[]'); } 
+            catch(e) { console.warn('Error parsing groups', e); return []; }
+        }
+
+        // Filter Tabs Logic
+        async function filterChats(role, evt) {
+            currentTab = role;
+            // UI Update
+            const buttons = document.querySelectorAll('.chat-filter-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('active', 'bg-white', 'text-purple-600', 'shadow-sm');
+                btn.classList.add('text-gray-500');
+            });
+            const target = evt && (evt.currentTarget || evt.target) ? (evt.currentTarget || evt.target) : document.getElementById(`tab-${role}`);
+            if (target) {
+                target.classList.add('active', 'bg-white', 'text-purple-600', 'shadow-sm');
+                target.classList.remove('text-gray-500');
+            }
+
+            // Show Group Create button only on Group tab
+            const groupArea = document.getElementById('createGroupArea');
+            if(groupArea) {
+                groupArea.classList.toggle('hidden', role !== 'group');
+            }
+
+            await renderChatList();
+        }
+
+        // Render Chat List based on Tab
+        async function renderChatList() {
+            const container = document.getElementById('chatList');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            const searchInput = document.getElementById('searchInput');
+            const search = searchInput ? searchInput.value.toLowerCase() : '';
+
+            if (currentTab === 'personal') {
+                // List ALL employees from manager.html
+                const employees = getEmployees();
+                if (!employees || employees.length === 0) {
+                    container.innerHTML = '<div class="p-4 text-sm text-gray-500">No employees found. Add in Team Management.</div>';
+                    return;
+                }
+                employees.forEach(emp => {
+                    if (emp.name && emp.name.toLowerCase().includes(search)) {
+                         container.appendChild(createListItem(emp.loginId, emp.name, emp.role || 'Employee', emp.loginId === activeChatId));
+                    }
+                });
+
+            } else if (currentTab === 'group') {
+                // 1. Auto-generated Area Groups
+                const employees = getEmployees();
+                const areas = [...new Set(employees.map(e => e.areaCode).filter(Boolean))];
+                
+                areas.forEach(area => {
+                    const groupName = `Group: ${area}`;
+                    if(groupName.toLowerCase().includes(search)) {
+                        container.appendChild(createListItem(`group:${area}`, groupName, 'Area Team', `group:${area}` === activeChatId, true));
+                    }
+                });
+
+                // 2. Custom Groups
+                const groups = getGroups();
+                groups.forEach(g => {
+                    if(g.name && g.name.toLowerCase().includes(search)) {
+                        container.appendChild(createListItem(g.id, g.name, 'Custom Group', g.id === activeChatId, true));
+                    }
+                });
+
+            } else if (currentTab === 'direct') {
+                // Show Escalated Chats (Tenants/Owners who clicked 'Connect to Admin')
+                // Try to read cached messages first (localStorage), fall back to backend if empty
+                let allMsgs = [];
+                try {
+                    allMsgs = JSON.parse(localStorage.getItem('roomhy_chat_messages') || '[]');
+                } catch (e) { allMsgs = []; }
+                // If no local cache, attempt to fetch recent conversations via backend
+                if (!allMsgs || allMsgs.length === 0) {
+                    try {
+                        const resp = await fetch(`http://localhost:5000/api/chat/user/${encodeURIComponent(superadminId)}`);
+                        if (resp.ok) {
+                            const json = await resp.json();
+                            // json.data contains conversation summaries; convert to minimal messages array
+                            allMsgs = (json.data || []).map(c => ({ from: c._id, to: superadminId, isEscalated: false, message: c.lastMessage, timestamp: c.lastTimestamp }));
+                        }
+                    } catch (e) { /* ignore */ }
+                }
+
+                const escalatedUsers = new Set();
+
+                (allMsgs || []).forEach(m => {
+                    if (m && m.isEscalated) {
+                        const other = (m.from === superadminId || m.from === 'superadmin') ? m.to : m.from;
+                        if (other) escalatedUsers.add(other);
+                    }
+                });
+
+                if (escalatedUsers.size === 0) {
+                    container.innerHTML = `<div class="p-6 text-center text-sm text-gray-500"><i data-lucide="shield" class="w-8 h-8 mx-auto mb-2 text-gray-300"></i><br>No active support requests.</div>`;
+                    if(typeof lucide !== 'undefined') lucide.createIcons();
+                    return;
+                }
+
+                escalatedUsers.forEach(userId => {
+                    if(userId && userId.toLowerCase().includes(search)) {
+                        const type = userId.startsWith('TNT') ? 'Tenant' : 'Owner';
+                        container.appendChild(createListItem(userId, userId, `${type} Support`, userId === activeChatId));
+                    }
+                });
+            }
+        }
+
+        function createListItem(id, name, sub, isActive, isGroup=false) {
+            const div = document.createElement('div');
+            div.className = `chat-item p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${isActive ? 'active' : ''}`;
+            div.dataset.id = id;
+            
+            let bgClass = isGroup ? 'bg-orange-100 text-orange-600' : 'bg-gray-200 text-gray-600';
+            if (currentTab === 'direct') bgClass = 'bg-red-100 text-red-600';
+            else if (isActive) bgClass = 'bg-purple-100 text-purple-600';
+
+            const initials = isGroup ? 'GRP' : (name ? name.charAt(0).toUpperCase() : '?');
+
+            div.innerHTML = `
+                <div class="flex justify-between items-start mb-1">
+                    <div class="flex items-center">
+                        <div class="relative">
+                            <div class="w-10 h-10 rounded-full ${bgClass} flex items-center justify-center font-bold text-xs shadow-sm">
+                                ${initials}
+                            </div>
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="text-sm font-semibold text-gray-900">${name || 'Unknown'}</h4>
+                            <span class="text-xs text-gray-500">${sub}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            div.onclick = () => openConversation(id, name, sub);
+            return div;
+        }
+
+        async function openConversation(id, name, sub) {
+            activeChatId = id;
+            // Header Update
+            const headerName = document.getElementById('chatHeaderName');
+            const headerInitials = document.getElementById('chatHeaderInitials');
+            const headerAvatar = document.getElementById('chatHeaderAvatar');
+            const headerStatus = document.getElementById('chatHeaderStatus');
+
+            if(headerName) headerName.innerText = name;
+            if(headerInitials) {
+                headerInitials.innerText = name ? name.charAt(0) : '?';
+                headerInitials.classList.remove('hidden');
+            }
+            if(headerAvatar) headerAvatar.classList.add('hidden');
+            if(headerStatus) headerStatus.classList.remove('hidden');
+            
+            // Highlight list item
+            renderChatList();
+            renderMessages();
+        }
+
+        async function renderMessages() {
+            if (!activeChatId) return;
+            const container = document.getElementById('messageContainer');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            try {
+                const msgs = await getChats(superadminId, activeChatId);
+
+                // Date divider
+                const dateDiv = document.createElement('div');
+                dateDiv.className = "flex justify-center mb-4";
+                dateDiv.innerHTML = '<span class="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">Today</span>';
+                container.appendChild(dateDiv);
+
+                msgs.forEach(m => {
+                    const isMe = m.from === superadminId;
+                    const timeText = m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
+                    
+                    // System message (Escalation alert)
+                    if (m.message && (m.message.includes('🚨') || m.message.includes('🔒'))) {
+                         const sys = document.createElement('div');
+                         sys.className = "flex justify-center my-2";
+                         sys.innerHTML = `<div class="chat-bubble-system px-4 py-2">${m.message}</div>`;
+                     container.appendChild(sys);
+                     return;
+                }
+
+                // Call/Video/File types handled generally
+                let content = `<p class="text-sm">${escapeHtml(m.message || '')}</p>`;
+                
+                // Audio handler
+                if (m.type === 'audio' && m.audioData) {
+                    content = `<div class="flex items-center gap-2"><i data-lucide="mic" class="w-4 h-4"></i> <audio controls src="${m.audioData}" class="h-8 w-40"></audio></div>`;
+                }
+                
+                // File handler
+                if (m.type === 'file') {
+                    content = `<div class="flex items-center gap-2"><i data-lucide="file" class="w-4 h-4"></i> <a href="${m.meta?.fileUrl || '#'}" target="_blank" class="underline">${m.meta?.filename || 'File'}</a></div>`;
+                }
+
+                const wrap = document.createElement('div');
+                wrap.className = isMe ? 'flex items-end justify-end gap-2' : 'flex items-end gap-2';
+                
+                if (isMe) {
+                    wrap.innerHTML = `
+                        <div class="chat-bubble-admin p-3 max-w-[70%] shadow-sm">
+                            ${content}
+                            <span class="text-[10px] text-purple-200 block mt-1 text-right">${timeText} <i data-lucide="check" class="w-3 h-3 inline ml-1"></i></span>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 text-xs font-bold mb-1">SA</div>
+                    `;
+                } else {
+                    const senderName = activeChatId.startsWith('group:') ? `<div class="text-[10px] font-bold opacity-70 mb-1">${m.from || 'User'}</div>` : '';
+                    const fromChar = m.from ? m.from.charAt(0) : '?';
+                    wrap.innerHTML = `
+                         <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-bold mb-1">${fromChar}</div>
+                         <div class="chat-bubble-user p-3 max-w-[70%] shadow-sm">
+                            ${senderName}
+                            ${content}
+                            <span class="text-[10px] text-gray-400 block mt-1 text-right">${timeText}</span>
+                        </div>
+                    `;
+                }
+                container.appendChild(wrap);
+            });
+            container.scrollTop = container.scrollHeight;
+            if(typeof lucide !== 'undefined') lucide.createIcons();
+        } catch (err) {
+            console.error('renderMessages error:', err);
+        }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text || !activeChatId) return;
+            const newMsg = {
+                from: superadminId,
+                to: activeChatId,
+                message: text,
+                type: 'text',
+                isEscalated: currentTab === 'direct'
+            };
+            try {
+                const resp = await fetch('http://localhost:5000/api/chat/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newMsg)
+                });
+                if (!resp.ok) {
+                    console.warn('sendMessage API failed:', resp.status);
+                    return;
+                }
+                const savedMsg = await resp.json();
+                if (window._socket) {
+                    window._socket.emit('chat:message', newMsg);
+                }
+                input.value = '';
+                // Refresh messages to show the sent message
+                renderMessages();
+            } catch (e) {
+                console.error('sendMessage error:', e.message);
+            }
+        }
+
+        // --- Create Group Logic ---
+        window.createNewGroup = function() {
+            const name = prompt("Enter Group Name:");
+            if (name) {
+                const groups = getGroups();
+                const newG = { id: `group:custom_${Date.now()}`, name: name, members: [] };
+                groups.push(newG);
+                localStorage.setItem('roomhy_chat_groups', JSON.stringify(groups));
+                filterChats('group'); // Refresh
+                alert(`Group "${name}" created!`);
+            }
+        }
+
+        // --- File Attachment Logic (Mock) ---
+        const attachBtn = document.getElementById('attachBtn');
+        const fileInput = document.getElementById('fileInput');
+        
+        if(attachBtn && fileInput) {
+            attachBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (!file || !activeChatId) return;
+                // Mock upload
+                const allMsgs = getChats();
+                allMsgs.push({
+                    from: 'superadmin',
+                    to: activeChatId,
+                    message: "Attachment: " + file.name,
+                    type: 'file',
+                    meta: { filename: file.name, fileUrl: '#' },
+                    timestamp: new Date().toISOString(),
+                    isEscalated: currentTab === 'direct'
+                });
+                localStorage.setItem('roomhy_chat_messages', JSON.stringify(allMsgs));
+                renderMessages();
+            });
+        }
+
+        // --- Audio Recording Logic ---
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        
+        const recordBtn = document.getElementById('recordBtn');
+        const recordingIndicator = document.getElementById('recordingIndicator');
+
+        if(recordBtn) {
+            recordBtn.addEventListener('mousedown', async () => {
+                 if (!activeChatId) return alert('Select a chat first');
+                 try {
+                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                     mediaRecorder = new MediaRecorder(stream);
+                     audioChunks = [];
+                     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                     mediaRecorder.onstop = () => {
+                         const blob = new Blob(audioChunks, { type: 'audio/wav' });
+                         const reader = new FileReader();
+                         reader.readAsDataURL(blob);
+                         reader.onloadend = () => {
+                             const allMsgs = getChats();
+                             allMsgs.push({
+                                 from: 'superadmin',
+                                 to: activeChatId,
+                                 message: "Voice Note",
+                                 type: 'audio',
+                                 audioData: reader.result,
+                                 timestamp: new Date().toISOString(),
+                                 isEscalated: currentTab === 'direct'
+                             });
+                             localStorage.setItem('roomhy_chat_messages', JSON.stringify(allMsgs));
+                             renderMessages();
+                         };
+                     };
+                     mediaRecorder.start();
+                     isRecording = true;
+                     recordBtn.classList.add('text-red-600', 'bg-red-50', 'recording-pulse');
+                     if(recordingIndicator) recordingIndicator.classList.remove('hidden');
+                 } catch(e) { alert("Mic access denied"); }
+            });
+
+            recordBtn.addEventListener('mouseup', () => {
+                 if(mediaRecorder && mediaRecorder.state !== 'inactive') {
+                     mediaRecorder.stop();
+                     isRecording = false;
+                     recordBtn.classList.remove('text-red-600', 'bg-red-50', 'recording-pulse');
+                     if(recordingIndicator) recordingIndicator.classList.add('hidden');
+                 }
+            });
+        }
+
+        // --- Agora Call Logic ---
+        let meetingState = false;
+        const startCallBtn = document.getElementById('startCallBtn');
+        const startVideoBtn = document.getElementById('startVideoBtn');
+        const toggleMeetingBtn = document.getElementById('toggleMeetingBtn');
+
+        if(startCallBtn) startCallBtn.onclick = () => alert("Starting Agora Audio Call...");
+        if(startVideoBtn) startVideoBtn.onclick = () => alert("Starting Agora Video Call...");
+        if(toggleMeetingBtn) toggleMeetingBtn.onclick = () => {
+            meetingState = !meetingState;
+            if(meetingState) {
+                alert("Started Meeting & Screen Recording...");
+            } else {
+                alert("Meeting Ended. Recording saved.");
+            }
+        };
+
+        // Notification polling for Super Admin: fetch unread notifications and surface them
+        async function pollNotifications() {
+            try {
+                const token = localStorage.getItem('token') || '';
+                if (!token) return;
+                const base = window.location.hostname.includes('localhost') ? 'http://localhost:5000' : '';
+                
+                // Error handling: endpoint may not exist, catch and log gracefully
+                let res;
+                try {
+                    res = await fetch(base + '/api/admin/notifications?unread=1', { 
+                        headers: { 'Authorization': 'Bearer ' + token },
+                        timeout: 5000 
+                    });
+                } catch (fetchErr) {
+                    console.debug('Notification endpoint unavailable:', fetchErr.message);
+                    return;
+                }
+                
+                if (!res.ok) {
+                    console.debug('Notification endpoint returned:', res.status);
+                    return;
+                }
+                
+                let notifs;
+                try {
+                    notifs = await res.json();
+                } catch (jsonErr) {
+                    console.warn('Failed to parse notification response:', jsonErr.message);
+                    return;
+                }
+                
+                if (!Array.isArray(notifs) || notifs.length === 0) return;
+                
+                for (const n of notifs) {
+                    try {
+                        const time = n.createdAt ? new Date(n.createdAt).toLocaleTimeString() : new Date().toLocaleTimeString();
+                        const text = n.type === 'call' ? 'Incoming voice call' : (n.type === 'video' ? 'Incoming video call' : (n.text || 'Notification'));
+                        const payload = { from: n.from || 'system', type: n.type || 'info', text, time, meta: n.meta || {} };
+                        // Post to chat (so it appears in conversation history)
+                        await postChatPayload(n.from || 'system', payload);
+
+                        // Update local employee preview if present
+                        try {
+                            const raw = localStorage.getItem('roomhy_employees');
+                            if (raw) {
+                                const emps = JSON.parse(raw);
+                                const idx = emps.findIndex(e => (e.loginId || '').toString() === (n.from || '').toString());
+                                if (idx > -1) {
+                                    emps[idx].lastMessage = payload.text;
+                                    emps[idx].lastMessageTime = payload.time;
+                                    localStorage.setItem('roomhy_employees', JSON.stringify(emps));
+                                }
+                            }
+                        } catch (e) { console.warn('update preview failed', e); }
+
+                        // Mark notification read (ignore if endpoint fails)
+                        if (n._id) {
+                            try {
+                                await fetch(base + '/api/admin/notifications/' + encodeURIComponent(n._id) + '/read', { 
+                                    method: 'POST', 
+                                    headers: { 'Authorization': 'Bearer ' + token } 
+                                }).catch(e => console.debug('Mark read failed:', e.message));
+                            } catch (e) { console.debug('Mark read error:', e.message); }
+                        }
+
+                        showTransientNotification(`${text} from ${n.from || 'unknown'}`);
+                    } catch (e) { console.warn('processing notif failed', e); }
+                }
+                await renderChatList();
+            } catch (e) {
+                console.debug('pollNotifications error:', e.message);
+            }
+        }
+
+        function showTransientNotification(text) {
+            try {
+                const el = document.createElement('div');
+                el.className = 'fixed top-6 right-6 bg-white border border-gray-200 px-4 py-2 rounded shadow-lg text-sm z-50';
+                el.innerText = text;
+                document.body.appendChild(el);
+                setTimeout(() => { el.remove(); }, 5000);
+            } catch (e) {}
+        }
+
+        function escapeHtml(unsafe) {
+            if(!unsafe) return "";
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/\"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        const sendBtn = document.getElementById('sendBtn');
+        if(sendBtn) sendBtn.addEventListener('click', sendMessage);
+        
+        const chatInput = document.getElementById('chatInput');
+        if(chatInput) chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage() });
+        
+        const searchInput = document.getElementById('searchInput');
+        if(searchInput) searchInput.addEventListener('input', renderChatList);
+
+        // Sidebar logic
+        function toggleSubmenu(id, element) {
+            const submenu = document.getElementById(id);
+            if(submenu) {
+                const icon = element.querySelector('svg:last-child');
+                if(icon) icon.classList.toggle('rotate-180');
+                submenu.classList.toggle('open');
+            }
+        }
+        function toggleMobileMenu() {
+            document.getElementById('mobile-sidebar').classList.toggle('-translate-x-full');
+            document.getElementById('mobile-overlay').classList.toggle('hidden');
+        }
+        
+        const mobileMenuOpen = document.getElementById('mobile-menu-open');
+        if(mobileMenuOpen) mobileMenuOpen.addEventListener('click', toggleMobileMenu);
+
+        // Init
+        // Run init inside DOMContentLoaded to be safe
+        window.addEventListener('DOMContentLoaded', () => {
+            renderChatList();
+            // Start polling notifications for Super Admin (every 5s)
+            try { pollNotifications(); } catch(e){}
+            setInterval(() => { try { pollNotifications(); } catch(e){} }, 5000);
+        });
+    </script>
+</body>
+</html>

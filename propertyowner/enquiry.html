@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Enquiries - Roomhy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="../sessionManager.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .sidebar { background-color: #111827; color: #9ca3af; }
+        .sidebar-link { color: #9ca3af; font-weight: 500; transition: all 0.2s ease; display: flex; align-items: center; padding: 0.75rem 1.5rem; font-size: 0.9rem; border-left: 3px solid transparent; cursor: pointer; }
+        .sidebar-link:hover { color: #f3f4f6; background-color: #1f2937; }
+        .sidebar-link.active { background-color: #1f2937; color: #ffffff; border-left-color: #a855f7; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="text-slate-800">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar w-72 flex-shrink-0 hidden md:flex flex-col z-20 overflow-y-auto custom-scrollbar">
+            <div class="h-16 flex items-center px-6 border-b border-gray-800 sticky top-0 bg-[#111827] z-10">
+                <div class="flex items-center gap-3">
+                    <div class="bg-purple-600 p-1.5 rounded-lg"><i data-lucide="home" class="w-5 h-5 text-white"></i></div>
+                    <div><h1 class="text-xl font-bold text-white">RoomHy</h1><span class="text-[10px] text-gray-500">OWNER PANEL</span></div>
+                </div>
+            </div>
+            <nav class="flex-1 py-6 space-y-1">
+                <a href="admin.html" class="sidebar-link"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard</a>
+                <a href="properties.html" class="sidebar-link"><i data-lucide="building" class="w-5 h-5 mr-3"></i> Properties</a>
+                <a href="rooms.html" class="sidebar-link"><i data-lucide="bed-double" class="w-5 h-5 mr-3"></i> Rooms</a>
+                <a href="tenantrec.html" class="sidebar-link"><i data-lucide="clipboard-list" class="w-5 h-5 mr-3"></i> Tenant Records</a>
+                <a href="documents.html" class="sidebar-link"><i data-lucide="file-text" class="w-5 h-5 mr-3"></i> Documents</a>
+                <a href="payment.html" class="sidebar-link"><i data-lucide="credit-card" class="w-5 h-5 mr-3"></i> Payments</a>
+                <a href="complaints.html" class="sidebar-link"><i data-lucide="alert-circle" class="w-5 h-5 mr-3"></i> Complaints</a>
+                <a href="location.html" class="sidebar-link"><i data-lucide="map-pin" class="w-5 h-5 mr-3"></i> Location</a>
+                <a href="chat.html" class="sidebar-link"><i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Chat</a>
+                <a href="enquiry.html" class="sidebar-link active"><i data-lucide="mail" class="w-5 h-5 mr-3"></i> Enquiry</a>
+                <a href="ownerprofile.html" class="sidebar-link"><i data-lucide="user" class="w-5 h-5 mr-3"></i> Profile</a>
+                <a href="settings.html" class="sidebar-link"><i data-lucide="settings" class="w-5 h-5 mr-3"></i> Settings</a>
+            </nav>
+        </aside>
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden bg-[#f3f4f6]">
+            <header class="bg-white h-16 flex items-center justify-between px-6 shadow-sm z-10">
+                <div class="flex items-center">
+                    <button id="mobile-menu-open" class="md:hidden mr-4 text-slate-500"><i data-lucide="menu" class="w-6 h-6"></i></button>
+                    <h2 class="text-lg font-semibold text-slate-800">Enquiries</h2>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="text-slate-400 hover:text-slate-600"><i data-lucide="bell" class="w-5 h-5"></i></button>
+                    <div class="relative group">
+                        <button class="flex items-center gap-3 hover:bg-gray-50 p-1.5 rounded-full transition-colors">
+                            <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold border border-purple-200" id="headerAvatar">OP</div>
+                            <div class="text-left hidden sm:block">
+                                <p class="text-xs font-semibold text-gray-700" id="headerName">Owner</p>
+                                <p class="text-[10px] text-gray-500" id="headerAccountId">Property Owner</p>
+                            </div>
+                            <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400 hidden sm:block"></i>
+                        </button>
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 hidden group-hover:block z-50">
+                            <a href="index.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i> Account</a>
+                            <a href="ownerprofile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"><i data-lucide="user-circle" class="w-4 h-4"></i> Profile</a>
+                            <a href="#" id="logoutBtn" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"><i data-lucide="log-out" class="w-4 h-4"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <main class="flex-1 overflow-y-auto p-6 md:p-8">
+                <div class="max-w-4xl mx-auto">
+                    <h1 class="text-2xl font-bold mb-6">Enquiries</h1>
+                    <div id="enquiry-list" class="bg-white rounded-lg shadow p-6">
+                        <p class="text-gray-500">Loading enquiries...</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script>
+        lucide.createIcons();
+        // Header user info logic (copied from admin.html)
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            if (user && user.name) {
+                document.getElementById('headerName').innerText = user.name;
+                document.getElementById('welcomeName')?.innerText = user.name;
+                document.getElementById('headerAvatar').innerText = user.name.charAt(0).toUpperCase();
+                document.getElementById('headerAccountId').innerText = `Account: ${user.loginId}`;
+            }
+            // Logout
+            document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.removeItem('user');
+                window.location.href = '../index.html';
+            });
+            // Fetch and display owner enquiries
+            if (!user || !user.loginId) {
+                document.getElementById('enquiry-list').innerHTML = '<p class="text-red-500">Not logged in as owner.</p>';
+                return;
+            }
+            try {
+                const res = await fetch(`http://localhost:5002/api/owners/${encodeURIComponent(user.loginId)}/enquiries`);
+                const list = res.ok ? await res.json() : [];
+                const container = document.getElementById('enquiry-list');
+                if (!list.length) {
+                    container.innerHTML = '<p class="text-gray-500">No enquiries yet.</p>';
+                    return;
+                }
+                container.innerHTML = `<table class='min-w-full text-xs text-left text-gray-700'><thead class='bg-gray-100'><tr><th class='px-2 py-1'>Property</th><th class='px-2 py-1'>Tenant</th><th class='px-2 py-1'>Status</th><th class='px-2 py-1'>Date</th><th class='px-2 py-1'>Actions</th></tr></thead><tbody>${list.map(e => {
+                    let chatBtn = '';
+                    if (e.status === 'accepted' && e.chatOpen) {
+                        chatBtn = `<a href='chat.html?enquiryId=${e._id}&studentId=${e.studentId}' class='ml-2 bg-blue-600 text-white px-2 py-1 rounded text-xs'>Chat</a>`;
+                    }
+                    let statusColor = 'bg-gray-200 text-gray-700';
+                    if (e.status === 'pending') statusColor = 'bg-yellow-100 text-yellow-800';
+                    if (e.status === 'accepted') statusColor = 'bg-green-100 text-green-800';
+                    if (e.status === 'rejected') statusColor = 'bg-red-100 text-red-700';
+                    if (e.status === 'approved') statusColor = 'bg-blue-100 text-blue-800';
+                    if (e.status === 'request to connect') statusColor = 'bg-purple-100 text-purple-800';
+                    const statusBadge = `<span class='inline-block px-2 py-0.5 rounded text-xs font-semibold ${statusColor}'>${e.status.charAt(0).toUpperCase() + e.status.slice(1)}</span>`;
+                    return `<tr><td class='px-2 py-1'>${e.propertyName || e.propertyId}</td><td class='px-2 py-1'>${e.studentName || e.studentId}</td><td class='px-2 py-1'>${statusBadge}</td><td class='px-2 py-1'>${new Date(e.ts).toLocaleString()}</td><td class='px-2 py-1'>${chatBtn}</td></tr>`;
+                }).join('')}</tbody></table>`;
+            } catch (e) {
+                document.getElementById('enquiry-list').innerHTML = '<p class="text-red-500">Failed to load enquiries.</p>';
+            }
+        });
+    </script>
+</body>
+</html>

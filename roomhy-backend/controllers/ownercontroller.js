@@ -1,0 +1,151 @@
+// Get properties for an owner
+exports.getOwnerProperties = async (req, res) => {
+    try {
+        const ownerLoginId = req.params.loginId;
+        const properties = await Property.find({ ownerLoginId });
+        res.json({ properties });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// Get rooms for an owner
+exports.getOwnerRooms = async (req, res) => {
+    try {
+        const ownerLoginId = req.params.loginId;
+        const properties = await Property.find({ ownerLoginId });
+        const propertyIds = properties.map(p => p._id);
+        const rooms = await require('../models/Room').find({ property: { $in: propertyIds } });
+        res.json({ rooms });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// Get tenants for an owner
+exports.getOwnerTenants = async (req, res) => {
+    try {
+        const ownerLoginId = req.params.loginId;
+        const properties = await Property.find({ ownerLoginId });
+        const propertyIds = properties.map(p => p._id);
+        const tenants = await require('../models/Tenant').find({ property: { $in: propertyIds } });
+        res.json({ tenants });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// Get rent collected for an owner
+exports.getOwnerRent = async (req, res) => {
+    try {
+        const ownerLoginId = req.params.loginId;
+        const enquiries = await require('../models/Enquiry').find({ ownerLoginId, status: { $in: ['accepted', 'approved'] } });
+        const totalRent = enquiries.reduce((sum, e) => sum + (e.paidAmount || 0), 0);
+        res.json({ totalRent });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+const Owner = require('../models/Owner');
+const Notification = require('../models/Notification');
+const Property = require('../models/Property');
+
+// List Owners with Filtering (Area, KYC Status)
+exports.getAllOwners = async (req, res) => {
+    try {
+        const { locationCode, kycStatus, search } = req.query;
+        let query = {};
+
+        // Area Based Filtering
+        if (locationCode) {
+            query.locationCode = { $regex: `^${locationCode}`, $options: 'i' };
+        }
+
+        // Status Filtering
+        if (kycStatus) {
+            query['kyc.status'] = kycStatus;
+        }
+
+        // Search
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { loginId: { $regex: search, $options: 'i' } },
+                { phone: { $regex: search, $options: 'i' } },
+                { 'profile.name': { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        const owners = await Owner.find(query).sort({ createdAt: -1 }).lean();
+
+        // Attach property counts per owner for frontend display
+        const ownerLoginIds = owners.map(o => o.loginId).filter(Boolean);
+        if (ownerLoginIds.length > 0) {
+            const counts = await Property.aggregate([
+                { $match: { ownerLoginId: { $in: ownerLoginIds } } },
+                { $group: { _id: '$ownerLoginId', count: { $sum: 1 } } }
+            ]);
+            const countMap = {};
+            counts.forEach(c => { countMap[c._id] = c.count; });
+            owners.forEach(o => { o.propertyCount = countMap[o.loginId] || 0; });
+        } else {
+            owners.forEach(o => { o.propertyCount = 0; });
+        }
+
+        res.json({ success: true, owners });
+    } catch (err) {
+        console.error('Get Owners Error:', err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+// Update Owner KYC Status (Super Admin Action)
+exports.updateOwnerKyc = async (req, res) => {
+    try {
+        const { id } = req.params; // Can be _id or loginId
+        const { status, rejectionReason } = req.body; // 'verified' or 'rejected'
+
+        if (!['verified', 'rejected'].includes(status)) {
+            return res.status(400).json({ message: 'Invalid status' });
+        }
+
+        const owner = await Owner.findOne({ $or: [{ _id: id }, { loginId: id }] });
+        if (!owner) return res.status(404).json({ message: 'Owner not found' });
+
+        owner.kyc.status = status;
+        if (status === 'verified') {
+            owner.kyc.verifiedAt = new Date();
+            owner.isActive = true; // Activate owner on verification
+        } else {
+            owner.isActive = false;
+        }
+
+        await owner.save();
+
+        // Send Notification to Owner (assuming Notification model exists)
+        // Note: recipient needs to be the User _id associated if decoupled, 
+        // but often Owner model implies a User. Adjust recipient as needed.
+        // For now, we assume a notification system integration:
+        // await Notification.create({
+        //    recipient: owner.userId, // field linking to User model
+        //    type: 'kyc_update',
+        //    message: `Your KYC has been ${status}.`
+        // });
+
+        res.json({ success: true, message: `Owner KYC ${status}`, owner });
+    } catch (err) {
+        console.error('KYC Update Error:', err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+// Get Single Owner
+exports.getOwnerById = async (req, res) => {
+    try {
+        const owner = await Owner.findOne({ loginId: req.params.loginId });
+        if (!owner) return res.status(404).json({ message: 'Owner not found' });
+        res.json(owner);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};

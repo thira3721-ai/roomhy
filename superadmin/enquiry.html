@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roomhy - Admin Enquiry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .sidebar { background-color: #111827; color: #9ca3af; }
+        .sidebar-link {
+            display: flex; align-items: center; padding: 0.75rem 1.5rem; 
+            color: #9ca3af; font-weight: 500; font-size: 0.9rem;
+            transition: all 0.2s; border-left: 3px solid transparent; cursor: pointer;
+        }
+        .sidebar-link:hover { background-color: #1f2937; color: #f3f4f6; }
+        .sidebar-link.active { background-color: #1f2937; color: #ffffff; border-left-color: #a855f7; }
+        .submenu { background-color: #0f172a; overflow: hidden; transition: max-height 0.3s ease-in-out; max-height: 0; }
+        .submenu.open { max-height: 500px; }
+        .submenu a { padding-left: 3.5rem; font-size: 0.85rem; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        
+        .status-card { transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+        .status-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+    </style>
+</head>
+<body class="text-slate-800">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar w-72 flex-shrink-0 hidden md:flex flex-col z-20 overflow-y-auto custom-scrollbar">
+            <div class="h-16 flex items-center px-6 border-b border-gray-800 sticky top-0 bg-[#111827] z-10">
+                 <div class="flex items-center gap-3">
+                     <div class="bg-purple-600 p-1.5 rounded-lg"><i data-lucide="building-2" class="w-5 h-5 text-white"></i></div>
+                     <div><h1 class="text-xl font-bold text-white">RoomHy</h1><span class="text-[10px] text-gray-500">SUPER ADMIN</span></div>
+                 </div>
+            </div>
+            <nav class="flex-1 py-6 space-y-1">
+                <div class="px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Overview</div>
+                <a href="superadmin.html" class="sidebar-link">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard
+                </a>
+
+                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Management</div>
+                <a href="manager.html" class="sidebar-link">
+                    <i data-lucide="users-round" class="w-5 h-5 mr-3"></i> Team Management
+                </a>
+                <a href="owner.html" class="sidebar-link">
+                    <i data-lucide="briefcase" class="w-5 h-5 mr-3"></i> Property Owners
+                </a>
+                <a href="properties.html" class="sidebar-link">
+                    <i data-lucide="home" class="w-5 h-5 mr-3"></i> Properties
+                </a>
+                <a href="tenant.html" class="sidebar-link">
+                    <i data-lucide="users" class="w-5 h-5 mr-3"></i> Tenants
+                </a>
+                <a href="new_signups.html" class="sidebar-link">
+                    <i data-lucide="user-plus" class="w-5 h-5 mr-3"></i> New Signups
+                </a>
+
+                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Operations</div>
+                <a href="enquiry.html" class="sidebar-link active">
+                    <i data-lucide="help-circle" class="w-5 h-5 mr-3"></i> Enquiries
+                </a>
+                <a href="booking.html" class="sidebar-link">
+                    <i data-lucide="calendar-check" class="w-5 h-5 mr-3"></i> Bookings
+                </a>
+                <a href="reviews.html" class="sidebar-link">
+                    <i data-lucide="star" class="w-5 h-5 mr-3"></i> Reviews
+                </a>
+                <a href="complaint-history.html" class="sidebar-link">
+                    <i data-lucide="alert-circle" class="w-5 h-5 mr-3"></i> Complaint History
+                </a>
+
+                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Website</div>
+                <a href="website.html" class="sidebar-link"><i data-lucide="globe" class="w-5 h-5 mr-3"></i> Live Properties</a>
+
+                <!-- Dropdown: Payment & Finance -->
+                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Finance</div>
+                <div class="group">
+                    <div class="sidebar-link justify-between" onclick="toggleSubmenu('finance-submenu', this)">
+                        <div class="flex items-center">
+                            <i data-lucide="wallet" class="w-5 h-5 mr-3"></i> Payment & Finance
+                        </div>
+                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
+                    </div>
+                    <div id="finance-submenu" class="submenu">
+                        <a href="rentcollection.html" class="sidebar-link text-sm hover:text-white">All Rent Collections</a>
+                        <a href="platform.html" class="sidebar-link text-sm hover:text-white">Platform Commissions</a>
+                        <a href="refund.html" class="sidebar-link text-sm hover:text-white">Refund Approvals</a>
+                        <a href="payment_disputes.html" class="sidebar-link text-sm hover:text-white">Payment Disputes</a>
+                    </div>
+                </div>
+
+                <!-- Dropdown: Reports -->
+                <div class="group">
+                    <div class="sidebar-link justify-between" onclick="toggleSubmenu('reports-submenu', this)">
+                        <div class="flex items-center">
+                            <i data-lucide="bar-chart-3" class="w-5 h-5 mr-3"></i> Reports
+                        </div>
+                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
+                    </div>
+                    <div id="reports-submenu" class="submenu">
+                        <a href="platform_reports.html" class="sidebar-link text-sm hover:text-white">Platform-wide Reports</a>
+                        <a href="monthly.html" class="sidebar-link text-sm hover:text-white">Monthly Revenue</a>
+                        <a href="#" class="sidebar-link text-sm hover:text-white text-purple-400 flex items-center"><i data-lucide="download" class="w-3 h-3 mr-2"></i> Export PDF/Excel</a>
+                    </div>
+                </div>
+
+                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">System</div>
+                <a href="chatadmin.html" class="sidebar-link">
+                    <i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Chats
+                </a>
+                <a href="profile.html" class="sidebar-link">
+                    <i data-lucide="user" class="w-5 h-5 mr-3"></i> Profile
+                </a>
+                <a href="settings.html" class="sidebar-link">
+                    <i data-lucide="settings" class="w-5 h-5 mr-3"></i> Settings
+                </a>
+                <a href="location.html" class="sidebar-link">
+                    <i data-lucide="globe" class="w-5 h-5 mr-3"></i> RoomHy Location
+                </a>
+
+                <div class="group">
+                    <div class="sidebar-link justify-between" onclick="toggleSubmenu('settings-submenu', this)">
+                        <div class="flex items-center"><i data-lucide="settings" class="w-5 h-5 mr-3"></i> Settings</div>
+                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
+                    </div>
+                    <div id="settings-submenu" class="submenu">
+                        <a href="log.html" class="sidebar-link text-sm hover:text-white">Login Logs</a>
+                        <a href="security.html" class="sidebar-link text-sm hover:text-white">Security Settings</a>
+                        <a href="backup.html" class="sidebar-link text-sm hover:text-white">Backup Settings</a>
+                    </div>
+                </div>
+                
+                <div class="h-20"></div> <!-- Spacer -->
+            </nav>
+        </aside>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <header class="bg-white h-16 shadow-sm flex items-center justify-between px-8 border-b border-gray-200">
+                <h1 class="text-xl font-bold text-gray-800">Pending Approvals</h1>
+                <div class="flex items-center gap-4">
+                    <button onclick="fetchEnquiries()" class="text-sm text-purple-600 hover:underline flex items-center gap-1"><i data-lucide="refresh-cw" class="w-3 h-3"></i> Refresh</button>
+                    <button onclick="exportVisitsExcel()" class="text-sm text-gray-600 hover:underline flex items-center gap-1"><i data-lucide="download" class="w-3 h-3"></i> Export</button>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-8">
+                <div class="max-w-[1600px] mx-auto space-y-6">
+                    
+                    <!-- Status Boxes -->
+                    <div id="statusBoxes" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div onclick="navigateTo('enquiry-approved.html')" class="status-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                            <div class="p-6 flex items-center justify-between">
+                                <div><p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Approved</p><h3 id="approvedCount" class="text-3xl font-bold text-gray-900 mt-1">0</h3></div>
+                                <div class="bg-green-50 p-4 rounded-full"><i data-lucide="check-circle" class="w-8 h-8 text-green-600"></i></div>
+                            </div>
+                            <div class="h-1 bg-green-500"></div>
+                        </div>
+                        <div onclick="navigateTo('enquiry-hold.html')" class="status-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                            <div class="p-6 flex items-center justify-between">
+                                <div><p class="text-sm font-medium text-gray-500 uppercase tracking-wider">On Hold</p><h3 id="holdCount" class="text-3xl font-bold text-gray-900 mt-1">0</h3></div>
+                                <div class="bg-orange-50 p-4 rounded-full"><i data-lucide="pause-circle" class="w-8 h-8 text-orange-600"></i></div>
+                            </div>
+                            <div class="h-1 bg-orange-500"></div>
+                        </div>
+                        <div onclick="navigateTo('enquiry-rejected.html')" class="status-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                            <div class="p-6 flex items-center justify-between">
+                                <div><p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Rejected</p><h3 id="rejectedCount" class="text-3xl font-bold text-gray-900 mt-1">0</h3></div>
+                                <div class="bg-red-50 p-4 rounded-full"><i data-lucide="x-circle" class="w-8 h-8 text-red-600"></i></div>
+                            </div>
+                            <div class="h-1 bg-red-500"></div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="flex border-b border-gray-200 bg-white rounded-t-lg px-4 pt-4">
+                        <button onclick="switchTab('visits')" id="tab-visits" class="px-6 py-3 font-semibold text-purple-600 border-b-2 border-purple-600 transition-all">Visit Reports</button>
+                        <button onclick="switchTab('rooms')" id="tab-rooms" class="px-6 py-3 font-semibold text-gray-500 border-b-2 border-transparent transition-all">Room Approvals</button>
+                    </div>
+
+                    <!-- Main Table -->
+                    <div id="tab-content-visits">
+                        <div class="bg-white rounded-b-lg shadow border border-gray-200 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead class="bg-gray-50 text-gray-500 text-[10px] uppercase border-b">
+                                        <tr>
+                                            <th class="px-4 py-3">Visit ID</th>
+                                            <th class="px-4 py-3">Visit Date & Time</th>
+                                            <th class="px-4 py-3">Staff Name</th>
+                                            <th class="px-4 py-3">Staff ID</th>
+                                            <th class="px-4 py-3">Property Name</th>
+                                            <th class="px-4 py-3">Property Type</th>
+                                            <th class="px-4 py-3">Full Address</th>
+                                            <th class="px-4 py-3">Area / Locality</th>
+                                            <th class="px-4 py-3">Landmark</th>
+                                            <th class="px-4 py-3">Nearby Location</th>
+                                            <th class="px-4 py-3">Owner Name</th>
+                                            <th class="px-4 py-3">Owner Contact</th>
+                                            <th class="px-4 py-3">Gender</th>
+                                            <th class="px-4 py-3 text-center">Monthly Rent</th>
+                                            <th class="px-4 py-3">Amenities</th>
+                                            <th class="px-4 py-3">Cleanliness</th>
+                                            <th class="px-4 py-3">Owner Behaviour</th>
+                                            <th class="px-4 py-3">Field Photos</th>
+                                            <th class="px-4 py-3">Prof. Photos</th>
+                                            <th class="px-4 py-3">Geo Status</th>
+                                            <th class="px-4 py-3">Map</th>
+                                            <th class="px-4 py-3">Status</th>
+                                            <th class="px-4 py-3">Login ID</th>
+                                            <th class="px-4 py-3">Password</th>
+                                            <th class="px-4 py-3 text-center">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="enquiryBody" class="divide-y divide-gray-100">
+                                        <tr><td colspan="8" class="px-6 py-12 text-center text-gray-400">Syncing database...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Room Approvals Tab -->
+                    <div id="tab-content-rooms" class="hidden">
+                        <div class="bg-white rounded-b-lg shadow border border-gray-200 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead class="bg-gray-50 text-gray-500 text-[10px] uppercase border-b">
+                                        <tr>
+                                            <th class="px-6 py-4">Owner Name</th>
+                                            <th class="px-6 py-4">Room No</th>
+                                            <th class="px-6 py-4">Rent/mo</th>
+                                            <th class="px-6 py-4 text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="roomApprovalsBody" class="divide-y divide-gray-100">
+                                        <tr><td colspan="4" class="px-6 py-12 text-center text-gray-400">Loading room approvals...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="approveModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-sm w-full text-center shadow-xl">
+            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="upload-cloud" class="w-6 h-6 text-blue-600"></i></div>
+            <h3 class="text-lg font-bold text-gray-900">Approve Property</h3>
+            <p class="text-sm text-gray-600 mb-6">Would you like to upload this property to the website?</p>
+            <div class="flex gap-3">
+                <button onclick="confirmApproval(true)" class="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition font-medium">Yes, Upload</button>
+                <button onclick="confirmApproval(false)" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded hover:bg-gray-400 transition font-medium">No, Keep Offline</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="successModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-sm w-full text-center shadow-xl">
+            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="check" class="w-6 h-6 text-green-600"></i></div>
+            <h3 class="text-lg font-bold text-gray-900">Approved!</h3>
+            <p class="text-sm text-gray-500 mb-4">Credentials generated successfully.</p>
+            <div class="bg-gray-50 p-3 rounded text-left mb-4 border border-gray-200">
+                <div class="text-xs text-gray-500">Login ID:</div><div class="font-mono font-bold text-purple-600" id="modalLoginId">--</div>
+                <div class="text-xs text-gray-500 mt-2">Password:</div><div class="font-mono font-bold text-slate-600" id="modalPassword">--</div>
+            </div>
+            <button onclick="closeModal()" class="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700 transition">Close</button>
+        </div>
+    </div>
+
+    <div id="imageModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[60] backdrop-blur-sm" onclick="closeImageModal()">
+        <div class="relative w-full max-w-4xl p-4" onclick="event.stopPropagation()">
+            <button onclick="closeImageModal()" class="absolute -top-10 right-0 text-white"><i data-lucide="x" class="w-8 h-8"></i></button>
+            <div id="galleryGrid" class="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-[80vh] overflow-y-auto p-4"></div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function navigateTo(path) {
+            window.location.href = path;
+        }
+
+        function toggleSubmenu(id, element) {
+            const submenu = document.getElementById(id);
+            if (submenu.classList.contains('open')) submenu.classList.remove('open');
+            else submenu.classList.add('open');
+        }
+
+        function switchTab(tab) {
+            const isVisits = tab === 'visits';
+            document.getElementById('tab-visits').className = isVisits ? "px-6 py-3 font-semibold text-purple-600 border-b-2 border-purple-600 transition-all" : "px-6 py-3 font-semibold text-gray-500 border-b-2 border-transparent transition-all";
+            document.getElementById('tab-rooms').className = !isVisits ? "px-6 py-3 font-semibold text-purple-600 border-b-2 border-purple-600 transition-all" : "px-6 py-3 font-semibold text-gray-500 border-b-2 border-transparent transition-all";
+            document.getElementById('tab-content-visits').classList.toggle('hidden', !isVisits);
+            document.getElementById('tab-content-rooms').classList.toggle('hidden', isVisits);
+        }
+
+        async function fetchEnquiries() {
+            console.log('🔄 fetchEnquiries() called - Super Admin Enquiry Page');
+            const tbody = document.getElementById('enquiryBody');
+            
+            if (!tbody) {
+                console.error('❌ Table body element not found! ID: enquiryBody');
+                return;
+            }
+            
+            let visits = [];
+            
+            // Try to fetch from backend API first
+            try {
+                const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+                const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:6000/api/visits/pending' : '/api/visits/pending';
+                
+                console.log('🔗 Fetching from API:', apiUrl);
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': token ? `Bearer ${token}` : ''
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API responded with ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('📡 API response:', data);
+                visits = data.visits || data || [];
+                console.log('✅ Loaded from API:', visits.length, 'visits');
+                
+                if (visits.length > 0) {
+                    console.log('   First visit:', {
+                        id: visits[0]._id, 
+                        status: visits[0].status, 
+                        property: visits[0].propertyInfo?.name || visits[0].property?.name || 'Unknown'
+                    });
+                }
+                
+            } catch (apiErr) {
+                console.warn('⚠️ API fetch failed, falling back to localStorage:', apiErr.message);
+                
+                // Fallback to localStorage
+                try {
+                    const raw = localStorage.getItem('roomhy_visits');
+                    console.log('📦 Fallback - localStorage roomhy_visits exists:', !!raw);
+                    visits = JSON.parse(raw || '[]');
+                    console.log('📦 Loaded from localStorage:', visits.length, 'visits');
+                } catch (err) {
+                    console.error('❌ Failed to parse localStorage visits:', err);
+                    visits = [];
+                }
+                
+                // Supplement with sessionStorage if needed
+                try {
+                    if (visits.length === 0) {
+                        const sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
+                        console.log('📦 Supplemented from sessionStorage:', sessionVisits.length, 'visits');
+                        visits = sessionVisits;
+                    }
+                } catch (err) {
+                    console.error('❌ Failed to parse sessionStorage visits:', err);
+                }
+            }
+            
+            // Filter for pending/submitted status
+            const filtered = visits.filter(v => {
+                const hasStatus = ['pending', 'submitted'].includes(v.status);
+                if (!hasStatus) {
+                    console.warn('⏭️ Skipping visit (non-pending status):', v._id, 'Status:', v.status);
+                }
+                return hasStatus;
+            });
+            
+            visits = filtered;
+            console.log('✅ Filtered to pending/submitted:', visits.length, 'visits');
+
+            if(visits.length === 0) {
+                console.warn('⚠️ No pending visits found. Showing empty message.');
+                tbody.innerHTML = '<tr><td colspan="25" class="px-6 py-12 text-center text-gray-400">No pending reports found. <a href="javascript:location.reload()" class="text-purple-600 underline">Refresh</a></td></tr>';
+                renderStatusCounters();
+                return;
+            }
+            
+            console.log('📋 Rendering', visits.length, 'visits to table');
+
+            tbody.innerHTML = visits.map((v, idx) => {
+                console.log(`   Rendering ${idx + 1}/${visits.length}: ${v._id}`);
+                const prop = v.propertyInfo || {};
+                const fieldPhotos = v.photos || [];
+                const profPhotos = v.professionalPhotos || [];
+                const isLive = v.isLiveOnWebsite || false;
+                const amenities = (prop.amenities || v.amenities || []).length ? (prop.amenities || v.amenities).join(', ') : '-';
+                const cleanliness = v.cleanlinessRating || v.cleanliness || '-';
+                const ownerBehaviour = v.ownerBehaviourPublic || v.ownerBehaviour || '-';
+                const geoOk = (v.latitude && v.longitude) ? 'OK' : 'No Geo';
+                const loginId = v.generatedCredentials ? (v.generatedCredentials.loginId || '-') : '-';
+                const password = v.generatedCredentials ? (v.generatedCredentials.tempPassword || '-') : '-';
+
+                return `
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-4 py-3 text-xs font-mono text-gray-600">${v._id ? v._id.slice(-8).toUpperCase() : '-'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600">${v.submittedAt ? new Date(v.submittedAt).toLocaleString() : '-'}</td>
+                    <td class="px-4 py-3 text-sm font-semibold text-slate-700">${prop.staffName || v.staffName || '-'}</td>
+                    <td class="px-4 py-3 text-sm">${prop.staffId || v.staffId || '-'}</td>
+                    <td class="px-4 py-3">
+                        <div class="text-sm font-bold text-slate-700">${prop.name || '-'}</div>
+                    </td>
+                    <td class="px-4 py-3">${prop.propertyType || v.propertyType || '-'}</td>
+                    <td class="px-4 py-3">${prop.address || v.address || '-'}</td>
+                    <td class="px-4 py-3">${prop.area || v.area || prop.areaLocality || '-'}</td>
+                    <td class="px-4 py-3">${prop.landmark || v.landmark || '-'}</td>
+                    <td class="px-4 py-3">${prop.nearbyLocation || v.nearbyLocation || '-'}</td>
+                    <td class="px-4 py-3">${prop.ownerName || v.ownerName || '-'}</td>
+                    <td class="px-4 py-3">${prop.contactPhone || v.contactPhone || '-'}</td>
+                    <td class="px-4 py-3">${v.gender || '-'}</td>
+                    <td class="px-4 py-3 text-center font-bold">₹${v.monthlyRent || prop.monthlyRent || 0}</td>
+                    <td class="px-4 py-3 text-sm">${amenities}</td>
+                    <td class="px-4 py-3">${cleanliness}</td>
+                    <td class="px-4 py-3">${ownerBehaviour}</td>
+                    <td class="px-4 py-3">
+                        <button onclick='viewGallery(${JSON.stringify(fieldPhotos)})' class="text-[10px] text-purple-600 bg-purple-50 px-2 py-1 rounded border border-purple-200 font-medium hover:bg-purple-100 transition">
+                            ${fieldPhotos.length}
+                        </button>
+                    </td>
+                    <td class="px-4 py-3">
+                        <button onclick='viewGallery(${JSON.stringify(profPhotos)})' class="text-[10px] text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-200 font-medium hover:bg-blue-100 transition">
+                            ${profPhotos.length}
+                        </button>
+                    </td>
+                    <td class="px-4 py-3">${geoOk}</td>
+                    <td class="px-4 py-3">
+                        <button onclick="openMap('${v._id}')" class="text-xs px-2 py-1 bg-gray-50 rounded border text-gray-600 hover:bg-gray-100" ${!(v.latitude && v.longitude) ? 'disabled' : ''}>Map</button>
+                    </td>
+                    <td class="px-4 py-3">${v.status || '-'}</td>
+                    <td class="px-4 py-3 font-mono text-sm text-purple-700">${loginId}</td>
+                    <td class="px-4 py-3 font-mono text-sm">${password}</td>
+                    <td class="px-4 py-3 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="approve('${v._id}')" class="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors" title="Approve"><i data-lucide="check" class="w-4 h-4"></i></button>
+                            <button onclick="holdVisit('${v._id}')" class="p-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors" title="Hold"><i data-lucide="pause" class="w-4 h-4"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+            
+            console.log('✅ Table rendered successfully with', visits.length, 'rows');
+            lucide.createIcons();
+            renderStatusCounters();
+            console.log('✅ fetchEnquiries() completed');
+        }
+
+        function toggleWebStatus(id) {
+            let visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+            let sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
+            
+            // Merge both sources first
+            if (sessionVisits.length > 0) {
+                const merged = [...visits];
+                sessionVisits.forEach(sv => {
+                    const existing = merged.find(v => v._id === sv._id);
+                    if (!existing) {
+                        merged.push(sv);
+                    } else {
+                        Object.assign(existing, sv);
+                    }
+                });
+                visits = merged;
+            }
+            
+            const idx = visits.findIndex(v => v._id === id);
+            if(idx !== -1) {
+                visits[idx].isLiveOnWebsite = !visits[idx].isLiveOnWebsite;
+                if (window.safeStorage) { window.safeStorage.setVisits(visits); } else { localStorage.setItem('roomhy_visits', JSON.stringify(visits)); }
+                fetchEnquiries();
+                const msg = visits[idx].isLiveOnWebsite ? "Property is now LIVE on website." : "Property taken offline.";
+                alert(msg);
+            }
+        }
+
+        function renderStatusCounters() {
+            let visits = [];
+            try {
+                visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+            } catch (err) {
+                console.error('❌ Failed to parse localStorage visits:', err);
+            }
+            
+            let sessionVisits = [];
+            try {
+                sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
+            } catch (err) {
+                console.error('❌ Failed to parse sessionStorage visits:', err);
+            }
+            
+            // Merge both sources
+            if (sessionVisits.length > 0) {
+                const merged = [...visits];
+                sessionVisits.forEach(sv => {
+                    if (!merged.find(v => v._id === sv._id)) {
+                        merged.push(sv);
+                    }
+                });
+                visits = merged;
+            }
+            
+            document.getElementById('approvedCount').innerText = visits.filter(v => v.status === 'approved').length;
+            document.getElementById('holdCount').innerText = visits.filter(v => v.status === 'hold').length;
+            document.getElementById('rejectedCount').innerText = visits.filter(v => v.status === 'rejected').length;
+        }
+
+        // Room approvals: render notifications of type room_add / bed_add
+        function fetchRoomApprovals() {
+            const tbody = document.getElementById('roomApprovalsBody');
+            if (!tbody) return;
+            let visits = [];
+            try { visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]'); } catch(e){ visits = []; }
+            try { const sv = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]'); if (sv.length>0) sv.forEach(s=>{ if(!visits.find(v=>v._id===s._id)) visits.push(s); }); } catch(e){}
+
+            // Filter for room/bed notifications pending approval
+            const pending = visits.filter(v => v.status === 'pending' && (v.type === 'room_add' || v.type === 'bed_add'));
+            if (!pending || pending.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-12 text-center text-gray-400">No room approvals pending.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = pending.map(n => {
+                const owner = n.submittedBy || (n.propertyInfo && n.propertyInfo.ownerName) || '-';
+                const roomNo = (n.room && (n.room.number || n.room.id)) || '-';
+                const rent = (n.room && (n.room.rent !== undefined ? n.room.rent : '-')) || '-';
+                return `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 text-sm">${owner}</td>
+                    <td class="px-6 py-4 text-sm font-mono">${roomNo}</td>
+                    <td class="px-6 py-4 text-right font-bold">₹${rent}</td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <button onclick="approveRoomNotification('${n._id}')" class="px-3 py-1 bg-green-100 text-green-700 rounded text-sm">Approve</button>
+                            <button onclick="rejectRoomNotification('${n._id}')" class="px-3 py-1 bg-red-100 text-red-700 rounded text-sm">Reject</button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function approveRoomNotification(id) {
+            try {
+                let visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+                let sessionVisits = [];
+                try { sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]'); } catch(e){}
+                if (sessionVisits.length>0) {
+                    const merged = [...visits];
+                    sessionVisits.forEach(sv => { const existing = merged.find(v=>v._id===sv._id); if(!existing) merged.push(sv); else Object.assign(existing, sv); });
+                    visits = merged;
+                }
+                const idx = visits.findIndex(v => v._id === id);
+                if (idx === -1) return alert('Notification not found');
+                const notif = visits[idx];
+                // mark notification approved
+                visits[idx].status = 'approved';
+
+                // If it's a room_add or bed_add, update the room record in roomhy_rooms
+                try {
+                    let rooms = JSON.parse(localStorage.getItem('roomhy_rooms') || '[]');
+                    if (notif.type === 'room_add' && notif.room && notif.room.id) {
+                        const rIdx = rooms.findIndex(r => r.id === notif.room.id);
+                        if (rIdx !== -1) {
+                            rooms[rIdx].approvalStatus = 'approved';
+                        }
+                    }
+                    if (notif.type === 'bed_add' && notif.room && notif.room.id) {
+                        const rIdx = rooms.findIndex(r => r.id === notif.room.id);
+                        if (rIdx !== -1) {
+                            // mark as pending-approval -> approved
+                            rooms[rIdx].approvalStatus = 'approved';
+                        }
+                    }
+                    localStorage.setItem('roomhy_rooms', JSON.stringify(rooms));
+                } catch (err) { console.error('Failed updating room approval:', err); }
+
+                localStorage.setItem('roomhy_visits', JSON.stringify(visits));
+                try { sessionStorage.setItem('roomhy_visits', JSON.stringify(visits)); } catch(e){}
+                fetchRoomApprovals();
+                fetchEnquiries();
+                alert('✅ Approved');
+            } catch (err) { console.error('approveRoomNotification error:', err); alert('Error approving notification'); }
+        }
+
+        function rejectRoomNotification(id) {
+            try {
+                let visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+                let sessionVisits = [];
+                try { sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]'); } catch(e){}
+                if (sessionVisits.length>0) {
+                    const merged = [...visits];
+                    sessionVisits.forEach(sv => { const existing = merged.find(v=>v._id===sv._id); if(!existing) merged.push(sv); else Object.assign(existing, sv); });
+                    visits = merged;
+                }
+                const idx = visits.findIndex(v => v._id === id);
+                if (idx === -1) return alert('Notification not found');
+                visits[idx].status = 'rejected';
+                localStorage.setItem('roomhy_visits', JSON.stringify(visits));
+                try { sessionStorage.setItem('roomhy_visits', JSON.stringify(visits)); } catch(e){}
+                fetchRoomApprovals();
+                fetchEnquiries();
+                alert('⛔ Rejected');
+            } catch (err) { console.error('rejectRoomNotification error:', err); alert('Error rejecting notification'); }
+        }
+
+        async function approve(id) {
+            currentApprovingId = id;
+            document.getElementById('approveModal').classList.remove('hidden');
+            document.getElementById('approveModal').classList.add('flex');
+        }
+
+        function confirmApproval(shouldUpload) {
+            if(!currentApprovingId) return;
+            
+            let visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+            let sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
+            
+            // Merge both sources first
+            if (sessionVisits.length > 0) {
+                const merged = [...visits];
+                sessionVisits.forEach(sv => {
+                    const existing = merged.find(v => v._id === sv._id);
+                    if (!existing) {
+                        merged.push(sv);
+                    } else {
+                        Object.assign(existing, sv);
+                    }
+                });
+                visits = merged;
+            }
+            
+            const idx = visits.findIndex(v => v._id === currentApprovingId);
+            if(idx !== -1) {
+                const loginId = `ROOMHY${Math.floor(1000 + Math.random() * 9000)}`;
+                const password = Math.random().toString(36).slice(-8);
+
+                visits[idx].status = 'approved';
+                visits[idx].isLiveOnWebsite = shouldUpload;
+                visits[idx].generatedCredentials = { loginId, tempPassword: password };
+                if (window.safeStorage) { window.safeStorage.setVisits(visits); } else { localStorage.setItem('roomhy_visits', JSON.stringify(visits)); }
+                
+                document.getElementById('modalLoginId').innerText = loginId;
+                document.getElementById('modalPassword').innerText = password;
+                document.getElementById('approveModal').classList.add('hidden');
+                document.getElementById('successModal').classList.remove('hidden');
+                document.getElementById('successModal').classList.add('flex');
+                fetchEnquiries();
+            }
+            currentApprovingId = null;
+        }
+
+        function holdVisit(id) {
+            const reason = prompt("Enter hold reason:");
+            if(reason === null) return;
+            let visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+            let sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
+            
+            // Merge both sources first
+            if (sessionVisits.length > 0) {
+                const merged = [...visits];
+                sessionVisits.forEach(sv => {
+                    const existing = merged.find(v => v._id === sv._id);
+                    if (!existing) {
+                        merged.push(sv);
+                    } else {
+                        Object.assign(existing, sv);
+                    }
+                });
+                visits = merged;
+            }
+            
+            const idx = visits.findIndex(v => v._id === id);
+            if(idx !== -1) {
+                visits[idx].status = 'hold';
+                visits[idx].holdReason = reason;
+                if (window.safeStorage) { window.safeStorage.setVisits(visits); } else { localStorage.setItem('roomhy_visits', JSON.stringify(visits)); }
+                fetchEnquiries();
+            }
+        }
+
+        function closeModal() { document.getElementById('successModal').classList.add('hidden'); fetchEnquiries(); }
+        
+        function viewGallery(photos) {
+            const grid = document.getElementById('galleryGrid');
+            grid.innerHTML = (photos && photos.length) ? photos.map(src => `<img src="${src}" class="w-full h-48 object-cover rounded-xl shadow-lg border border-gray-200">`).join('') : '<p class="text-white text-center py-20">No images available for this section.</p>';
+            document.getElementById('imageModal').classList.remove('hidden');
+            document.getElementById('imageModal').classList.add('flex');
+        }
+
+        function closeImageModal() { document.getElementById('imageModal').classList.add('hidden'); }
+
+        function openMap(id) {
+            let visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+            let sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
+            
+            // Merge both sources
+            if (sessionVisits.length > 0) {
+                const merged = [...visits];
+                sessionVisits.forEach(sv => {
+                    if (!merged.find(v => v._id === sv._id)) {
+                        merged.push(sv);
+                    }
+                });
+                visits = merged;
+            }
+            
+            const v = visits.find(x => x._id === id);
+            if(!v || !v.latitude || !v.longitude) {
+                alert('No geo-location available for this visit.');
+                return;
+            }
+            const url = `https://www.google.com/maps?q=${v.latitude},${v.longitude}`;
+            window.open(url, '_blank');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('📄 Super Admin Enquiry Page Loaded');
+            console.log('📍 URL:', window.location.href);
+            fetchEnquiries();
+        });
+    </script>
+    <script src="../website/js/safe-storage.js"></script>
+</body>
+</html>
