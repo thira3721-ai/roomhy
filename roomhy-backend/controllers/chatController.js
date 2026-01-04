@@ -1,145 +1,232 @@
-const Message = require('../models/Message');
-const Tenant = require('../models/Tenant');
-const Owner = require('../models/Owner');
-const Property = require('../models/Property');
-const User = require('../models/user');
+const Chat = require('../models/Chat');
 
-// GET conversation for a given participant (employee loginId)
-exports.getConversation = async (req, res) => {
-  try {
-    const participant = req.params.loginId;
-    if (!participant) return res.status(400).json({ message: 'loginId required' });
+// Get or create chat room
+exports.getOrCreateChat = async (req, res) => {
+    try {
+        const { user1_id, user1_name, user1_role, user2_id, user2_name, user2_role, chat_type, booking_id, property_id, property_name, area } = req.body;
 
-    // Authorization checks for area managers: allow superadmin full access,
-    // areamanager only for group:{theirArea}, their own personal chats, or tenant/owner within their area.
-    const requester = req.user; // set by protect middleware
-    if (requester && requester.role === 'areamanager') {
-      const parts = participant.split(':');
-      const kind = parts[0];
-      const idPart = parts.slice(1).join(':');
+        // Generate chat_id based on participants and chat type
+        const ids = [user1_id, user2_id].sort();
+        const chat_id = `${chat_type}_${ids.join('_')}_${booking_id || 'helpdesk'}`;
 
-      if (kind === 'group') {
-        const area = idPart;
-        if (!area || area !== requester.locationCode) {
-          return res.status(403).json({ message: 'Forbidden: not allowed to access this group' });
+        let chat = await Chat.findOne({ chat_id });
+
+        if (!chat) {
+            chat = new Chat({
+                chat_id,
+                chat_type,
+                participants: [
+                    { user_id: user1_id, user_name: user1_name, user_role: user1_role },
+                    { user_id: user2_id, user_name: user2_name, user_role: user2_role }
+                ],
+                booking_id,
+                property_id,
+                property_name,
+                area,
+                messages: []
+            });
+
+            await chat.save();
         }
-      } else if (kind === 'tenant') {
-        const tenantId = idPart;
-        const tenant = await Tenant.findById(tenantId).populate('property');
-        if (!tenant) return res.status(404).json({ message: 'Tenant not found' });
-        const prop = tenant.property;
-        if (!prop || (prop.locationCode !== requester.locationCode)) {
-          return res.status(403).json({ message: 'Forbidden: tenant not in your area' });
-        }
-      } else if (kind === 'owner') {
-        const ownerId = idPart;
-        let owner = null;
-        try { owner = await Owner.findById(ownerId); } catch(e) { }
-        if (!owner) {
-          // try lookup by loginId
-          owner = await Owner.findOne({ loginId: ownerId });
-        }
-        if (!owner) return res.status(404).json({ message: 'Owner not found' });
-        if (owner.locationCode !== requester.locationCode) {
-          return res.status(403).json({ message: 'Forbidden: owner not in your area' });
-        }
-      } else {
-        // treat as personal chat id (loginId). Allow if requested user is in manager's area
-        const other = await User.findOne({ loginId: participant });
-        if (!other) return res.status(404).json({ message: 'User not found' });
-        // allow communicating with superadmin regardless of area
-        if (other.role !== 'superadmin' && other.locationCode !== requester.locationCode) {
-          return res.status(403).json({ message: 'Forbidden: user not in your area' });
-        }
-      }
+
+        res.status(200).json({ success: true, chat });
+    } catch (error) {
+        console.error('Error creating chat:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
-
-    let convo = await Message.findOne({ participant });
-    if (!convo) {
-      convo = new Message({ participant, messages: [] });
-      await convo.save();
-    }
-
-    // If the conversation has been marked as headOnly (owner/tenant requested head),
-    // only Super Admin should be allowed to read it.
-    if (convo.headOnly && (!req.user || req.user.role !== 'superadmin')) {
-      return res.status(403).json({ message: 'Conversation reserved for Super Admin only.' });
-    }
-
-    res.json({ participant: convo.participant, messages: convo.messages });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: err.message });
-  }
 };
 
-// POST a message to a participant conversation
+// Get chat messages
+exports.getChatMessages = async (req, res) => {
+    try {
+        const { chat_id } = req.params;
+        const chat = await Chat.findOne({ chat_id }).select('messages scheduled_visits');
+
+        if (!chat) {
+            return res.status(404).json({ success: false, message: 'Chat not found' });
+        }
+
+        res.status(200).json({ success: true, messages: chat.messages, visits: chat.scheduled_visits });
+    } catch (error) {
+        console.error('Error fetching messages:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Get user chats
+exports.getUserChats = async (req, res) => {
+    try {
+        const { user_id } = req.params;
+        const chats = await Chat.find({ 'participants.user_id': user_id })
+            .select('chat_id chat_type participants property_name area messages last_message_at')
+            .sort({ last_message_at: -1 });
+
+        res.status(200).json({ success: true, chats });
+    } catch (error) {
+        console.error('Error fetching user chats:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Save message (backup - Socket.IO should be primary)
+exports.saveMessage = async (req, res) => {
+    try {
+        const { chat_id, sender_id, sender_name, sender_role, message, file_url } = req.body;
+
+        const chat = await Chat.findOneAndUpdate(
+            { chat_id },
+            {
+                $push: {
+                    messages: {
+                        sender_id,
+                        sender_name,
+                        sender_role,
+                        message,
+                        file_url,
+                        timestamp: new Date()
+                    }
+                },
+                $set: { last_message_at: new Date() }
+            },
+            { new: true }
+        );
+
+        if (!chat) {
+            return res.status(404).json({ success: false, message: 'Chat not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Message saved' });
+    } catch (error) {
+        console.error('Error saving message:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Schedule visit (booking chat only)
+exports.scheduleVisit = async (req, res) => {
+    try {
+        const { chat_id, visit_type, scheduled_date, scheduled_time } = req.body;
+
+        // Verify this is a booking chat
+        const chat = await Chat.findOne({ chat_id });
+        if (!chat || chat.chat_type !== 'tenant_manager_booking') {
+            return res.status(400).json({ success: false, message: 'Visit scheduling only available for booking chats' });
+        }
+
+        const visit = {
+            visit_type,
+            scheduled_date: new Date(scheduled_date),
+            scheduled_time,
+            status: 'pending',
+            created_at: new Date()
+        };
+
+        const updated = await Chat.findOneAndUpdate(
+            { chat_id },
+            { $push: { scheduled_visits: visit } },
+            { new: true }
+        );
+
+        res.status(200).json({ success: true, visit, chat: updated });
+    } catch (error) {
+        console.error('Error scheduling visit:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Get all chats for super admin (monitoring)
+exports.getAllChats = async (req, res) => {
+    try {
+        const { chat_type, user_id, property_id } = req.query;
+        let query = {};
+
+        if (chat_type) query.chat_type = chat_type;
+        if (user_id) query['participants.user_id'] = user_id;
+        if (property_id) query.property_id = property_id;
+
+        const chats = await Chat.find(query)
+            .select('chat_id chat_type participants property_name area last_message_at status')
+            .sort({ last_message_at: -1 })
+            .limit(100);
+
+        res.status(200).json({ success: true, chats });
+    } catch (error) {
+        console.error('Error fetching all chats:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Close chat
+exports.closeChat = async (req, res) => {
+    try {
+        const { chat_id } = req.params;
+
+        const chat = await Chat.findOneAndUpdate(
+            { chat_id },
+            { status: 'closed', updated_at: new Date() },
+            { new: true }
+        );
+
+        if (!chat) {
+            return res.status(404).json({ success: false, message: 'Chat not found' });
+        }
+
+        res.status(200).json({ success: true, chat });
+    } catch (error) {
+        console.error('Error closing chat:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Get conversation between admin and user (for admin routes)
+exports.getConversation = async (req, res) => {
+    try {
+        const { loginId } = req.params;
+        const chats = await Chat.find({ 'participants.user_id': loginId })
+            .select('chat_id chat_type participants property_name messages last_message_at')
+            .sort({ last_message_at: -1 });
+
+        res.status(200).json({ success: true, chats });
+    } catch (error) {
+        console.error('Error fetching conversation:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Post message (for admin routes)
 exports.postMessage = async (req, res) => {
-  try {
-    const participant = req.params.loginId;
-    const payload = req.body || {};
-    const from = payload.from;
-    if (!participant || !from) return res.status(400).json({ message: 'participant and from required' });
+    try {
+        const { loginId } = req.params;
+        const { chat_id, sender_id, sender_name, sender_role, message } = req.body;
 
-    // Authorization checks (same rules as GET)
-    const requester = req.user;
-    if (requester && requester.role === 'areamanager') {
-      const parts = participant.split(':');
-      const kind = parts[0];
-      const idPart = parts.slice(1).join(':');
+        if (!chat_id || !message) {
+            return res.status(400).json({ success: false, message: 'chat_id and message required' });
+        }
 
-      if (kind === 'group') {
-        const area = idPart;
-        if (!area || area !== requester.locationCode) {
-          return res.status(403).json({ message: 'Forbidden: not allowed to post to this group' });
+        const chat = await Chat.findOneAndUpdate(
+            { chat_id },
+            {
+                $push: {
+                    messages: {
+                        sender_id,
+                        sender_name,
+                        sender_role,
+                        message,
+                        timestamp: new Date()
+                    }
+                },
+                $set: { last_message_at: new Date() }
+            },
+            { new: true }
+        );
+
+        if (!chat) {
+            return res.status(404).json({ success: false, message: 'Chat not found' });
         }
-      } else if (kind === 'tenant') {
-        const tenantId = idPart;
-        const tenant = await Tenant.findById(tenantId).populate('property');
-        if (!tenant) return res.status(404).json({ message: 'Tenant not found' });
-        const prop = tenant.property;
-        if (!prop || (prop.locationCode !== requester.locationCode)) {
-          return res.status(403).json({ message: 'Forbidden: tenant not in your area' });
-        }
-      } else if (kind === 'owner') {
-        const ownerId = idPart;
-        let owner = null;
-        try { owner = await Owner.findById(ownerId); } catch(e) { }
-        if (!owner) {
-          owner = await Owner.findOne({ loginId: ownerId });
-        }
-        if (!owner) return res.status(404).json({ message: 'Owner not found' });
-        if (owner.locationCode !== requester.locationCode) {
-          return res.status(403).json({ message: 'Forbidden: owner not in your area' });
-        }
-      } else {
-        const other = await User.findOne({ loginId: participant });
-        if (!other) return res.status(404).json({ message: 'User not found' });
-        if (other.role !== 'superadmin' && other.locationCode !== requester.locationCode) {
-          return res.status(403).json({ message: 'Forbidden: user not in your area' });
-        }
-      }
+
+        res.status(200).json({ success: true, message: 'Message posted', chat });
+    } catch (error) {
+        console.error('Error posting message:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
-
-    let convo = await Message.findOne({ participant });
-    if (!convo) {
-      convo = new Message({ participant, messages: [] });
-    }
-
-    // If the conversation has been marked as headOnly, only Super Admin can post replies
-    if (convo.headOnly && (!requester || requester.role !== 'superadmin')) {
-      return res.status(403).json({ message: 'Conversation reserved for Super Admin only.' });
-    }
-
-    // Accept arbitrary payloads for messages (type, meta, etc.)
-    const msg = Object.assign({}, payload, { createdAt: new Date(), type: payload.type || (payload.text ? 'text' : 'system') });
-    convo.messages.push(msg);
-    convo.updatedAt = new Date();
-    await convo.save();
-
-    res.json({ participant: convo.participant, messages: convo.messages });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: err.message });
-  }
 };

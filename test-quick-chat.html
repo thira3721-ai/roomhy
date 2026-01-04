@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Chat Test - RoomHy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="js/socket-chat.js"></script>
+</head>
+<body class="bg-gray-900 text-white p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl font-bold mb-2">🚀 Quick Chat Test</h1>
+        <p class="text-gray-400 mb-8">Test real-time messaging between Area Manager and Property Owner</p>
+
+        <div class="grid grid-cols-2 gap-8">
+            <!-- Area Manager Panel -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-2xl font-bold mb-4 text-blue-400">Area Manager</h2>
+                <div class="space-y-4">
+                    <button onclick="setupAreaManager()" class="w-full bg-blue-600 hover:bg-blue-700 px-4 py-3 rounded font-bold">
+                        1. Connect Socket
+                    </button>
+                    <button onclick="areaManagerJoinChat()" class="w-full bg-blue-600 hover:bg-blue-700 px-4 py-3 rounded font-bold">
+                        2. Join Chat with Owner
+                    </button>
+                    <input type="text" id="amgMessage" placeholder="Type message..." class="w-full px-4 py-2 bg-gray-700 rounded text-white" value="Hello from Area Manager">
+                    <button onclick="areaManagerSend()" class="w-full bg-green-600 hover:bg-green-700 px-4 py-3 rounded font-bold">
+                        3. Send Message
+                    </button>
+                    <div id="amgStatus" class="bg-gray-700 p-4 rounded text-sm h-48 overflow-y-auto font-mono">Waiting...</div>
+                </div>
+            </div>
+
+            <!-- Property Owner Panel -->
+            <div class="bg-gray-800 p-6 rounded-lg">
+                <h2 class="text-2xl font-bold mb-4 text-green-400">Property Owner</h2>
+                <div class="space-y-4">
+                    <button onclick="setupPropertyOwner()" class="w-full bg-green-600 hover:bg-green-700 px-4 py-3 rounded font-bold">
+                        1. Connect Socket
+                    </button>
+                    <button onclick="ownerJoinChat()" class="w-full bg-green-600 hover:bg-green-700 px-4 py-3 rounded font-bold">
+                        2. Join Chat with Manager
+                    </button>
+                    <div class="text-sm text-gray-400">Ready to receive messages...</div>
+                    <div id="ownerStatus" class="bg-gray-700 p-4 rounded text-sm h-48 overflow-y-auto font-mono">Waiting for messages...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="mt-8 bg-gray-800 p-6 rounded-lg">
+            <h3 class="text-xl font-bold mb-4">📋 How to Test</h3>
+            <ol class="list-decimal list-inside space-y-2 text-gray-300">
+                <li><strong>Left Panel (Area Manager):</strong> Click "Connect Socket" button</li>
+                <li><strong>Left Panel:</strong> Click "Join Chat with Owner" button</li>
+                <li><strong>Right Panel (Property Owner):</strong> Click "Connect Socket" button</li>
+                <li><strong>Right Panel:</strong> Click "Join Chat with Manager" button</li>
+                <li><strong>Left Panel:</strong> Type a message and click "Send Message"</li>
+                <li><strong>Right Panel:</strong> Watch for the message to appear instantly!</li>
+            </ol>
+        </div>
+
+        <!-- Status -->
+        <div class="mt-8 bg-blue-900 p-6 rounded-lg">
+            <h3 class="text-xl font-bold mb-4">✅ What Was Fixed</h3>
+            <ul class="list-disc list-inside space-y-2 text-blue-200">
+                <li>Messages now use <strong>single Socket.IO emit</strong> (no REST API save)</li>
+                <li>Server saves once and broadcasts to all clients in room</li>
+                <li>UI properly listens to Socket.IO receive events</li>
+                <li>Real-time delivery - no polling needed</li>
+                <li>Room IDs are consistent (sorted user IDs)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let amgChat = null;
+        let ownerChat = null;
+
+        function log(panelId, msg) {
+            const el = document.getElementById(panelId);
+            const timestamp = new Date().toLocaleTimeString();
+            el.innerHTML += `[${timestamp}] ${msg}\n`;
+            el.scrollTop = el.scrollHeight;
+        }
+
+        function setupAreaManager() {
+            if (amgChat) {
+                log('amgStatus', 'Already connected!');
+                return;
+            }
+            log('amgStatus', 'Connecting to Socket.IO...');
+            amgChat = new RoomHyChatSocket();
+            amgChat.init('MGR_AREA1');
+            
+            amgChat.onConnect(() => log('amgStatus', '✓ Socket connected'));
+            amgChat.onDisconnect(() => log('amgStatus', '✗ Socket disconnected'));
+            amgChat.onMessage((data) => {
+                log('amgStatus', `📬 Received from ${data.from}: ${data.message}`);
+            });
+
+            setTimeout(() => {
+                log('amgStatus', amgChat.isConnected ? '✅ Ready' : '❌ Not connected');
+            }, 500);
+        }
+
+        function areaManagerJoinChat() {
+            if (!amgChat || !amgChat.isConnected) {
+                log('amgStatus', '❌ Not connected yet');
+                return;
+            }
+            amgChat.joinRoom('OWNER001');
+            log('amgStatus', '👥 Joined chat room with OWNER001');
+        }
+
+        async function areaManagerSend() {
+            if (!amgChat || !amgChat.isConnected) {
+                log('amgStatus', '❌ Not connected');
+                return;
+            }
+            const msg = document.getElementById('amgMessage').value;
+            if (!msg) {
+                log('amgStatus', '❌ Empty message');
+                return;
+            }
+            
+            log('amgStatus', `📤 Sending: "${msg}"`);
+            const success = await amgChat.sendMessage(msg, 'OWNER001');
+            if (success) {
+                log('amgStatus', '✅ Message sent via Socket.IO');
+                document.getElementById('amgMessage').value = '';
+            } else {
+                log('amgStatus', '❌ Failed to send');
+            }
+        }
+
+        function setupPropertyOwner() {
+            if (ownerChat) {
+                log('ownerStatus', 'Already connected!');
+                return;
+            }
+            log('ownerStatus', 'Connecting to Socket.IO...');
+            ownerChat = new RoomHyChatSocket();
+            ownerChat.init('OWNER001');
+            
+            ownerChat.onConnect(() => log('ownerStatus', '✓ Socket connected'));
+            ownerChat.onDisconnect(() => log('ownerStatus', '✗ Socket disconnected'));
+            ownerChat.onMessage((data) => {
+                log('ownerStatus', `📬 RECEIVED: "${data.message}" from ${data.from}`);
+            });
+
+            setTimeout(() => {
+                log('ownerStatus', ownerChat.isConnected ? '✅ Ready' : '❌ Not connected');
+            }, 500);
+        }
+
+        function ownerJoinChat() {
+            if (!ownerChat || !ownerChat.isConnected) {
+                log('ownerStatus', '❌ Not connected yet');
+                return;
+            }
+            ownerChat.joinRoom('MGR_AREA1');
+            log('ownerStatus', '👥 Joined chat room with MGR_AREA1');
+        }
+
+        // Welcome message
+        window.addEventListener('load', () => {
+            log('amgStatus', '👋 Welcome to Area Manager panel');
+            log('ownerStatus', '👋 Welcome to Property Owner panel');
+        });
+    </script>
+</body>
+</html>

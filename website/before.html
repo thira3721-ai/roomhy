@@ -595,7 +595,7 @@
                 <div class="flex items-center">
                     <a href="#" class="flex-shrink-0">
                         <!-- Assuming logo.svg is available -->
-                        <img src="logo.svg" alt="Roomhy Logo" class="h-10 w-auto">
+                        <img src="images/logoroomhy.jpg" alt="Roomhy Logo" class="h-20 w-auto">
                     </a>
                 </div>
                 
@@ -1486,6 +1486,9 @@
                 { name: "Indore", img: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=2070&auto:format&fit=crop", icon: "landmark" }
             ];
 
+            // Initialize with default cities immediately to prevent undefined errors
+            window.cityInfo = defaultCities;
+
             // load helper script if available
             var s = document.createElement('script');
             s.src = 'js/locations-sync.js';
@@ -1690,6 +1693,15 @@
         function rebuildCityList(data) {
             const slider = document.getElementById('cities-category-slider');
             if (!slider) return;
+
+            // Defensive check: ensure data is an array
+            if (!data || !Array.isArray(data)) {
+                data = window.cityInfo || [
+                    { name: "Kota", img: "images/OIP.webp", icon: "university" },
+                    { name: "Sikar", img: "https://images.unsplash.com/photo-1549487560-671520624a9e?q=80&w=2070&auto:format&fit=crop", icon: "building-2" },
+                    { name: "Indore", img: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=2070&auto:format&fit=crop", icon: "landmark" }
+                ];
+            }
 
             // Function to generate a single city card HTML
             const generateCityCard = (city) => `
@@ -2197,7 +2209,7 @@
         // Initial setup for path lengths and icons
         document.addEventListener('DOMContentLoaded', () => {
             // Build the city list with hover effects
-            rebuildCityList(cityInfo);
+            rebuildCityList(window.cityInfo);
 
             updateTopSpaces('Indore');
             updateTopSpacesKota('Kota');

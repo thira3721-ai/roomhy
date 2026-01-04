@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roomhy - KYC Verification</title>
+    <title>Roomhy - New Signups</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
@@ -98,130 +98,46 @@
 </head>
 <body class="text-slate-800">
     <div class="flex h-screen overflow-hidden">
-      <!-- Sidebar -->
-          <aside class="sidebar w-72 flex-shrink-0 hidden md:flex flex-col z-20 overflow-y-auto custom-scrollbar">
-            <!-- Logo -->
+              <!-- Sidebar -->
+        <aside class="sidebar w-72 flex-shrink-0 hidden md:flex flex-col z-20 overflow-y-auto custom-scrollbar">
             <div class="h-16 flex items-center px-6 border-b border-gray-800 sticky top-0 bg-[#111827] z-10">
                  <div class="flex items-center gap-3">
-                     <div class="bg-purple-600 p-1.5 rounded-lg">
-                        <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
-                     </div>
-                     <div>
-                        <h1 class="text-xl font-bold text-white leading-none tracking-tight">RoomHy</h1>
-                        <span class="text-[10px] text-gray-500 font-medium tracking-wider">ADMIN PANEL</span>
-                     </div>
+                     <div class="bg-purple-600 p-1.5 rounded-lg"><i data-lucide="building-2" class="w-5 h-5 text-white"></i></div>
+                     <div><h1 class="text-xl font-bold text-white">RoomHy</h1><span class="text-[10px] text-gray-500">SUPER ADMIN</span></div>
                  </div>
             </div>
-            
-            <!-- Navigation -->
             <nav class="flex-1 py-6 space-y-1">
                 <div class="px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Overview</div>
-                <a href=\"superadmin.html\" class=\"sidebar-link\">
-                    <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard
-                </a>
-
+                <a href="superadmin.html" class="sidebar-link"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard</a>
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Management</div>
-                <a href="manager.html" class="sidebar-link">
-                    <i data-lucide="map-pin" class="w-5 h-5 mr-3"></i> Teams
-                </a>
-                <a href="owner.html" class="sidebar-link">
-                    <i data-lucide="briefcase" class="w-5 h-5 mr-3"></i> Property Owners
-                </a>
-                <a href="properties.html" class="sidebar-link">
-                    <i data-lucide="home" class="w-5 h-5 mr-3"></i> Properties
-                </a>
-                <a href="tenant.html" class="sidebar-link">
-                    <i data-lucide="users" class="w-5 h-5 mr-3"></i> Tenants
-                </a>
-                 <a href="kyc_verification.html" class="sidebar-link">
-                    <i data-lucide="file-badge" class="w-5 h-5 mr-3"></i> KYC Verification
-                </a>
-                <a href="new_signups.html" class="sidebar-link">
-                    <i data-lucide="user-plus" class="w-5 h-5 mr-3"></i> New Signups
-                </a>
-
+                <a href="manager.html" class="sidebar-link"><i data-lucide="map-pin" class="w-5 h-5 mr-3"></i> Teams</a>
+                <a href="owner.html" class="sidebar-link"><i data-lucide="briefcase" class="w-5 h-5 mr-3"></i> Property Owners</a>
+                <a href="properties.html" class="sidebar-link"><i data-lucide="home" class="w-5 h-5 mr-3"></i> Properties</a>
+                <a href="tenant.html" class="sidebar-link"><i data-lucide="users" class="w-5 h-5 mr-3"></i> Tenants</a>
+                <a href="new_signups.html" class="sidebar-link"><i data-lucide="file-badge" class="w-5 h-5 mr-3"></i> New Signups</a>
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Operations</div>
-                <a href="tenant_rec.html" class="sidebar-link">
-                    <i data-lucide="folder-open" class="w-5 h-5 mr-3"></i> Tenant Records
-                </a>
-                <a href="enquiry.html" class="sidebar-link">
-                    <i data-lucide="help-circle" class="w-5 h-5 mr-3"></i> Enquiries
-                </a>
-                <a href="booking.html" class="sidebar-link">
-                    <i data-lucide="calendar-check" class="w-5 h-5 mr-3"></i> Bookings
-                </a>
-                <a href="reviews.html" class="sidebar-link">
-                    <i data-lucide="star" class="w-5 h-5 mr-3"></i> Reviews
-                </a>
-                <a href="complaint-history.html" class="sidebar-link">
-                    <i data-lucide="alert-circle" class="w-5 h-5 mr-3"></i> Complaint History
-                </a>
-
+                <a href="tenant_rec.html" class="sidebar-link"><i data-lucide="folder-open" class="w-5 h-5 mr-3"></i> Tenant Records</a>
+                <a href="enquiry.html" class="sidebar-link"><i data-lucide="help-circle" class="w-5 h-5 mr-3"></i> Enquiries</a>
+                <a href="booking.html" class="sidebar-link"><i data-lucide="calendar-check" class="w-5 h-5 mr-3"></i> Bookings</a>
+                <a href="reviews.html" class="sidebar-link"><i data-lucide="star" class="w-5 h-5 mr-3"></i> Reviews</a>
+                <a href="complaint-history.html" class="sidebar-link"><i data-lucide="alert-circle" class="w-5 h-5 mr-3"></i> Complaint History</a>
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Website</div>
                 <a href="website.html" class="sidebar-link"><i data-lucide="globe" class="w-5 h-5 mr-3"></i> Live Properties</a>
-
-                <!-- Dropdown: Payment & Finance -->
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Finance</div>
                 <div class="group">
                     <div class="sidebar-link justify-between" onclick="toggleSubmenu('finance-submenu', this)">
-                        <div class="flex items-center">
-                            <i data-lucide="wallet" class="w-5 h-5 mr-3"></i> Payment & Finance
-                        </div>
+                        <div class="flex items-center"><i data-lucide="wallet" class="w-5 h-5 mr-3"></i> Finance</div>
                         <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
                     </div>
                     <div id="finance-submenu" class="submenu">
-                        <a href="rentcollection.html" class="sidebar-link text-sm hover:text-white">All Rent Collections</a>
-                        <a href="platform.html" class="sidebar-link text-sm hover:text-white">Platform Commissions</a>
-                        <a href="refund.html" class="sidebar-link text-sm hover:text-white">Refund Approvals</a>
-                        <a href="payment_disputes.html" class="sidebar-link text-sm hover:text-white">Payment Disputes</a>
+                        <a href="rentcollection.html" class="sidebar-link text-sm hover:text-white">Rent Collections</a>
+                        <a href="platform.html" class="sidebar-link text-sm hover:text-white">Commissions</a>
+                        <a href="refund.html" class="sidebar-link text-sm hover:text-white">Refunds</a>
                     </div>
                 </div>
-
-                <!-- Dropdown: Reports -->
-                <div class="group">
-                    <div class="sidebar-link justify-between" onclick="toggleSubmenu('reports-submenu', this)">
-                        <div class="flex items-center">
-                            <i data-lucide="bar-chart-3" class="w-5 h-5 mr-3"></i> Reports
-                        </div>
-                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
-                    </div>
-                    <div id="reports-submenu" class="submenu">
-                        <a href="platform_reports.html" class="sidebar-link text-sm hover:text-white">Platform-wide Reports</a>
-                        <a href="monthly.html" class="sidebar-link text-sm hover:text-white">Monthly Revenue</a>
-                        <a href="#" class="sidebar-link text-sm hover:text-white text-purple-400 flex items-center"><i data-lucide="download" class="w-3 h-3 mr-2"></i> Export PDF/Excel</a>
-                    </div>
-                </div>
-
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">System</div>
-                 <a href="chatadmin.html" class="sidebar-link">
-                    <i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Chats
-                </a>
-                 <a href="profile.html" class="sidebar-link">
-                    <i data-lucide="user" class="w-5 h-5 mr-3"></i> Profile
-                </a>
-                 <a href="settings.html" class="sidebar-link">
-                    <i data-lucide="settings" class="w-5 h-5 mr-3"></i> Settings
-                </a>
-                 <a href="location.html" class="sidebar-link">
-                    <i data-lucide="globe" class="w-5 h-5 mr-3"></i> RoomHy Location
-                </a>
-
-                <!-- 3-Dot Menu / Settings Section -->
-                <div class="group">
-                    <div class="sidebar-link justify-between" onclick="toggleSubmenu('settings-submenu', this)">
-                        <div class="flex items-center">
-                            <i data-lucide="more-horizontal" class="w-5 h-5 mr-3"></i> System Settings
-                        </div>
-                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
-                    </div>
-                    <div id="settings-submenu" class="submenu">
-                        <a href="log.html" class="sidebar-link text-sm hover:text-white">Login Logs</a>
-                        <a href="security.html" class="sidebar-link text-sm hover:text-white">Security Settings</a>
-                        <a href="backup.html" class="sidebar-link text-sm hover:text-white">Backup Settings</a>
-                    </div>
-                </div>
-                
-                <div class="h-20"></div> <!-- Spacer -->
+                 <a href="chatadmin.html" class="sidebar-link"><i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Chats</a>
+                 <a href="location.html" class="sidebar-link"><i data-lucide="globe" class="w-5 h-5 mr-3"></i> Locations</a>
             </nav>
         </aside>
 
@@ -234,7 +150,7 @@
                     <div class="flex items-center text-sm">
                         <span class="text-slate-500 font-medium">Management</span>
                         <i data-lucide="chevron-right" class="w-4 h-4 mx-2 text-slate-400"></i>
-                        <span class="text-slate-800 font-semibold">KYC Verification</span>
+                        <span class="text-slate-800 font-semibold">New Signups</span>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
@@ -254,7 +170,7 @@
                     <!-- Page Header -->
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                         <div>
-                            <h1 class="text-2xl font-bold text-slate-800">KYC Verification</h1>
+                            <h1 class="text-2xl font-bold text-slate-800">New Signups</h1>
                             <p class="text-sm text-slate-500 mt-1">Review and approve documents for Property Owners and Tenants.</p>
                         </div>
                         
@@ -431,7 +347,7 @@
             </div>
             <nav class="flex-1 py-4 space-y-1 px-2">
                  <a href="superadmin.html" class="flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-400 hover:bg-gray-800">Dashboard</a>
-                 <a href="#" class="flex items-center px-4 py-3 text-sm font-medium rounded-md bg-gray-800 text-white border-l-4 border-purple-500">KYC Verification</a>
+                 <a href="#" class="flex items-center px-4 py-3 text-sm font-medium rounded-md bg-gray-800 text-white border-l-4 border-purple-500">New Signups</a>
             </nav>
         </aside>
     </div>
@@ -719,6 +635,158 @@
             }
         }
 
+        /**
+         * LOAD SIGNUP DATA FROM New Signups TABLE
+         * This is the source of truth for user login verification
+         */
+        function loadSignupRecordsFromKYC() {
+            try {
+                const kycTableKey = 'roomhy_kyc_verification'; // Central New Signups table
+                const signupUsers = JSON.parse(localStorage.getItem(kycTableKey) || '[]');
+                
+                const tbody = document.querySelector('#tenantsTableSection tbody');
+                if (!tbody) return;
+                
+                tbody.innerHTML = '';
+
+                if (signupUsers.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-500 text-sm">No signup records found</td></tr>`;
+                    return;
+                }
+
+                signupUsers.forEach((user, index) => {
+                    const tr = document.createElement('tr');
+                    
+                    // Determine status color
+                    const statusColor = user.status === 'verified' ? 'bg-green-100 text-green-800' : 
+                                       user.status === 'rejected' ? 'bg-red-100 text-red-800' : 
+                                       'bg-yellow-100 text-yellow-800';
+                    
+                    const initials = ((user.firstName || '').charAt(0) + (user.lastName || '').charAt(0)).toUpperCase();
+                    const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+                    
+                    tr.innerHTML = `
+                        <td><span class="font-mono text-xs text-gray-500">${user.id || 'KYC-' + index}</span></td>
+                        <td>
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs mr-3">${initials}</div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">${fullName}</p>
+                                    <p class="text-xs text-gray-500">${user.email}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="font-mono text-xs text-gray-600">—</td>
+                        <td class="font-mono text-xs text-gray-600">—</td>
+                        <td>
+                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                                <i data-lucide="user" class="w-3 h-3 mr-1"></i> Signup
+                            </span>
+                        </td>
+                        <td>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor}">
+                                ${(user.status || 'pending').charAt(0).toUpperCase() + (user.status || 'pending').slice(1)}
+                            </span>
+                        </td>
+                        <td class="text-right">
+                            <div class="flex gap-2 justify-end">
+                                ${user.status !== 'verified' ? `<button onclick="approveSignup('${user.email}')" class="text-green-600 hover:text-green-800 text-xs font-medium border border-green-200 px-3 py-1 rounded hover:bg-green-50 transition-colors">Verify</button>` : ''}
+                                ${user.status !== 'rejected' && user.status !== 'verified' ? `<button onclick="rejectSignup('${user.email}')" class="text-red-600 hover:text-red-800 text-xs font-medium border border-red-200 px-3 py-1 rounded hover:bg-red-50 transition-colors">Reject</button>` : ''}
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                
+                lucide.createIcons();
+                console.log(`✓ Loaded ${signupUsers.length} signup records from KYC table`);
+            } catch (e) { 
+                console.error('loadSignupRecordsFromKYC error:', e); 
+            }
+        }
+
+        /**
+         * APPROVE SIGNUP - VERIFY USER
+         * Updates New Signups table
+         */
+        function approveSignup(email) {
+            if (!confirm(`Verify account for ${email}?`)) return;
+
+            try {
+                const kycTableKey = 'roomhy_kyc_verification';
+                const signupUsers = JSON.parse(localStorage.getItem(kycTableKey) || '[]');
+                
+                const userIndex = signupUsers.findIndex(u => u.email === email);
+                if (userIndex === -1) {
+                    alert('User not found in New Signups table');
+                    return;
+                }
+
+                // Update user status to verified
+                signupUsers[userIndex].status = 'verified';
+                signupUsers[userIndex].verifiedAt = new Date().toISOString();
+                signupUsers[userIndex].kycStatus = 'verified';
+
+                localStorage.setItem(kycTableKey, JSON.stringify(signupUsers));
+                
+                // Also update tenant table for backward compatibility
+                const tenants = JSON.parse(localStorage.getItem('roomhy_tenants') || '[]');
+                const tenantIdx = tenants.findIndex(t => t.email === email);
+                if (tenantIdx > -1) {
+                    tenants[tenantIdx].kycStatus = 'verified';
+                    tenants[tenantIdx].status = 'verified';
+                    localStorage.setItem('roomhy_tenants', JSON.stringify(tenants));
+                }
+
+                alert('✓ User verified successfully!');
+                loadSignupRecordsFromKYC(); // Refresh table
+            } catch (e) {
+                console.error('approveSignup error:', e);
+                alert('Error verifying user');
+            }
+        }
+
+        /**
+         * REJECT SIGNUP - DENY USER
+         * Updates New Signups table
+         */
+        function rejectSignup(email) {
+            if (!confirm(`Reject signup for ${email}?`)) return;
+
+            try {
+                const kycTableKey = 'roomhy_kyc_verification';
+                const signupUsers = JSON.parse(localStorage.getItem(kycTableKey) || '[]');
+                
+                const userIndex = signupUsers.findIndex(u => u.email === email);
+                if (userIndex === -1) {
+                    alert('User not found in New Signups table');
+                    return;
+                }
+
+                // Update user status to rejected
+                signupUsers[userIndex].status = 'rejected';
+                signupUsers[userIndex].rejectedAt = new Date().toISOString();
+                signupUsers[userIndex].kycStatus = 'rejected';
+
+                localStorage.setItem(kycTableKey, JSON.stringify(signupUsers));
+
+                // Also update tenant table for backward compatibility
+                const tenants = JSON.parse(localStorage.getItem('roomhy_tenants') || '[]');
+                const tenantIdx = tenants.findIndex(t => t.email === email);
+                if (tenantIdx > -1) {
+                    tenants[tenantIdx].kycStatus = 'rejected';
+                    tenants[tenantIdx].status = 'rejected';
+                    localStorage.setItem('roomhy_tenants', JSON.stringify(tenants));
+                }
+
+                alert('✗ User rejected!');
+                loadSignupRecordsFromKYC(); // Refresh table
+            } catch (e) {
+                console.error('rejectSignup error:', e);
+                alert('Error rejecting user');
+            }
+        }
+
         // Populate Tenants table with pending KYC (localStorage fallback)
         function loadPendingTenantKyc() {
             try {
@@ -748,8 +816,9 @@
 
         // run tenant loader on DOM ready
         document.addEventListener('DOMContentLoaded', () => {
-            loadPendingTenantKyc();
+            loadSignupRecordsFromKYC(); // Load signup data from New Signups table
         });
     </script>
 </body>
 </html>
+

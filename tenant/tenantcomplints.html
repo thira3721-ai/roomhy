@@ -288,7 +288,11 @@
 
         async function loadTenantComplaints(tenantId) {
             try {
-                const response = await fetch(`http://localhost:5000/api/complaints/tenant/${tenantId}`, {
+                const apiUrl = window.location.hostname === 'localhost' 
+                    ? 'http://localhost:5000' 
+                    : window.location.origin;
+
+                const response = await fetch(`${apiUrl}/api/complaints/tenant/${tenantId}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -297,7 +301,8 @@
                 });
 
                 if (response.ok) {
-                    const complaints = await response.json();
+                    const data = await response.json();
+                    const complaints = data.complaints || data;
                     renderComplaints(complaints.map(c => ({
                         id: c._id,
                         category: c.category,
@@ -400,13 +405,19 @@
             // Create complaint object
             const complaint = {
                 tenantId: user.tenantId || user.loginId,
+                tenantName: user.name || user.username || 'Tenant',
+                tenantPhone: user.phone || 'N/A',
                 category: category,
                 description: description,
                 priority: priority
             };
 
             try {
-                const response = await fetch('http://localhost:5000/api/complaints', {
+                const apiUrl = window.location.hostname === 'localhost' 
+                    ? 'http://localhost:5000' 
+                    : window.location.origin;
+
+                const response = await fetch(`${apiUrl}/api/complaints`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -420,7 +431,7 @@
                     // Display confirmation
                     document.getElementById('newComplaintForm').reset();
                     closeModal('complaintModal');
-                    alert("Complaint Raised Successfully! Ticket ID: " + result._id);
+                    alert("Complaint Raised Successfully! Ticket ID: " + (result.complaint?._id || result._id || 'N/A'));
 
                     // Reload tenant complaints
                     loadTenantComplaints(user.tenantId || user.loginId);

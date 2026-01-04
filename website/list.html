@@ -207,14 +207,14 @@
                         <i data-lucide="chevron-left" class="w-6 h-6 text-gray-800"></i>
                     </a>
                     <a href="index.html" class="flex-shrink-0">
-                        <img src="logo.svg" alt="Roomhy Logo" class="h-10 w-auto">
+                        <img src="images/logoroomhy.jpg" alt="Roomhy Logo" class="h-10 w-25">
                     </a>
                 </div>
                 
                 <div class="flex items-center gap-3 sm:gap-6">
                     <nav class="hidden lg:flex items-center space-x-6">
-                        <a href="index.html#why-roomhy" class="text-gray-600 hover:text-blue-600 font-medium transition-colors">About Us</a>
-                        <a href="index.html#contact" class="text-gray-600 hover:text-blue-600 font-medium transition-colors">Contact</a>
+                        <a href="about.html" class="text-gray-600 hover:text-blue-600 font-medium transition-colors">About Us</a>
+                        <a href="contact.html" class="text-gray-600 hover:text-blue-600 font-medium transition-colors">Contact</a>
                     </nav>
 
                     <a href="#" class="flex-shrink-0 flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
@@ -344,8 +344,29 @@
 
             <div id="submit-message" class="mb-4 p-4 rounded-lg hidden"></div>
 
-            <form id="property-form" class="space-y-8">
+            <form id="property-form" action="#" method="POST" class="space-y-8">
                 
+                <div class="light-card rounded-lg p-6 md:p-8">
+                    <div class="flex items-center mb-6 border-b pb-4">
+                        <i data-lucide="user" class="w-6 h-6 mr-3 text-blue-600"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Your Contact Information</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="owner_name" class="block text-sm font-medium text-gray-700 mb-1">Your Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="owner_name" name="owner_name" required class="form-input w-full border-gray-300 rounded-md shadow-sm" placeholder="e.g., John Doe">
+                        </div>
+                        <div>
+                            <label for="owner_phone" class="block text-sm font-medium text-gray-700 mb-1">Your Phone Number <span class="text-red-500">*</span></label>
+                            <input type="tel" id="owner_phone" name="owner_phone" required pattern="[0-9]{10}" class="form-input w-full border-gray-300 rounded-md shadow-sm" placeholder="e.g., 9876543210">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="owner_email" class="block text-sm font-medium text-gray-700 mb-1">Your Email</label>
+                            <input type="email" id="owner_email" name="owner_email" class="form-input w-full border-gray-300 rounded-md shadow-sm" placeholder="e.g., john@example.com">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="light-card rounded-lg p-6 md:p-8">
                     <div class="flex items-center mb-6 border-b pb-4">
                         <i data-lucide="clipboard-list" class="w-6 h-6 mr-3 text-blue-600"></i>
@@ -371,11 +392,8 @@
                                 <label for="city" class="block text-sm font-medium text-gray-700 mb-1">City <span class="text-red-500">*</span></label>
                                 <select id="city" name="city" required class="form-select w-full border-gray-300 rounded-md shadow-sm">
                                     <option value="">Select City</option>
-                                    <option value="indore">Indore</option>
-                                    <option value="kota">Kota</option>
-                                    <option value="ahmedabad">Ahmedabad</option>
-                                    <option value="delhi">Delhi</option>
                                 </select>
+                                <small class="text-gray-500 mt-1">Select from configured cities or enter custom location</small>
                             </div>
                             <div>
                                 <label for="locality" class="block text-sm font-medium text-gray-700 mb-1">Locality / Area <span class="text-red-500">*</span></label>
@@ -549,7 +567,7 @@
         </div>
         <div class="footer-main">
             <div class="footer-logo">
-                <img src="https://roomhy.com/assets/logo.png" alt="Roomhy Logo">
+                <img src="images/logoroomhy.jpg" alt="Roomhy Logo" class="h-10 w-25">
                 <p>Discover Your Next Home, Together.</p>
             </div>
             <div class="footer-links">
@@ -718,12 +736,8 @@
                     submitBtn.innerHTML = '<i data-lucide="loader" class="w-5 h-5 inline mr-2 animate-spin"></i><span>Submitting...</span>';
 
                     try {
-                        // Get owner information from localStorage or form
-                        const ownerData = JSON.parse(localStorage.getItem('roomhy_current_user') || '{}');
-
                         // Prepare form data
                         const formData = new FormData(propertyForm);
-                        const photos = Array.from(formData.getAll('property_photos[]')).slice(0, 10); // Limit to 10 photos
 
                         // Build enquiry data
                         const enquiryData = {
@@ -736,23 +750,15 @@
                             description: formData.get('description'),
                             amenities: Array.from(formData.getAll('amenities[]')),
                             gender_suitability: formData.get('gender_suitability'),
-                            occupancy_type: formData.get('occupancy_type'),
-                            rooms: parseInt(formData.get('rooms')) || 0,
                             rent: parseInt(formData.get('rent')) || 0,
-                            maintenance: parseInt(formData.get('maintenance')) || 0,
                             deposit: formData.get('deposit'),
-                            available_from: formData.get('available_from'),
-                            photos: [],
-                            owner_name: ownerData.name || 'Unknown',
-                            owner_email: ownerData.email || '',
-                            owner_phone: ownerData.phone || ''
+                            owner_name: formData.get('owner_name'),
+                            owner_email: formData.get('owner_email') || '',
+                            owner_phone: formData.get('owner_phone')
                         };
 
-                        // Handle photo upload if needed (for now, just send metadata)
-                        // In production, you might want to upload images separately
-
-                        // Submit to API
-                        const response = await fetch('/api/property-enquiry/submit', {
+                        // Submit to MongoDB via API
+                        const response = await fetch('http://localhost:5000/api/website-enquiry/submit', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
@@ -762,29 +768,28 @@
 
                         const result = await response.json();
 
-                        if (result.success) {
-                            // Show success message
-                            submitMessage.innerHTML = `
-                                <div class="bg-green-50 border border-green-200 text-green-800">
-                                    <strong>Success!</strong> Your property enquiry has been submitted successfully.
-                                    ${result.assignedTo && result.assignedTo !== 'No area manager found' 
-                                        ? `<br>It has been assigned to area manager: <strong>${result.assignedTo}</strong>` 
-                                        : '<br>It will be reviewed by our team soon.'}
-                                </div>
-                            `;
-                            submitMessage.classList.remove('hidden');
-
-                            // Reset form after delay
-                            setTimeout(() => {
-                                propertyForm.reset();
-                                document.getElementById('image-previews').innerHTML = '';
-                                submitMessage.classList.add('hidden');
-                                submitBtn.disabled = false;
-                                submitBtn.innerHTML = originalText;
-                            }, 3000);
-                        } else {
-                            throw new Error(result.error || 'Failed to submit enquiry');
+                        if (!response.ok) {
+                            throw new Error(result.message || 'Failed to submit enquiry');
                         }
+
+                        // Show success message
+                        submitMessage.innerHTML = `
+                            <div class="bg-green-50 border border-green-200 text-green-800">
+                                <strong>Success!</strong> Your property enquiry has been submitted successfully.
+                                <br>It will be reviewed by our team soon.
+                            </div>
+                        `;
+                        submitMessage.classList.remove('hidden');
+
+                        // Reset form
+                        propertyForm.reset();
+
+                        // Clear image previews
+                        imagePreviews.innerHTML = '';
+
+                        // Re-enable submit button
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
                     } catch (error) {
                         console.error('Submission error:', error);
                         submitMessage.innerHTML = `
@@ -798,6 +803,70 @@
                     }
                 });
             }
+        });
+
+
+        // Load cities from localStorage (populated by location.html)
+        function loadCities() {
+            const citySelect = document.getElementById('city');
+            const cachedCities = JSON.parse(localStorage.getItem('roomhy_cities') || '[]');
+            
+            // Clear existing options except "Select City"
+            while (citySelect.options.length > 1) {
+                citySelect.remove(1);
+            }
+            
+            if (cachedCities.length > 0) {
+                // Add cities from localStorage
+                cachedCities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.toLowerCase();
+                    option.textContent = city;
+                    citySelect.appendChild(option);
+                });
+            } else {
+                // Fallback to hardcoded cities
+                const defaultCities = ['Indore', 'Kota', 'Ahmedabad', 'Delhi'];
+                defaultCities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.toLowerCase();
+                    option.textContent = city;
+                    citySelect.appendChild(option);
+                });
+            }
+            
+            // Add custom location option
+            const customOption = document.createElement('option');
+            customOption.value = 'custom';
+            customOption.textContent = '+ Add Custom Location';
+            citySelect.appendChild(customOption);
+        }
+
+        // Load cities when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCities();
+            
+            // Handle custom location selection
+            const citySelect = document.getElementById('city');
+            citySelect.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    const customLocation = prompt('Enter your city/location name:');
+                    if (customLocation && customLocation.trim()) {
+                        // Create new option with custom location
+                        const newOption = document.createElement('option');
+                        newOption.value = customLocation.toLowerCase();
+                        newOption.textContent = customLocation;
+                        newOption.selected = true;
+                        
+                        // Insert before "custom" option
+                        citySelect.insertBefore(newOption, citySelect.options[citySelect.options.length - 1]);
+                    }
+                    // Reset if user cancels
+                    if (!customLocation) {
+                        this.value = '';
+                    }
+                }
+            });
         });
 
     </script>

@@ -523,7 +523,80 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        // Signup form handler: POST to backend, then persist to localStorage for Super Admin to see
+        // ========== LOGIN FORM HANDLER ==========
+        // Checks login details against KYC verification table
+        const loginForm = document.querySelector('#login-form-content form');
+        if (loginForm) {
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const loginId = loginForm.querySelector('input[type="text"]').value.trim().toLowerCase();
+                const password = loginForm.querySelector('input[type="password"]').value;
+
+                if (!loginId || !password) {
+                    showToast('Please enter email/phone and password', 'error');
+                    return;
+                }
+
+                // ====== CHECK AGAINST KYC VERIFICATION TABLE ======
+                const kycTableKey = 'roomhy_kyc_verification';
+                const allUsers = JSON.parse(localStorage.getItem(kycTableKey) || '[]');
+
+                // Find user by email or loginId
+                const user = allUsers.find(u => 
+                    u.email.toLowerCase() === loginId || 
+                    (u.loginId && u.loginId.toLowerCase() === loginId) ||
+                    u.phone === loginId
+                );
+
+                if (!user) {
+                    showToast('❌ Account not found. Please sign up first!', 'error');
+                    return;
+                }
+
+                // Check if user is verified by KYC admin
+                if (user.status !== 'verified') {
+                    if (user.status === 'rejected') {
+                        showToast('❌ Your account was rejected. Please contact support.', 'error');
+                    } else {
+                        showToast('⏳ Your account is pending verification. Check back later!', 'error');
+                    }
+                    return;
+                }
+
+                // Verify password (simple check - in production, use hashing)
+                if (user.password !== password) {
+                    showToast('❌ Incorrect password!', 'error');
+                    return;
+                }
+
+                // Login successful!
+                showToast('✓ Login successful! Redirecting...', 'success');
+
+                // Store user session
+                const loggedInUser = {
+                    id: user.id,
+                    loginId: user.loginId,
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    phone: user.phone,
+                    role: 'tenant',
+                    status: user.status,
+                    kycStatus: user.kycStatus
+                };
+
+                localStorage.setItem('user', JSON.stringify(loggedInUser));
+                localStorage.setItem('sessionStorage', JSON.stringify(loggedInUser));
+
+                // Redirect to dashboard after 800ms
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 800);
+            });
+        }
+
+        // Signup form handler: POST to backend, then persist to localStorage for KYC verification
         const signupForm = document.getElementById('signup-form');
         if (signupForm) {
             signupForm.addEventListener('submit', async (e) => {
@@ -538,6 +611,20 @@
                     showToast('Please fill required fields', 'error');
                     return;
                 }
+
+                // ====== STORE SIGNUP DATA TO KYC VERIFICATION TABLE (localStorage) ======
+                const signupData = {
+                    id: 'user_' + Date.now(),
+                    firstName: firstName,
+                    lastName: lastName,
+                    email: email,
+                    phone: phone,
+                    password: password, // Hashed in production
+                    createdAt: new Date().toISOString(),
+                    status: 'pending', // pending, verified, rejected
+                    loginId: email, // Used for login
+                    kycStatus: 'not_submitted' // Track KYC separately
+                };
 
                 const payload = { firstName, lastName, email, phone, password };
 
@@ -558,8 +645,8 @@
                             if (data.data.accessToken) localStorage.setItem('accessToken', data.data.accessToken);
                             if (data.data.refreshToken) localStorage.setItem('refreshToken', data.data.refreshToken);
                         }
-                        // also persist a lightweight tenant/user record for superadmin UI
-                        saveLocalSignup({ name: firstName + (lastName ? ' ' + lastName : ''), email, phone, createdAt: new Date().toISOString(), status: 'pending' });
+                        // SAVE TO KYC VERIFICATION TABLE
+                        saveToKYCVerification(signupData);
                         // Always redirect to website index after signup
                         setTimeout(() => { location.href = 'index.html'; }, 900);
                         return;
@@ -568,33 +655,70 @@
                     console.warn('Signup backend failed, falling back to localStorage:', err.message);
                 }
 
-                // Fallback: save to localStorage so superadmin can view new entries
-                saveLocalSignup({ name: firstName + (lastName ? ' ' + lastName : ''), email, phone, password, createdAt: new Date().toISOString(), status: 'pending' });
-                showToast('Account created (offline). Signing you in locally...', 'success');
+                // Fallback: save to KYC verification table so superadmin can view
+                saveToKYCVerification(signupData);
+                showToast('Account created! Please verify via KYC.', 'success');
                 // create local user and redirect to website index
-                const localUser = { name: firstName + (lastName ? ' ' + lastName : ''), email, role: 'tenant', id: 'local_' + Date.now() };
+                const localUser = { name: firstName + (lastName ? ' ' + lastName : ''), email, loginId: email, role: 'tenant', id: 'user_' + Date.now() };
                 localStorage.setItem('user', JSON.stringify(localUser));
+                localStorage.setItem('sessionStorage', JSON.stringify(localUser));
                 setTimeout(() => { window.location.href = 'index.html'; }, 800);
             });
         }
 
+        /**
+         * SAVE TO KYC VERIFICATION TABLE
+         * Stores all signup data for KYC verification page to access
+         * This acts as the central database for login verification
+         */
+        function saveToKYCVerification(signupData) {
+            try {
+                const kycTableKey = 'roomhy_kyc_verification'; // KYC Verification table
+                const existing = JSON.parse(localStorage.getItem(kycTableKey) || '[]');
+                
+                // Check if email already exists
+                const emailExists = existing.some(user => user.email === signupData.email);
+                if (emailExists) {
+                    console.warn('Email already registered');
+                    showToast('This email is already registered', 'error');
+                    return;
+                }
+
+                // Add new signup to KYC table
+                existing.unshift(signupData);
+                localStorage.setItem(kycTableKey, JSON.stringify(existing));
+
+                // Also maintain tenant list for backward compatibility
+                saveLocalSignup(signupData);
+
+                console.log('✓ Signup saved to KYC Verification table');
+            } catch (e) { 
+                console.error('saveToKYCVerification error:', e); 
+            }
+        }
+
+        /**
+         * SAVE LOCAL SIGNUP (Backward compatibility)
+         */
         function saveLocalSignup(entry) {
             try {
                 const key = 'roomhy_tenants';
                 const existing = JSON.parse(localStorage.getItem(key) || '[]');
                 // normalize minimal tenant object used by superadmin/tenant.html
                 const tenant = {
-                    id: 'local_' + Date.now(),
-                    name: entry.name,
+                    id: entry.id,
+                    name: entry.firstName + (entry.lastName ? ' ' + entry.lastName : ''),
                     email: entry.email,
                     phone: entry.phone || '',
-                    kycStatus: 'not_submitted',
+                    kycStatus: entry.kycStatus || 'not_submitted',
                     status: entry.status || 'pending',
-                    createdAt: entry.createdAt || new Date().toISOString(),
-                    password: entry.password || undefined
+                    createdAt: entry.createdAt || new Date().toISOString()
                 };
-                existing.unshift(tenant);
-                localStorage.setItem(key, JSON.stringify(existing));
+                
+                // Remove if exists, then add updated version
+                const filtered = existing.filter(t => t.email !== tenant.email);
+                filtered.unshift(tenant);
+                localStorage.setItem(key, JSON.stringify(filtered));
             } catch (e) { console.warn('saveLocalSignup error', e); }
         }
     </script>

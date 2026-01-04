@@ -8,8 +8,7 @@ const employeeSchema = new mongoose.Schema({
     loginId: {
         type: String,
         required: true,
-        unique: true,
-        index: true
+        unique: true
     },
     email: {
         type: String,
@@ -43,7 +42,6 @@ const employeeSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-employeeSchema.index({ loginId: 1 });
 employeeSchema.index({ area: 1, areaCode: 1 });
 
 module.exports = mongoose.model('Employee', employeeSchema);

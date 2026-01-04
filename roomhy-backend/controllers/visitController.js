@@ -61,3 +61,99 @@ exports.submitVisitPublic = async (req, res) => {
     // ... (Implementation same as standard submit but relaxed checks)
     res.json({ success: true, message: "Demo submission received" }); 
 };
+
+// 4. Get Approved Properties for Website (Public Endpoint)
+// Used by ourproperty.html to fetch live properties from database
+exports.getApprovedPropertiesForWebsite = async (req, res) => {
+    try {
+        // Optional query parameters for filtering
+        const { city, area, gender, propertyType, minPrice, maxPrice, occupancy, search } = req.query;
+        
+        // Build filter object
+        let filter = {
+            status: 'approved',
+            isLiveOnWebsite: true
+        };
+
+        // Apply optional filters
+        if (city) {
+            filter['propertyInfo.city'] = { $regex: city, $options: 'i' }; // Case-insensitive
+        }
+        
+        if (area) {
+            filter['propertyInfo.area'] = area;
+        }
+        
+        if (gender) {
+            // Match specific gender or co-ed
+            if (gender.toLowerCase() === 'co-ed') {
+                filter['propertyInfo.gender'] = 'co-ed';
+            } else {
+                filter['propertyInfo.gender'] = { $in: [gender, 'co-ed'] };
+            }
+        }
+        
+        if (propertyType) {
+            filter['propertyInfo.propertyType'] = { $regex: propertyType, $options: 'i' };
+        }
+        
+        if (occupancy) {
+            filter['roomInfo.occupancy'] = occupancy;
+        }
+        
+        // Price range filtering
+        if (minPrice || maxPrice) {
+            filter.monthlyRent = {};
+            if (minPrice) {
+                filter.monthlyRent.$gte = parseInt(minPrice);
+            }
+            if (maxPrice && maxPrice !== '50000_plus') {
+                filter.monthlyRent.$lte = parseInt(maxPrice);
+            }
+        }
+        
+        // Text search in property name or area
+        if (search) {
+            filter.$or = [
+                { 'propertyInfo.name': { $regex: search, $options: 'i' } },
+                { 'propertyInfo.area': { $regex: search, $options: 'i' } },
+                { 'propertyInfo.city': { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        // Fetch properties from database
+        const properties = await VisitReport.find(filter)
+            .select('_id propertyInfo roomInfo monthlyRent rent rating reviewsCount isVerified photos professionalPhotos')
+            .sort({ createdAt: -1 })
+            .lean();
+
+        // Transform data to match frontend expectations
+        const transformedProperties = properties.map(prop => ({
+            _id: prop._id,
+            propertyInfo: prop.propertyInfo,
+            roomInfo: prop.roomInfo,
+            monthlyRent: prop.monthlyRent || prop.rent || 0,
+            rent: prop.rent || prop.monthlyRent || 0,
+            rating: prop.rating || 4.5,
+            reviewsCount: prop.reviewsCount || 0,
+            isVerified: prop.isVerified || false,
+            photos: prop.professionalPhotos || prop.photos || [],
+            status: 'approved',
+            isLiveOnWebsite: true
+        }));
+
+        res.json({ 
+            success: true, 
+            count: transformedProperties.length,
+            properties: transformedProperties 
+        });
+
+    } catch (err) {
+        console.error("Get Approved Properties Error:", err);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error fetching properties',
+            error: err.message 
+        });
+    }
+};

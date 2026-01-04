@@ -126,7 +126,7 @@
                 
                 <div class="flex items-center">
                     <a href="index.html" class="flex-shrink-0">
-                        <img src="logo.svg" alt="Roomhy Logo" class="h-10 w-auto">
+                        <img src="images/logoroomhy.jpg" alt="Roomhy Logo" class="h-20 w-auto">
                     </a>
                 </div>
                 
@@ -229,7 +229,7 @@
                 </div>
                 <span>About Us</span>
             </a>
-            <a href="index.html#contact" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+            <a href="contact.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
                 <div class="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0">
                     <i data-lucide="phone" class="w-5 h-5 text-cyan-600"></i>
                 </div>
@@ -372,7 +372,7 @@
                             Clear Filters
                         </button>
                         <button class='w-full border-2 border-green-600 text-green-600 hover:bg-green-50 bg-transparent font-bold py-3 rounded-xl transition-colors shadow-md glow-button'>
-                            Bid on all
+                            Request on all
                         </button>
                     </div>
                 </div>
@@ -470,14 +470,14 @@
 
                     <!-- Apply & Clear Filters (Original Buttons Reinstated) -->
                     <div class='flex flex-col gap-3 pt-4'>
-                        <button class='w-full bg-backgroundColor hover:bg-backgroundColorHover text-white font-bold py-3 rounded-xl transition-colors shadow-lg glow-button'>
+                        <button id="desktop-apply-filters" class='w-full bg-backgroundColor hover:bg-backgroundColorHover text-white font-bold py-3 rounded-xl transition-colors shadow-lg glow-button'>
                             Apply Filters
                         </button>
                         <button class='w-full border border-backgroundColor text-backgroundColor hover:bg-blue-50 bg-transparent font-bold py-3 rounded-xl transition-colors shadow-sm glow-button'>
                             Clear Filters
                         </button>
                         <button class='w-full border-2 border-green-600 text-green-600 hover:bg-green-50 bg-transparent font-bold py-3 rounded-xl transition-colors shadow-md glow-button'>
-                            Bid on all
+                            Request on all
                         </button>
                     </div>
                 </div>
@@ -541,14 +541,14 @@
 
     </main>
 
-    <a href="index.html#contact" class="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg transition-transform hover:scale-110">
+    <a href="contact.html" class="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg transition-transform hover:scale-110">
         <i data-lucide="message-circle" class="w-8 h-8"></i>
     </a>
     
     <footer class="bg-gray-800 text-gray-300">
         <div class="container mx-auto px-6 py-16">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
-                <div class="md:col-span-1"><a href="index.html" class="mb-4 inline-block"><img src="logo.svg" alt="Roomhy Logo" class="h-10 w-auto brightness-0 invert"></a><p class="text-gray-400 text-sm">Your trusted partner in finding the perfect student accommodation. Live, learn, and grow with us.</p><div class="flex space-x-5 mt-6"><a href="#" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="facebook" class="w-5 h-5"></i></a><a href="#" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="instagram" class="w-5 h-5"></i></a><a href="#" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="twitter" class="w-5 h-5"></i></a></div></div>
+                <div class="md:col-span-1"><a href="index.html" class="mb-4 inline-block"><img src="images/logoroomhy.jpg" alt="Roomhy Logo" class="h-20 w-auto"></a><p class="text-gray-400 text-sm">Your trusted partner in finding the perfect student accommodation. Live, learn, and grow with us.</p><div class="flex space-x-5 mt-6"><a href="#" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="facebook" class="w-5 h-5"></i></a><a href="#" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="instagram" class="w-5 h-5"></i></a><a href="#" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="twitter" class="w-5 h-5"></i></a></div></div>
                 <div><h4 class="font-semibold text-lg mb-5 text-white">Explore</h4><ul class="space-y-3"><li><a href="#" class="text-gray-300 hover:text-white transition-colors">Apartments</a></li><li><a href="#" class="text-gray-300 hover:text-white transition-colors">Hostels</a></li><li><a href="#" class="text-gray-300 hover:text-white transition-colors">Co-Living</a></li><li><a href="#" class="text-gray-300 hover:text-white transition-colors">PGs</a></li></ul></div>
                 <div><h4 class="font-semibold text-lg mb-5 text-white">Company</h4><ul class="space-y-3"><li><a href="about.html" class="text-gray-300 hover:text-white transition-colors">About Us</a></li><li><a href="list.html" class="text-gray-300 hover:text-white transition-colors">List Your Property</a></li><li><a href="privacy.html" class="text-gray-300 hover:text-white transition-colors">Privacy Policy</a></li><li><a href="terms.html" class="text-gray-300 hover:text-white transition-colors">Terms of Service</a></li></ul></div>
                 
@@ -682,7 +682,20 @@
         }
 
         // Call on page load
-        document.addEventListener('DOMContentLoaded', filterPropertiesByTypeAndCity);
+        document.addEventListener('DOMContentLoaded', function() {
+            // First auto-select city if URL has city parameter
+            autoSelectCityInDropdowns();
+            // Get the selected city and populate areas
+            const cityValue = document.getElementById('desktop-select-city')?.value || document.getElementById('mobile-select-city')?.value || '';
+            if (cityValue) {
+                populateAreaOptionsFromVisits(cityValue);
+                updateAreaDropdown(cityValue);
+            } else {
+                populateAreaOptionsFromVisits('');
+            }
+            // Load and filter properties with URL parameters
+            loadWebsiteListing();
+        });
 
         // ======================================================
         // Auto-select City in Dropdown if URL has city parameter
@@ -691,17 +704,8 @@
             const cityParam = getUrlParam('city');
             if (!cityParam) return;
 
-            // Map full city names to dropdown values
-            const cityMap = {
-                'kota': 'kota',
-                'indore': 'indore',
-                'sikar': 'sikar',
-                'pune': 'kota', // Default to kota if no exact match
-                'bangalore': 'kota',
-                'delhi': 'kota'
-            };
-
-            const cityValue = cityMap[cityParam.toLowerCase()] || cityParam.toLowerCase();
+            // Use the city name directly from URL parameter
+            const cityValue = cityParam.toLowerCase();
 
             // Auto-select in mobile dropdown
             const mobileSelect = document.getElementById('mobile-select-city');
@@ -716,8 +720,8 @@
             }
         }
 
-        // Call after filter is applied
-        document.addEventListener('DOMContentLoaded', autoSelectCityInDropdowns);
+        // Called from main DOMContentLoaded handler above
+        // This function auto-selects city in dropdowns if URL has city parameter
 
         // ======================================================
         // START: Dynamic Live Properties Rendering (from localStorage)
@@ -727,41 +731,138 @@
             try { return JSON.parse(localStorage.getItem('roomhy_visits') || '[]'); } catch (e) { return []; }
         }
 
-        function populateAreaOptionsFromVisits(cityValue) {
-            const visits = getVisitsFromStorage().filter(v => v.status === 'approved' && v.isLiveOnWebsite === true);
-            const areas = new Set();
-            visits.forEach(v => {
-                const area = (v.propertyInfo && (v.propertyInfo.area || v.propertyInfo.locality || v.propertyInfo.city)) || '';
-                const city = (v.propertyInfo && (v.propertyInfo.city || '') ).toString().toLowerCase();
-                if (cityValue && cityValue !== '' && city !== cityValue) return;
-                if (area) areas.add(area);
-            });
+        // Fetch properties from database API
+        async function fetchPropertiesFromAPI(filters = {}) {
+            try {
+                // Determine which endpoint to use - use relative URL for cross-origin compatibility
+                let url = '/api/website-enquiry/all';
+                
+                // If city is specified, use the city-specific endpoint
+                if (filters.city) {
+                    url = `/api/website-enquiry/city/${encodeURIComponent(filters.city)}`;
+                }
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-            const desktopAreaSelect = document.getElementById('desktop-select-area');
-            const mobileAreaSelect = document.getElementById('mobile-select-area');
-            if (desktopAreaSelect) {
-                desktopAreaSelect.innerHTML = '<option value="">All Areas</option>' + Array.from(areas).map(a => `<option value="${a}">${a}</option>`).join('');
-            }
-            if (mobileAreaSelect) {
-                mobileAreaSelect.innerHTML = '<option value="">All Areas</option>' + Array.from(areas).map(a => `<option value="${a}">${a}</option>`).join('');
+                if (!response.ok) {
+                    console.error('API Error:', response.status);
+                    // Fallback to localStorage if API fails
+                    return getVisitsFromStorage();
+                }
+
+                const data = await response.json();
+                
+                // Handle both response formats
+                let properties = [];
+                if (data.success && data.enquiries) {
+                    properties = data.enquiries;
+                } else if (data.success && data.properties) {
+                    properties = data.properties;
+                } else if (Array.isArray(data)) {
+                    properties = data;
+                } else {
+                    return getVisitsFromStorage();
+                }
+
+                // IMPORTANT: Filter only APPROVED properties (status = 'completed')
+                properties = properties.filter(p => p.status === 'completed');
+
+                // Apply client-side filters (area, price, gender, property type)
+                properties = properties.filter(prop => {
+                    // Filter by area
+                    if (filters.area) {
+                        const propArea = (prop.propertyInfo?.area || prop.locality || prop.area || '').toLowerCase();
+                        if (!propArea.includes(filters.area.toLowerCase())) return false;
+                    }
+                    
+                    // Filter by gender
+                    // Filter by gender
+                    if (filters.gender) {
+                        const propGender = (prop.gender_suitability || prop.propertyInfo?.gender_suitability || prop.gender || '').toLowerCase();
+                        const filterGender = filters.gender.toLowerCase();
+                        if (propGender && !['co-ed', filterGender].includes(propGender)) return false;
+                    }
+                    
+                    // Filter by property type
+                    if (filters.propertyType) {
+                        const propType = (prop.property_type || prop.propertyInfo?.property_type || prop.type || '').toLowerCase();
+                        if (!propType.includes(filters.propertyType.toLowerCase())) return false;
+                    }
+                    
+                    // Filter by price range - handle both MongoDB and fallback data structures
+                    const rent = prop.rent || prop.monthlyRent || 0;
+                    if (filters.minPrice && rent < parseInt(filters.minPrice)) return false;
+                    if (filters.maxPrice && filters.maxPrice !== '50000_plus' && rent > parseInt(filters.maxPrice)) return false;
+                    
+                    return true;
+                });
+
+                // Cache in localStorage for offline access
+                localStorage.setItem('roomhy_visits', JSON.stringify(properties));
+                return properties;
+
+            } catch (err) {
+                console.error('Error fetching from API:', err);
+                // Fallback to localStorage if API fails
+                return getVisitsFromStorage();
             }
         }
 
+        function populateAreaOptionsFromVisits(cityValue) {
+            // Fetch all properties first to get unique areas
+            fetchPropertiesFromAPI({ city: cityValue || '' }).then(visits => {
+                const areas = new Set();
+                
+                visits.forEach(v => {
+                    // Handle WebsiteEnquiry data structure from MongoDB
+                    let area = v.locality || v.area || '';
+                    
+                    // Also check propertyInfo if it exists (fallback for VisitReport)
+                    if (!area && v.propertyInfo) {
+                        area = v.propertyInfo.area || v.propertyInfo.locality || '';
+                    }
+                    
+                    if (area) areas.add(area);
+                });
+
+                const desktopAreaSelect = document.getElementById('desktop-select-area');
+                const mobileAreaSelect = document.getElementById('mobile-select-area');
+                
+                const areaOptions = '<option value="">All Areas</option>' + 
+                    Array.from(areas).map(a => `<option value="${a}">${a}</option>`).join('');
+                
+                if (desktopAreaSelect) {
+                    desktopAreaSelect.innerHTML = areaOptions;
+                }
+                if (mobileAreaSelect) {
+                    mobileAreaSelect.innerHTML = areaOptions;
+                }
+            }).catch(err => {
+                console.error('Error populating areas:', err);
+            });
+        }
+
         function renderPropertyCard(v) {
+            // Handle WebsiteEnquiry data structure from MongoDB (primary) and VisitReport fallback
             const prop = v.propertyInfo || {};
-            const title = prop.name || 'Property';
-            const area = prop.area || prop.locality || '';
-            const city = prop.city || prop.cityName || '';
-            const rent = v.monthlyRent || v.rent || 0;
-            const badge = prop.propertyType || '';
-            const photos = (v.professionalPhotos && v.professionalPhotos.length) ? v.professionalPhotos : (v.photos || []);
+            const title = v.property_name || prop.name || 'Property';
+            const area = v.locality || prop.area || prop.locality || '';
+            const city = v.city || prop.city || '';
+            const rent = v.rent || v.monthlyRent || prop.rent || 0;
+            const badge = v.property_type || prop.property_type || prop.type || '';
+            const photos = (v.photos && v.photos.length) ? v.photos : (v.professionalPhotos || []);
             const img = photos && photos[0] ? photos[0] : 'https://images.unsplash.com/photo-1567016432779-1fee749a1532?q=80&w=1974&auto=format&fit=crop';
 
             // Build thumbnail scroller (up to 4 thumbnails)
             const thumbs = (photos && photos.length) ? photos.slice(0,4).map(s => `<img src="${s}" class="h-20 w-28 object-cover rounded cursor-pointer">`).join('') : '';
 
             return `
-                <a href="property.html?id=${encodeURIComponent(v._id)}" class="group block">
+                <a href="property.html?id=${encodeURIComponent(v._id || v.enquiry_id)}" class="group block">
                     <div class="light-card rounded-xl overflow-hidden h-full">
                         <div class="relative">
                             <img src="${img}" alt="${title}" class="w-full h-56 object-cover">
@@ -786,10 +887,24 @@
         }
 
         function loadWebsiteListing() {
+            // Check if this is the initial load with URL parameters
+            const typeParam = getUrlParam('type') || '';
+            const cityParam = getUrlParam('city') || '';
+            
             // Get filter values from both desktop and mobile selects
-            const desktopCity = document.getElementById('desktop-select-city')?.value || '';
-            const mobileCity = document.getElementById('mobile-select-city')?.value || '';
-            const cityValue = (desktopCity || mobileCity).toString().toLowerCase();
+            let desktopCity = document.getElementById('desktop-select-city')?.value || '';
+            let mobileCity = document.getElementById('mobile-select-city')?.value || '';
+            
+            // If URL has city parameter and no select is set, use URL parameter
+            if (cityParam && !desktopCity && !mobileCity) {
+                desktopCity = cityParam;
+                const desktopSelect = document.getElementById('desktop-select-city');
+                const mobileSelect = document.getElementById('mobile-select-city');
+                if (desktopSelect) desktopSelect.value = cityParam;
+                if (mobileSelect) mobileSelect.value = cityParam;
+            }
+            
+            const cityValue = (desktopCity || mobileCity || '').toString().toLowerCase();
             
             const desktopArea = document.getElementById('desktop-select-area')?.value || '';
             const mobileArea = document.getElementById('mobile-select-area')?.value || '';
@@ -812,81 +927,65 @@
             // Get property type filter
             const desktopPropertyType = document.getElementById('desktop-property-type')?.value || '';
             const mobilePropertyType = document.getElementById('mobile-property-type')?.value || '';
-            const propertyTypeValue = desktopPropertyType || mobilePropertyType || '';
+            const propertyTypeValue = (desktopPropertyType || mobilePropertyType || typeParam || '').toString().toLowerCase();
             
             // Get occupancy filter
             const desktopOccupancy = document.getElementById('desktop-occupancy')?.value || '';
             const mobileOccupancy = document.getElementById('mobile-occupancy')?.value || '';
             const occupancyValue = desktopOccupancy || mobileOccupancy || '';
 
-            const visits = getVisitsFromStorage().filter(v => v.status === 'approved');
-            // Filter online only
-            let filtered = visits.filter(v => v.isLiveOnWebsite === true);
-
-            // Apply city filter if selected
+            // Build filters object for API
+            const filters = {};
             if (cityValue) {
-                filtered = filtered.filter(v => ((v.propertyInfo && (v.propertyInfo.city || v.propertyInfo.cityName) || '')).toString().toLowerCase().includes(cityValue));
+                filters.city = cityValue;
+                console.log('Loading properties for city:', cityValue);
             }
-            
-            // Apply area filter if selected
-            if (areaValue) {
-                filtered = filtered.filter(v => ((v.propertyInfo && (v.propertyInfo.area || v.propertyInfo.locality) || '')).toString() === areaValue);
-            }
-            
-            // Apply gender filter if selected
-            if (genderValue) {
-                filtered = filtered.filter(v => {
-                    const gender = (v.propertyInfo && v.propertyInfo.gender || '').toString().toLowerCase();
-                    return gender === genderValue.toLowerCase() || gender === 'co-ed' || genderValue.toLowerCase() === 'co-ed';
-                });
-            }
-            
-            // Apply property type filter if selected
+            if (areaValue) filters.area = areaValue;
+            if (genderValue) filters.gender = genderValue;
             if (propertyTypeValue) {
-                filtered = filtered.filter(v => {
-                    const propType = (v.propertyInfo && v.propertyInfo.propertyType || '').toString().toLowerCase();
-                    return propType.includes(propertyTypeValue.toLowerCase());
-                });
+                filters.propertyType = propertyTypeValue;
+                console.log('Filtering by property type:', propertyTypeValue);
             }
-            
-            // Apply occupancy filter if selected
-            if (occupancyValue) {
-                filtered = filtered.filter(v => {
-                    const occupancy = (v.roomInfo && v.roomInfo.occupancy || '').toString().toLowerCase();
-                    return occupancy === occupancyValue.toLowerCase();
-                });
-            }
-            
-            // Apply price range filters if selected
-            if (minPrice) {
-                const minPriceNum = parseInt(minPrice, 10);
-                filtered = filtered.filter(v => {
-                    const rent = parseInt(v.monthlyRent || v.rent || 0, 10);
-                    return rent >= minPriceNum;
-                });
-            }
-            
-            if (maxPrice && maxPrice !== '50000_plus') {
-                const maxPriceNum = parseInt(maxPrice, 10);
-                filtered = filtered.filter(v => {
-                    const rent = parseInt(v.monthlyRent || v.rent || 0, 10);
-                    return rent <= maxPriceNum;
-                });
-            }
+            if (minPrice) filters.minPrice = minPrice;
+            if (maxPrice && maxPrice !== '50000_plus') filters.maxPrice = maxPrice;
+            if (occupancyValue) filters.occupancy = occupancyValue;
 
-            const grid = document.getElementById('propertiesGrid');
-            if (!grid) return;
-            if (!filtered.length) {
-                grid.innerHTML = '<p class="text-gray-500 px-4">No properties found for selected filters.</p>';
-                document.getElementById('showingTotal').innerText = '0';
-                return;
-            }
+            // Fetch from API with filters
+            fetchPropertiesFromAPI(filters).then(visits => {
+                let filtered = visits;
 
-            grid.innerHTML = filtered.map(v => renderPropertyCard(v)).join('');
-            lucide.createIcons();
-            document.getElementById('showingTotal').innerText = filtered.length;
-            document.getElementById('showingFrom').innerText = filtered.length ? '1' : '0';
-            document.getElementById('showingTo').innerText = filtered.length;
+                // Filter to only show properties with professional photos
+                filtered = filtered.filter(v => v.professionalPhotos && v.professionalPhotos.length > 0);
+
+                // Additional client-side filtering if needed
+                if (genderValue) {
+                    filtered = filtered.filter(v => {
+                        const gender = (v.propertyInfo && v.propertyInfo.gender || '').toString().toLowerCase();
+                        return gender === genderValue.toLowerCase() || gender === 'co-ed' || genderValue.toLowerCase() === 'co-ed';
+                    });
+                }
+
+                const grid = document.getElementById('propertiesGrid');
+                if (!grid) return;
+                
+                if (!filtered.length) {
+                    grid.innerHTML = '<p class="text-gray-500 px-4">No properties found for selected filters.</p>';
+                    document.getElementById('showingTotal').innerText = '0';
+                    return;
+                }
+
+                grid.innerHTML = filtered.map(v => renderPropertyCard(v)).join('');
+                lucide.createIcons();
+                document.getElementById('showingTotal').innerText = filtered.length;
+                document.getElementById('showingFrom').innerText = filtered.length ? '1' : '0';
+                document.getElementById('showingTo').innerText = filtered.length;
+            }).catch(err => {
+                console.error('Error loading properties:', err);
+                const grid = document.getElementById('propertiesGrid');
+                if (grid) {
+                    grid.innerHTML = '<p class="text-red-500 px-4">Error loading properties. Please try again.</p>';
+                }
+            });
         }
 
         // Wire up selects to reload list
@@ -913,8 +1012,31 @@
         document.getElementById('desktop-occupancy')?.addEventListener('change', loadWebsiteListing);
         document.getElementById('mobile-occupancy')?.addEventListener('change', loadWebsiteListing);
 
+        // Function to populate cities from MongoDB
+        function populateCities() {
+            fetchPropertiesFromAPI({}).then(properties => {
+                const cities = new Set();
+                properties.forEach(p => {
+                    const city = p.city || p.propertyInfo?.city || '';
+                    if (city) cities.add(city.toLowerCase());
+                });
+                
+                const cityOptions = '<option value="">Select a city</option>' + 
+                    Array.from(cities).sort().map(c => `<option value="${c.toLowerCase()}">${c}</option>`).join('');
+                
+                document.getElementById('desktop-select-city').innerHTML = cityOptions;
+                document.getElementById('mobile-select-city').innerHTML = cityOptions;
+            }).catch(err => {
+                console.error('Error populating cities:', err);
+            });
+        }
+
         // Initialize on load
-        document.addEventListener('DOMContentLoaded', function(){ populateAreaOptionsFromVisits(''); loadWebsiteListing(); });
+        document.addEventListener('DOMContentLoaded', function(){ 
+            populateCities();
+            populateAreaOptionsFromVisits(''); 
+            loadWebsiteListing(); 
+        });
 
         // ======================================================
         // END: Dynamic Live Properties Rendering
@@ -981,27 +1103,29 @@
             if (mobileSelectCity) {
                 mobileSelectCity.addEventListener('change', (e) => {
                     updateAreaDropdown(e.target.value);
-                    filterPropertiesByTypeAndCity(); // Re-filter when city changes
+                    populateAreaOptionsFromVisits(e.target.value);
+                    loadWebsiteListing(); // Reload properties when city changes
                 });
             }
 
             if (desktopSelectCity) {
                 desktopSelectCity.addEventListener('change', (e) => {
                     updateAreaDropdown(e.target.value);
-                    filterPropertiesByTypeAndCity(); // Re-filter when city changes
+                    populateAreaOptionsFromVisits(e.target.value);
+                    loadWebsiteListing(); // Reload properties when city changes
                 });
             }
 
             // Add change event listeners to area dropdowns to trigger re-filtering
             if (mobileSelectArea) {
                 mobileSelectArea.addEventListener('change', () => {
-                    filterPropertiesByTypeAndCity(); // Re-filter when area changes
+                    loadWebsiteListing(); // Reload properties when area changes
                 });
             }
 
             if (desktopSelectArea) {
                 desktopSelectArea.addEventListener('change', () => {
-                    filterPropertiesByTypeAndCity(); // Re-filter when area changes
+                    loadWebsiteListing(); // Reload properties when area changes
                 });
             }
 
@@ -1121,28 +1245,70 @@
         });
 
         // ======================================================
-        // START: Populate City Selects (dynamic from admin locations)
+        // START: Populate City Selects (dynamic from MongoDB and admin locations)
         // ======================================================
         (function(){
-            var s = document.createElement('script');
-            s.src = 'js/locations-sync.js';
-            s.onload = function(){
-                function fillCitySelects(){
-                    try{
-                        var cities = (window.roomhyLocations && typeof window.roomhyLocations.getCities === 'function') ? window.roomhyLocations.getCities() : [];
-                        var desktop = document.getElementById('desktop-select-city');
-                        var mobile = document.getElementById('mobile-select-city');
-                        var opts = '<option value="">Select a city</option>' + (cities.length ? cities.map(function(c){ return '<option value="'+c.name.toLowerCase()+'">'+c.name+'</option>'; }).join('') : '');
+            // First, try to populate from MongoDB approved properties
+            async function populateCitiesFromMongoDB(){
+                try{
+                    const response = await fetch('/api/website-enquiry/all');
+                    if (!response.ok) throw new Error('Failed to fetch');
+                    
+                    const data = await response.json();
+                    let properties = (data.enquiries || []).filter(p => p.status === 'completed');
+                    
+                    // Extract unique cities
+                    const citiesSet = new Set();
+                    properties.forEach(prop => {
+                        if (prop.city) {
+                            citiesSet.add(prop.city);
+                        }
+                    });
+                    
+                    // If we found cities, populate the selects
+                    if (citiesSet.size > 0) {
+                        const cities = Array.from(citiesSet).sort();
+                        const desktop = document.getElementById('desktop-select-city');
+                        const mobile = document.getElementById('mobile-select-city');
+                        const opts = '<option value="">Select a city</option>' + cities.map(c => `<option value="${c.toLowerCase()}">${c}</option>`).join('');
                         if(desktop) desktop.innerHTML = opts;
                         if(mobile) mobile.innerHTML = opts;
-                    }catch(e){/* ignore */}
+                    }
+                } catch(e){
+                    console.log('Could not fetch cities from MongoDB, trying locations-sync.js');
+                    loadCitiesFromLocationsSync();
                 }
-                fillCitySelects();
-                if(window.roomhyLocations && typeof window.roomhyLocations.onChange === 'function'){
-                    window.roomhyLocations.onChange(fillCitySelects);
-                }
-            };
-            document.head.appendChild(s);
+            }
+
+            // Fallback: Load from locations-sync.js if available
+            function loadCitiesFromLocationsSync(){
+                var s = document.createElement('script');
+                s.src = 'js/locations-sync.js';
+                s.onload = function(){
+                    function fillCitySelects(){
+                        try{
+                            var cities = (window.roomhyLocations && typeof window.roomhyLocations.getCities === 'function') ? window.roomhyLocations.getCities() : [];
+                            var desktop = document.getElementById('desktop-select-city');
+                            var mobile = document.getElementById('mobile-select-city');
+                            var opts = '<option value="">Select a city</option>' + (cities.length ? cities.map(function(c){ return '<option value="'+c.name.toLowerCase()+'">'+c.name+'</option>'; }).join('') : '');
+                            if(desktop) desktop.innerHTML = opts;
+                            if(mobile) mobile.innerHTML = opts;
+                        }catch(e){/* ignore */}
+                    }
+                    fillCitySelects();
+                    if(window.roomhyLocations && typeof window.roomhyLocations.onChange === 'function'){
+                        window.roomhyLocations.onChange(fillCitySelects);
+                    }
+                };
+                document.head.appendChild(s);
+            }
+
+            // Load cities from MongoDB on page load
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', populateCitiesFromMongoDB);
+            } else {
+                populateCitiesFromMongoDB();
+            }
         })();
         // ======================================================
         // END: Populate City Selects
@@ -1196,6 +1362,13 @@
         if (mobileApplyFilterBtn && mobileApplyFilterBtn.textContent.includes('Apply Filters')) {
             mobileApplyFilterBtn.addEventListener('click', loadWebsiteListing);
         }
+
+        // Wire up desktop Apply Filters buttons
+        document.querySelectorAll('button').forEach(btn => {
+            if (btn.textContent.includes('Apply Filters')) {
+                btn.addEventListener('click', loadWebsiteListing);
+            }
+        });
         
         // Wire up Clear Filters buttons (desktop and mobile)
         document.querySelectorAll('button').forEach(btn => {

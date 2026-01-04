@@ -7,19 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        // Load Socket.IO client from the backend server (avoid origin mismatch)
-        (function(){
-            const SOCKET_HOST = 'http://localhost:5000';
-            window.__SOCKET_HOST = SOCKET_HOST;
-            const s = document.createElement('script');
-            s.src = SOCKET_HOST + '/socket.io/socket.io.js';
-            s.async = true;
-            s.onload = function(){ console.debug('socket.io client loaded'); };
-            s.onerror = function(){ console.warn('Failed to load socket.io client from', SOCKET_HOST); };
-            document.head.appendChild(s);
-        })();
-    </script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="js/socket-chat.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
         .sidebar { background-color: #111827; }
@@ -33,7 +22,7 @@
 <body class="text-slate-800 h-screen overflow-hidden flex">
 
     <!-- Sidebar -->
-    <aside class="sidebar w-72 flex-shrink-0 hidden md:flex flex-col z-20 overflow-y-auto custom-scrollbar">
+    <aside class="sidebar w-72 flex-shrink-0 flex flex-col z-20 overflow-y-auto custom-scrollbar">
         <div class="h-16 flex items-center px-6 border-b border-gray-800 sticky top-0 bg-[#111827] z-10">
                 <div class="flex items-center gap-3">
                     <div class="bg-purple-600 p-1.5 rounded-lg"><i data-lucide="map" class="w-5 h-5 text-white"></i></div>
@@ -119,25 +108,6 @@
 
     <script>
         lucide.createIcons();
-        // Socket.IO client (wait for script to load then connect to backend)
-        (function initSocket(){
-            if (typeof io === 'undefined') { setTimeout(initSocket, 200); return; }
-            try {
-                const socket = io(window.__SOCKET_HOST || 'http://localhost:5000');
-                socket.emit('join', managerId);
-                socket.on('chat:message', async (msg) => {
-                    try {
-                        if (!msg) return;
-                        if (msg.from === currentChatId || msg.to === currentChatId || msg.from === managerId || msg.to === managerId) {
-                            messagesCache = await getMsgs(managerId, currentChatId || msg.from || msg.to);
-                            await renderMessages();
-                        } else {
-                            await loadOwnerList();
-                        }
-                    } catch (e) { console.warn('socket msg handler error', e && e.message); }
-                });
-            } catch (e) { console.warn('initSocket error', e && e.message); }
-        })();
         
         const user = JSON.parse(sessionStorage.getItem('manager_user') || sessionStorage.getItem('user') || localStorage.getItem('manager_user') || localStorage.getItem('user') || 'null');
         if (!user || user.role !== 'areamanager') {
@@ -154,7 +124,7 @@
 
         async function getMsgs(fromId, toId) {
             try {
-                const resp = await fetch('http://localhost:5000/api/chat/messages?from=' + encodeURIComponent(fromId) + '&to=' + encodeURIComponent(toId) + '&limit=500');
+                const resp = await fetch('http://localhost:5002/api/chat/messages?from=' + encodeURIComponent(fromId) + '&to=' + encodeURIComponent(toId) + '&limit=500');
                 if (!resp.ok) return [];
                 const json = await resp.json();
                 return json.data || [];
@@ -165,6 +135,48 @@
             if (!s) return '';
             return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
+
+        // Initialize Socket.IO for real-time chat (delay to ensure socket-chat.js is loaded)
+        setTimeout(async () => {
+            if (window.ChatSocket && typeof window.ChatSocket.init === 'function') {
+                console.log('AreaChat: Initializing ChatSocket...');
+                window.ChatSocket.init(managerId);
+                console.log('AreaChat: Socket.IO initialized with manager ID:', managerId);
+                
+                // Wait a bit for socket to connect
+                setTimeout(() => {
+                    console.log('AreaChat: Socket connection state:', { 
+                        isConnected: window.ChatSocket.isConnected, 
+                        userId: window.ChatSocket.userId,
+                        currentRoomId: window.ChatSocket.currentRoomId
+                    });
+                }, 500);
+                
+                // ===== RECEIVE MESSAGES =====
+                window.ChatSocket.onMessage((data) => {
+                    console.log('AreaChat: Received message via socket:', data);
+                    
+                    // Always refresh messages - the server already filtered what we should see
+                    if (currentChatId) {
+                        console.log('AreaChat: Refreshing messages for active chat');
+                        renderMessages();
+                        loadOwnerList();
+                    }
+                });
+            } else {
+                console.error('AreaChat: ChatSocket not available for initialization!');
+            }
+        }, 200);
+
+        // Legacy: Listen for incoming messages via custom event (backup)
+        window.addEventListener('chat-message-received', (event) => {
+            const msg = event.detail;
+            console.log('AreaChat: Backup event handler - message received:', msg);
+            if (currentChatId) {
+                renderMessages();
+                loadOwnerList();
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', () => {
             loadOwnerList();
@@ -252,6 +264,14 @@
             document.getElementById('headerAvatar').innerText = name.charAt(0);
             document.getElementById('headerName').innerText = name;
             document.getElementById('headerSub').innerText = `Owner ID: ${id}`;
+            
+            // Join the conversation room with the other user's ID
+            // socket-chat.js will handle creating the consistent room ID
+            if (window.ChatSocket) {
+                window.ChatSocket.joinRoom(id);
+                console.log('AreaChat: Joined conversation with user:', id);
+            }
+            
             messagesCache = await getMsgs(managerId, currentChatId);
             await renderMessages();
 
@@ -340,24 +360,33 @@
         }
 
         async function sendMessage() {
-            if(!currentChatId) return;
+            if (!currentChatId) {
+                console.warn('AreaChat: Cannot send - no active chat');
+                return;
+            }
             const input = document.getElementById('mgrInput');
             const text = input.value.trim();
-            if(!text) return;
+            if (!text) return;
 
-            const payload = { from: managerId, to: currentChatId, message: text, type: 'text' };
+            console.log('AreaChat: Sending message to', currentChatId, ':', text);
+
             try {
-                const resp = await fetch('http://localhost:5000/api/chat/send', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
-                if (resp.ok) {
+                // Use socket-chat.js which handles REST API save + Socket.IO broadcast
+                const success = await window.ChatSocket.sendMessage(text, currentChatId);
+                
+                if (success) {
                     input.value = '';
-                    messagesCache = await getMsgs(managerId, currentChatId);
-                    await renderMessages();
-                    await loadOwnerList();
-                    try { document.getElementById('mgrLastSend').innerText = JSON.stringify(payload); } catch(e){}
+                    console.log('AreaChat: Message sent - server will broadcast via Socket.IO');
+                    document.getElementById('mgrLastSend').innerText = new Date().toLocaleTimeString();
+                    // Socket.IO broadcast will trigger onMessage callback and refresh UI
                 } else {
-                    console.error('sendMessage failed', await resp.text());
+                    console.error('AreaChat: Failed to send message');
+                    alert('Failed to send message');
                 }
-            } catch (e) { console.error('sendMessage error', e && e.message); }
+            } catch (e) { 
+                console.error('AreaChat: sendMessage error', e && e.message);
+                alert('Error sending message: ' + e.message);
+            }
         }
 
         // Test reply helper: call backend to create a message from superadmin to manager
@@ -366,7 +395,7 @@
                 const target = currentChatId || 'superadmin';
                 // if not currently viewing support, target manager as recipient of superadmin reply
                 const to = (target === 'superadmin') ? managerId : managerId;
-                const resp = await fetch('http://localhost:5000/api/chat/test-reply', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ to, message: 'Hello from superadmin (test)' }) });
+                const resp = await fetch('http://localhost:5002/api/chat/test-reply', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ to, message: 'Hello from superadmin (test)' }) });
                 const j = await resp.json();
                 if (resp.ok) {
                     // refresh messages for support thread if open

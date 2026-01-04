@@ -5,20 +5,9 @@
     <title>RoomHy - Tenant Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        (function(){
-            if (!window.__SOCKET_HOST) {
-                const SOCKET_HOST = 'http://localhost:5000';
-                window.__SOCKET_HOST = SOCKET_HOST;
-            }
-            const s = document.createElement('script');
-            s.src = 'https://cdn.socket.io/4.7.5/socket.io.min.js';
-            s.async = true;
-            s.onload = function(){ console.debug('socket.io client loaded'); };
-            s.onerror = function(){ console.warn('Failed to load socket.io client from CDN'); };
-            document.head.appendChild(s);
-        })();
-    </script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="../js/socket-chat.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
@@ -130,24 +119,15 @@
         // 1. Session Init
         const user = JSON.parse(localStorage.getItem('tenant_user') || localStorage.getItem('user') || 'null');
         const myId = user ? user.loginId : 'TNT001';
-        // Socket.IO client (init after socket script loads)
-        (function initSocketTenant(){
-            if (typeof io === 'undefined') { setTimeout(initSocketTenant, 200); return; }
-            try {
-                const socket = io(window.__SOCKET_HOST || 'http://localhost:5002', { transports: ['websocket'] });
-                socket.emit('join', myId);
-                socket.on('chat:message', (msg) => {
-                    if (!msg) return;
-                    if (msg.from === myId || msg.to === myId || msg.from === currentTargetId || msg.to === currentTargetId) {
-                        window.__messagesCache = window.__messagesCache || [];
-                        window.__messagesCache.push(msg);
-                        renderMessages();
-                    }
-                });
-                window._socket = socket;
-            } catch (e) { console.warn('initSocketTenant error', e && e.message); }
-        })();
         
+        // Listen for incoming messages via socket-chat.js
+        window.addEventListener('chat-message-received', (event) => {
+            const msg = event.detail;
+            if (currentTargetId && (msg.from === currentTargetId || msg.to === currentTargetId)) {
+                renderMessages();
+            }
+        });
+
         // Find owner & manager
         const tenants = JSON.parse(localStorage.getItem('roomhy_tenants') || '[]');
         const me = tenants.find(t => t.loginId === myId);
@@ -178,21 +158,25 @@
             // Update Tab UI
             const btnOwner = document.getElementById('mode-owner');
             const btnSupport = document.getElementById('mode-support');
-            
+
             if(mode === 'owner') {
                 btnOwner.className = "px-4 py-1.5 text-xs font-bold rounded-md bg-white text-purple-600 shadow-sm transition";
                 btnSupport.className = "px-4 py-1.5 text-xs font-bold rounded-md text-gray-500 hover:text-gray-700 transition";
-                
+
                 currentTargetId = ownerId;
                 updateHeader('Property Owner', 'O', 'bg-blue-100 text-blue-700');
                 toggleSupportFeatures(false);
             } else {
                 btnSupport.className = "px-4 py-1.5 text-xs font-bold rounded-md bg-white text-purple-600 shadow-sm transition";
                 btnOwner.className = "px-4 py-1.5 text-xs font-bold rounded-md text-gray-500 hover:text-gray-700 transition";
-                
+
                 currentTargetId = managerId;
                 updateHeader('Area Support', 'S', 'bg-green-100 text-green-700');
                 toggleSupportFeatures(true);
+            }
+            // Join the chat room
+            if (window.ChatSocket) {
+                window.ChatSocket.joinRoom(currentTargetId);
             }
             renderMessages();
             // start polling for new messages whenever mode changes

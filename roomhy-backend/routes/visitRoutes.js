@@ -13,4 +13,8 @@ router.get('/', protect, visitController.getMyVisits);
 // Note: We use 'protect' and 'authorize' to ensure only Super Admin can see this
 router.get('/pending', protect, authorize('superadmin'), visitController.getPendingVisits);
 
+// Get Approved Properties for Website (Public - No Auth Required)
+// Used by ourproperty.html to display live properties
+router.get('/public/approved', visitController.getApprovedPropertiesForWebsite);
+
 module.exports = router;

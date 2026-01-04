@@ -110,6 +110,9 @@
                 <a href="areaowner.html" class="sidebar-link">
                     <i data-lucide="briefcase" class="w-5 h-5 mr-3"></i> Owners
                 </a>
+                <a href="booking_request.html" class="sidebar-link">
+                    <i data-lucide="calendar-check" class="w-5 h-5 mr-3"></i> Booking Requests
+                </a>
 
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Operations</div>
                 <a href="areapayment.html" class="sidebar-link">
@@ -535,6 +538,7 @@
         lucide.createIcons();
         let myArea = '';
         let isAreaManager = false;
+        let allComplaints = [];
 
         // Auth Check on page load
         document.addEventListener('DOMContentLoaded', () => {
@@ -545,29 +549,102 @@
             } else if (user && user.role === 'employee' && user.area) {
                 isAreaManager = false;
                 myArea = user.area;
-                // Filter complaint records by area
-                filterComplaintsByArea(myArea);
             }
+            
+            // Load complaints from API
+            loadAllComplaints();
         });
 
-        function filterComplaintsByArea(area) {
-            // Filter complaint table rows by property area
-            const rows = document.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                const propertyCol = row.querySelector('td:nth-child(3)');
-                if (propertyCol) {
-                    const location = propertyCol.textContent.toLowerCase();
-                    const shouldShow = location.includes(area.toLowerCase());
-                    row.style.display = shouldShow ? '' : 'none';
-                }
-            });
+        async function loadAllComplaints() {
+            try {
+                const apiUrl = window.location.hostname === 'localhost' 
+                    ? 'http://localhost:5000' 
+                    : window.location.origin;
 
-            // Show message if no records found
-            const visibleRows = document.querySelectorAll('tbody tr:not([style*="display: none"])');
-            if (visibleRows.length === 0) {
-                const tbody = document.querySelector('tbody');
-                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-gray-500">No complaints found for ${area} area.</td></tr>`;
+                const response = await fetch(`${apiUrl}/api/complaints`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    allComplaints = data.complaints || data || [];
+                    renderComplaintsTable(allComplaints);
+                } else {
+                    console.error('Failed to load complaints:', response.status);
+                }
+            } catch (error) {
+                console.error('Error loading complaints:', error);
             }
+        }
+
+        function renderComplaintsTable(complaints) {
+            const tbody = document.querySelector('tbody');
+            if (!tbody) return;
+
+            // Filter by area if employee
+            let filtered = complaints;
+            if (!isAreaManager && myArea) {
+                filtered = complaints.filter(c => c.area && c.area.toLowerCase().includes(myArea.toLowerCase()));
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-gray-500">No complaints found${!isAreaManager ? ' for ' + myArea + ' area' : ''}.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(c => {
+                const priorityClass = c.priority === 'High' ? 'bg-red-100 text-red-700 border-red-200' : c.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : 'bg-green-100 text-green-700 border-green-200';
+                const statusClass = c.status === 'Open' ? 'bg-gray-100 text-gray-600' : c.status === 'In Progress' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700';
+                const statusIcon = c.status === 'Open' ? 'alert-circle' : c.status === 'In Progress' ? 'loader-2' : 'check-circle';
+                
+                return `
+                    <tr>
+                        <td class="text-center text-gray-500 font-mono text-xs">TK-${c._id?.substring(0, 6).toUpperCase() || 'N/A'}</td>
+                        <td>
+                            <div class="flex items-start gap-2">
+                                <div class="bg-gray-100 p-1.5 rounded text-gray-600 mt-0.5">
+                                    <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-slate-800 text-sm">${c.category || 'Other'}</div>
+                                    <div class="text-xs text-gray-500">${c.description || 'No description'}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="text-sm font-medium">${c.property || 'N/A'}</div>
+                            <div class="text-xs text-gray-500">Room ${c.roomNo || 'N/A'}</div>
+                        </td>
+                        <td>
+                            <div class="text-sm">${c.tenantName || 'N/A'}</div>
+                            <div class="text-[10px] text-gray-400">Tenant</div>
+                        </td>
+                        <td>
+                            <div class="text-sm font-medium">${new Date(c.createdAt).toLocaleDateString()}</div>
+                        </td>
+                        <td class="text-center">
+                            <span class="px-2 py-1 rounded-full text-[10px] font-bold ${priorityClass} border uppercase">${c.priority || 'Low'}</span>
+                        </td>
+                        <td>
+                            <div class="text-xs text-gray-500">${c.assignedTo || 'Unassigned'}</div>
+                        </td>
+                        <td class="text-center">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${statusClass}">
+                                <i data-lucide="${statusIcon}" class="w-3 h-3"></i> ${c.status || 'Open'}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <button class="text-gray-400 hover:text-purple-600"><i data-lucide="more-vertical" class="w-4 h-4"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            lucide.createIcons();
         }
 
         function toggleMobileMenu() {

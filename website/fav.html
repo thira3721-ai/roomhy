@@ -198,6 +198,47 @@
           }
         }
 
+        /* NEW: Custom styling for city filter cards (matching index.html) */
+        .city-filter-container .neon-border {
+            border: 2px solid #000000 !important; /* Strong black border */
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.8), 0 0 20px rgba(59, 130, 246, 0.4); /* Neon blue glow effect */
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+        
+        /* UNIFIED HOVER/ACTIVE/FOCUS STYLES FOR NEON BORDER */
+        .city-filter:hover .neon-border, 
+        .city-filter:active .neon-border,
+        .city-filter:focus .neon-border {
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.9), 0 0 25px rgba(239, 68, 68, 0.5); /* Hover glow to red/pink for contrast */
+        }
+        
+        /* UNIFIED HOVER/ACTIVE/FOCUS STYLES FOR NEON BORDER - APPLYING TRANSFORM TO THE PARENT CONTAINER */
+        .city-filter:hover, 
+        .city-filter:active,
+        .city-filter:focus {
+            transform: translateY(-2px); /* Apply lift effect to the whole container */
+            transition: transform 0.3s ease;
+        }
+        
+        /* === UPDATED CITY IMAGE SLIDE/KEN BURNS EFFECT === */
+        .city-filter .city-image {
+             /* Increased duration for a smoother "slide" feel */
+             transition: transform 0.8s ease-in-out;
+        }
+        /* DESKTOP/FOCUS HOVER EFFECT (This applies the image slide/scale) */
+        .city-filter:hover .city-image,
+        .city-filter:focus .city-image {
+             /* Scale up and translate right/down for a subtle Ken Burns "slide" effect */
+             transform: scale(1.2) translate(5%, 5%); 
+        }
+        /* For touch devices, ensure tapping (active) doesn't keep the animation, only the hover/focus state applies the slide. */
+        .city-filter:active .city-image {
+             /* When active (tapped), reset the slide transformation to avoid keeping the slide */
+             transform: scale(1); /* Ensure it doesn't slide on tap, only on hover/focus */
+             transition-duration: 0.1s; /* Quick reset for active state */
+        }
+        /* ============================================== */
+
       /* ====== Premium Footer Styling ====== */
         .footer {
           font-family: 'Inter', sans-serif;
@@ -387,13 +428,13 @@
                 
                 <div class="flex items-center">
                     <a href="index.html" class="flex-shrink-0">
-                        <img src="logo.svg" alt="Roomhy Logo" class="h-10 w-auto">
+                        <img src="images/logoroomhy.jpg" alt="Roomhy Logo" class="h-20 w-auto">
                     </a>
                 </div>
                 
                 <div class="flex items-center gap-3 sm:gap-6">
                     <nav class="hidden lg:flex items-center space-x-6">
-                        <a href="index.html#why-roomhy" class="text-gray-600 hover:text-blue-600 font-medium transition-colors">About Us</a>
+                        <a href="about.html" class="text-gray-600 hover:text-blue-600 font-medium transition-colors">About Us</a>
                         <a href="contact.html" class="text-gray-600 hover:text-blue-600 font-medium transition-colors">Contact</a>
                     </nav>
 
@@ -444,6 +485,20 @@
             </div>
             </div>
     </section>
+
+    <!-- START: TOP CITIES SECTION (Matching index.html) -->
+    <section id="top-cities-categories" class="container mx-auto px-4 sm:px-6 -mt-8 relative z-10">
+        <div class="bg-white py-4 shadow-lg rounded-2xl city-filter-container overflow-hidden"> 
+            <h2 class="sr-only">Top Cities</h2>
+            
+            <!-- Cities list - dynamically populated by JavaScript -->
+            <div id="cities-category-slider" class="flex gap-4 md:gap-8 pb-2 scroll-smooth px-4 horizontal-slider overflow-x-auto">
+                <!-- Dynamic city cards will be inserted here by JavaScript (rebuildCityList) -->
+            </div>
+        </div>
+    </section>
+    <!-- END: TOP CITIES SECTION -->
+
     <div id="menu-overlay" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
     
     <div id="mobile-menu" class="fixed top-0 right-0 w-80 h-full bg-white z-50 shadow-xl transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
@@ -498,7 +553,7 @@
                 </div>
                 <span>My Stays</span>
             </a>
-            <a href="index.html#why-roomhy" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+            <a href="about.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
                 <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
                     <i data-lucide="info" class="w-5 h-5 text-yellow-600"></i>
                 </div>
@@ -521,71 +576,12 @@
             </a>
         </div>
     </div>
-    <section id="top-cities-categories" class="container mx-auto px-4 sm:px-6 -mt-8 relative z-10">
-        <div class="bg-white py-4 shadow-lg rounded-2xl"> 
-            <h2 class="sr-only">Top Cities</h2>
-            <div id="cities-category-slider" class="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth horizontal-slider px-4">
-                
-                <a href="#" class="city-filter group flex flex-col items-center justify-start text-center flex-shrink-0 w-20 snap-start space-y-2" data-city="Kota">
-                    <div class="w-16 h-16 rounded-full relative overflow-hidden border border-gray-200 shadow-sm">
-                        <img src="images/OIP.webp" alt="Photo of Kota" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110">
-                        <div class="absolute inset-0 z-20 w-full h-full bg-white flex items-center justify-center transition-opacity duration-500 ease-in-out group-hover:opacity-0">
-                            <i data-lucide="university" class="w-8 h-8 text-gray-600"></i>
-                        </div>
-                    </div>
-                    <h3 class="text-sm font-medium text-gray-800 leading-tight">Kota</h3>
-                </a>
 
-                <a href="#" class="city-filter group flex flex-col items-center justify-start text-center flex-shrink-0 w-20 snap-start space-y-2" data-city="Gurugram">
-                     <div class="w-16 h-16 rounded-full relative overflow-hidden border border-gray-200 shadow-sm">
-                        <img src="https://images.unsplash.com/photo-1594923485669-81538c22d7c0?q=80&w=1974&auto:format&fit=crop" alt="Photo of Gurugram" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110">
-                        <div class="absolute inset-0 z-20 w-full h-full bg-white flex items-center justify-center transition-opacity duration-500 ease-in-out group-hover:opacity-0">
-                            <i data-lucide="building-2" class="w-8 h-8 text-gray-600"></i>
-                        </div>
-                    </div>
-                    <h3 class="text-sm font-medium text-gray-800 leading-tight">Gurugram</h3>
-                </a>
-                
-                <a href="#" class="city-filter group flex flex-col items-center justify-start text-center flex-shrink-0 w-20 snap-start space-y-2" data-city="Mumbai">
-                    <div class="w-16 h-16 rounded-full relative overflow-hidden border border-gray-200 shadow-sm">
-                        <img src="https://images.unsplash.com/photo-1566552881560-058921e3c05c?q=80&w=1974&auto:format&fit=crop" alt="Photo of Mumbai" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110">
-                        <div class="absolute inset-0 z-20 w-full h-full bg-white flex items-center justify-center transition-opacity duration-500 ease-in-out group-hover:opacity-0">
-                            <i data-lucide="landmark" class="w-8 h-8 text-gray-600"></i>
-                        </div>
-                    </div>
-                    <h3 class="text-sm font-medium text-gray-800 leading-tight">Mumbai</h3>
-                </a>
-
-                <a href="#" class="city-filter group flex flex-col items-center justify-start text-center flex-shrink-0 w-20 snap-start space-y-2" data-city="Bangalore">
-                    <div class="w-16 h-16 rounded-full relative overflow-hidden border border-gray-200 shadow-sm">
-                        <img src="https://images.unsplash.com/photo-1593717191400-84f38cf9158a?q=80&w=2070&auto:format&fit=crop" alt="Photo of Bangalore" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110">
-                        <div class="absolute inset-0 z-20 w-full h-full bg-white flex items-center justify-center transition-opacity duration-500 ease-in-out group-hover:opacity-0">
-                            <i data-lucide="palace" class="w-8 h-8 text-gray-600"></i>
-                        </div>
-                    </div>
-                    <h3 class="text-sm font-medium text-gray-800 leading-tight">Bangalore</h3>
-                </a>
-
-                <a href="#" class="city-filter group flex flex-col items-center justify-start text-center flex-shrink-0 w-20 snap-start space-y-2" data-city="Delhi">
-                    <div class="w-16 h-16 rounded-full relative overflow-hidden border border-gray-200 shadow-sm">
-                        <img src="https://images.unsplash.com/photo-1588882098240-e14b51c1f2ea?q=80&w=2070&auto:format&fit=crop" alt="Photo of Delhi" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110">
-                        <div class="absolute inset-0 z-20 w-full h-full bg-white flex items-center justify-center transition-opacity duration-500 ease-in-out group-hover:opacity-0">
-                            <i data-lucide="arch" class="w-8 h-8 text-gray-600"></i>
-                        </div>
-                    </div>
-                    <h3 class="text-sm font-medium text-gray-800 leading-tight">Delhi</h3>
-                </a>
-                
-                <a href="#" class="flex flex-col items-center justify-start text-center flex-shrink-0 w-20 snap-start space-y-2">
-                    <div class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center border border-gray-200">
-                        <i data-lucide="arrow-right" class="w-6 h-6 text-gray-700"></i>
-                    </div>
-                    <h3 class="text-sm font-medium text-gray-800 leading-tight">View All</h3>
-                </a>
-
-            </div>
-        </div>
+    <!-- TOP SPACES SECTION (Dynamic) -->
+    <section id="top-spaces-dynamic" class="container mx-auto px-4 sm:px-6 py-8 md:py-12">
+        <div id="dynamic-top-spaces-container"></div>
     </section>
+
     <main class="container mx-auto px-4 sm:px-6 py-8 md:py-12 space-y-16">
 
         <section id="favorites-list">
@@ -738,7 +734,7 @@
     
       <div class="footer-main">
         <div class="footer-logo">
-          <img src="https://roomhy.com/assets/logo.png" alt="Roomhy Logo">
+          <img src="images/logoroomhy.jpg" alt="Roomhy Logo">
           <p>Discover Your Next Home, Together.</p>
         </div>
     
@@ -746,7 +742,7 @@
           <h4>Quick Links</h4>
           <ul>
             <li><a href="contact.html">Contact Us</a></li>
-            <li><a href="index.html#why-roomhy">About Us</a></li>
+            <li><a href="about.html">About Us</a></li>
             <li><a href="index.html">Our Properties</a></li>
           </ul>
         </div>
@@ -781,6 +777,302 @@
     </footer>
     <script>
         lucide.createIcons();
+
+        // Load cities from localStorage and render dynamically
+        function loadDynamicCities() {
+            const citiesData = JSON.parse(localStorage.getItem('roomhy_cities') || '[]');
+            
+            // Extract city names and full objects
+            let cityInfo = citiesData.map(city => {
+                if (typeof city === 'string') {
+                    return { name: city, img: '', icon: 'map-pin' };
+                }
+                if (typeof city === 'object' && city.name) {
+                    return { name: city.name, img: '', icon: 'map-pin' };
+                }
+                return null;
+            }).filter(city => city !== null);
+
+            if (cityInfo.length === 0) {
+                console.log('No cities configured');
+                return;
+            }
+
+            // Rebuild city list using the rebuildCityList function
+            rebuildCityList(cityInfo);
+        }
+
+        // ======================================================
+        // START: `rebuildCityList` FUNCTION (Matching index.html)
+        // ======================================================
+        function rebuildCityList(data) {
+            const slider = document.getElementById('cities-category-slider');
+            if (!slider) return;
+
+            // Ensure data is valid
+            if (!data || !Array.isArray(data) || data.length === 0) {
+                console.warn('No city data provided to rebuildCityList, using defaults');
+                data = [
+                    { name: "Kota", img: "images/OIP.webp", icon: "university" },
+                    { name: "Sikar", img: "https://images.unsplash.com/photo-1549487560-671520624a9e?q=80&w=2070&auto:format&fit=crop", icon: "building-2" },
+                    { name: "Indore", img: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=2070&auto:format&fit=crop", icon: "landmark" }
+                ];
+            }
+
+            // Function to generate a single city card HTML
+            const generateCityCard = (city) => `
+                <a href="#" class="city-filter group flex flex-col items-center justify-start text-center flex-shrink-0 w-28 space-y-2" data-city="${city.name}">
+                    <div class="w-24 h-24 rounded-full relative overflow-hidden neon-border">
+                        <img src="${city.img || ''}" alt="Photo of ${city.name}" class="absolute inset-0 w-full h-full object-cover city-image">
+                        <div class="absolute inset-0 z-10 flex items-center justify-center bg-gray-100 text-3xl font-bold text-gray-700 city-avatar hidden"></div>
+                        <div class="absolute inset-0 z-20 w-full h-full bg-white flex items-center justify-center transition-opacity duration-500 ease-in-out group-hover:opacity-0 group-focus:opacity-0 city-overlay-icon">
+                            <i data-lucide="${city.icon}" class="w-9 h-9 text-gray-600"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-sm font-medium text-gray-800 leading-tight">${city.name}</h3>
+                </a>
+            `;
+
+            // Build the original set of cards (no duplication, static layout)
+            let cardsHTML = '';
+            data.forEach(city => {
+                cardsHTML += generateCityCard(city);
+            });
+
+            slider.innerHTML = cardsHTML;
+
+            // Re-run lucide icons for the new elements
+            lucide.createIcons();
+
+            // Show letter-avatar fallback when image missing or fails to load
+            document.querySelectorAll('.city-filter').forEach(card => {
+                const img = card.querySelector('.city-image');
+                const fallback = card.querySelector('.city-avatar');
+                const overlay = card.querySelector('.city-overlay-icon');
+                const name = (card.dataset.city || '').toString();
+
+                function showFallback(){
+                    if(fallback){ fallback.textContent = name ? name[0].toUpperCase() : '?'; fallback.classList.remove('hidden'); }
+                    if(img) img.classList.add('hidden');
+                    if(overlay) overlay.classList.add('hidden');
+                }
+
+                const src = img && (img.getAttribute('src') || img.src || '');
+                // Treat local placeholder images (e.g., paths under `images/`) as missing so avatar is shown
+                const isLocalPlaceholder = src && src.toString().toLowerCase().includes('images/');
+                if(!img || !src || isLocalPlaceholder){
+                    showFallback();
+                } else {
+                    if(img.complete){
+                        if(img.naturalWidth === 0) showFallback();
+                    } else {
+                        img.addEventListener('error', showFallback);
+                        img.addEventListener('load', () => { if(fallback) fallback.classList.add('hidden'); if(overlay) overlay.classList.remove('hidden'); img.classList.remove('hidden'); });
+                    }
+                }
+            });
+
+            // Re-attach click listeners to the dynamically created elements
+            document.querySelectorAll('.city-filter').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const city = this.dataset.city;
+                    if (city) {
+                        // Navigate to ourproperty.html with city parameter
+                        window.location.href = `ourproperty.html?city=${encodeURIComponent(city)}`;
+                    }
+                });
+            });
+        }
+        // ======================================================
+        // END: `rebuildCityList` FUNCTION
+        // ======================================================
+
+        // START: DYNAMIC TOP SPACES LOADER (FROM LOCALSTORAGE)
+        // ======================================================
+        function loadDynamicTopSpaces() {
+            // Get cities from localStorage (added via location.html)
+            let citiesData = JSON.parse(localStorage.getItem('roomhy_cities') || '[]');
+            
+            // Extract city names - handle both string and object formats
+            let cityNames = citiesData.map(city => {
+                if (typeof city === 'string') return city;
+                if (typeof city === 'object' && city.name) return city.name;
+                return null;
+            }).filter(city => city !== null);
+            
+            // Filter out hardcoded cities (Indore and Kota)
+            const customCities = cityNames.filter(city => 
+                city.toLowerCase() !== 'indore' && city.toLowerCase() !== 'kota'
+            );
+            
+            if (customCities.length === 0) {
+                console.log('No custom cities configured. Top Spaces sections hidden.');
+                return;
+            }
+            
+            // Find the city with the most properties
+            const promises = customCities.map(city => 
+                fetch(`http://localhost:5000/api/website-enquiry/city/${encodeURIComponent(city)}`)
+                    .then(res => res.json())
+                    .then(data => ({
+                        city: city,
+                        count: (data.enquiries || []).length,
+                        enquiries: data.enquiries || []
+                    }))
+                    .catch(err => {
+                        console.error(`Error fetching data for ${city}:`, err);
+                        return {
+                            city: city,
+                            count: 0,
+                            enquiries: []
+                        };
+                    })
+            );
+            
+            Promise.all(promises).then(results => {
+                // Filter out cities with no properties
+                const validResults = results.filter(r => r.count > 0);
+                
+                if (validResults.length === 0) {
+                    console.log('No properties found in any city.');
+                    return;
+                }
+                
+                // Find city with highest property count
+                const topCity = validResults.reduce((max, current) => 
+                    current.count > max.count ? current : max
+                );
+                
+                // Find the container to insert the section
+                const topSpacesContainer = document.getElementById('dynamic-top-spaces-container');
+                if (!topSpacesContainer) {
+                    console.log('Could not find dynamic-top-spaces-container');
+                    return;
+                }
+                
+                const sectionId = `top-spaces-${topCity.city.toLowerCase().replace(/\s+/g, '-')}`;
+                const sliderId = `spaces-slider-${topCity.city.toLowerCase().replace(/\s+/g, '-')}`;
+                
+                // Check if section already exists
+                if (document.getElementById(sectionId)) return;
+                
+                const sectionHTML = `
+                    <section id="${sectionId}" class="light-card rounded-2xl p-6">
+                        <h2 id="${sectionId}-title" class="text-2xl md:text-3xl font-bold mb-6 text-gray-900">Top Spaces in ${topCity.city}</h2>
+                        <div class="relative -m-2">
+                            <button class="spaces-prev-btn hidden absolute -left-2 top-1/2 -translate-y-1/2 z-10 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 text-gray-700 sm:block lg:hidden" data-slider="${sliderId}">
+                                <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                            </button>
+                            <div id="${sliderId}" class="flex gap-6 overflow-x-auto pb-2 pt-2 -mx-4 px-4 snap-x snap-mandatory scroll-smooth horizontal-slider lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:p-0 lg:m-0">
+                                <!-- Dynamic content will be loaded here -->
+                            </div>
+                            <button class="spaces-next-btn hidden absolute -right-2 top-1/2 -translate-y-1/2 z-10 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 text-gray-700 sm:block lg:hidden" data-slider="${sliderId}">
+                                <i data-lucide="chevron-right" class="w-6 h-6"></i>
+                            </button>
+                        </div>
+                    </section>
+                `;
+                
+                // Insert into the container
+                topSpacesContainer.innerHTML = sectionHTML;
+                
+                // Render properties for the top city
+                const slider = document.getElementById(sliderId);
+                if (slider && topCity.enquiries.length > 0) {
+                    const spaces = topCity.enquiries.slice(0, 4).map(enq => ({
+                        img: enq.photos && enq.photos.length > 0 ? enq.photos[0] : 'https://via.placeholder.com/300x200?text=Property',
+                        title: enq.property_name,
+                        location: `${enq.locality || ''}, ${enq.city}`.trim(),
+                        price: enq.rent || 'Contact',
+                        facilities: enq.amenities || [],
+                        id: enq.enquiry_id
+                    }));
+                    renderPropertySlider(spaces, slider);
+                    // Re-run lucide icons for the new HTML
+                    lucide.createIcons();
+                } else {
+                    slider.innerHTML = '<p class="text-gray-500 px-4">No properties available for this city yet.</p>';
+                }
+            });
+        }
+
+        // ======================================================
+        // RENDER PROPERTY SLIDER
+        // ======================================================
+        function renderPropertySlider(spaces, slider) {
+            let html = '';
+            spaces.forEach(space => {
+                let facilitiesHTML = '';
+                if (space.facilities && space.facilities.length > 0) {
+                    const amenitiesList = Array.isArray(space.facilities) ? space.facilities : [];
+                    facilitiesHTML = amenitiesList.slice(0, 3).map(amenity => {
+                        const iconMap = {
+                            'wifi': 'wifi', 'ac': 'wind', 'tv': 'tv', 'laundry': 'shirt',
+                            'parking': 'car', 'food': 'utensils', 'gym': 'dumbbell'
+                        };
+                        const icon = iconMap[amenity.toLowerCase()] || 'star';
+                        return `<i data-lucide="${icon}" class="w-4 h-4"></i>`;
+                    }).join('');
+                }
+
+                let oldPriceHTML = '';
+                if (space.oldPrice) {
+                    oldPriceHTML = `<p class="text-xs text-gray-500 line-through">₹${space.oldPrice}</p>`;
+                }
+
+                const price = typeof space.price === 'number' ? space.price.toLocaleString() : space.price;
+
+                html += `
+                    <div class="group flex-shrink-0 snap-start w-80 lg:w-full">
+                        <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col h-full">
+                            <div class="relative">
+                                <img src="${space.img}" alt="${space.title}" class="w-full h-48 object-cover">
+                                <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-1.5">
+                                    <span class="w-2 h-2 bg-white rounded-full opacity-90"></span>
+                                    <span class="w-2 h-2 bg-white rounded-full opacity-50"></span>
+                                    <span class="w-2 h-2 bg-white rounded-full opacity-50"></span>
+                                    <span class="w-2 h-2 bg-white rounded-full opacity-50"></span>
+                                </div>
+                            </div>
+
+                            <div class="p-4 flex flex-col flex-grow">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="font-bold text-lg text-gray-900">${space.title}</h3>
+                                    <div class="text-right flex-shrink-0 ml-2">
+                                        <p class="font-bold text-blue-600 text-lg">₹${price}</p>
+                                        ${oldPriceHTML}
+                                        <p class="text-xs text-gray-500">onwards</p>
+                                    </div>
+                                </div>
+
+                                <p class="text-gray-600 text-sm mt-1">${space.location}</p>
+
+                                <div class="mt-4 pt-4 border-t border-gray-100">
+                                    <h4 class="text-xs font-semibold text-gray-500 mb-2">Key Facilities</h4>
+                                    <div class="flex items-center space-x-3 text-gray-600">
+                                        ${facilitiesHTML}
+                                    </div>
+                                </div>
+
+                                <a href="property.html?id=${space.id || ''}" class="block w-full text-center bg-blue-600 text-white font-medium py-2.5 px-4 rounded-lg text-sm hover:bg-blue-700 transition-colors mt-4">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            slider.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // Load cities and top spaces on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDynamicCities();
+            loadDynamicTopSpaces();
+        });
         
         /*
         ============================================================
@@ -816,6 +1108,28 @@
             });
         }
         
+        /*
+        ============================================================
+        Top Spaces Slider Navigation
+        ============================================================
+        */
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.spaces-prev-btn') || e.target.closest('.spaces-next-btn')) {
+                const btn = e.target.closest('button');
+                const sliderId = btn.dataset.slider;
+                if (sliderId) {
+                    const slider = document.getElementById(sliderId);
+                    if (slider) {
+                        const isNext = btn.classList.contains('spaces-next-btn');
+                        slider.scrollBy({
+                            left: isNext ? 300 : -300,
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+            }
+        });
+
         /*
         ============================================================
         Hero Slideshow

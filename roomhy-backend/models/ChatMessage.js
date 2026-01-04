@@ -36,6 +36,31 @@ const chatMessageSchema = new mongoose.Schema({
     metadata: {
         type: mongoose.Schema.Types.Mixed,
         default: null
+    },
+    roomId: {
+        type: String,
+        default: null,
+        index: true
+    },
+    chatType: {
+        type: String,
+        enum: ['direct', 'group', 'support', 'inquiry'],
+        default: 'direct'
+    },
+    groupId: {
+        type: String,
+        default: null,
+        index: true
+    },
+    ticketId: {
+        type: String,
+        default: null,
+        index: true
+    },
+    inquiryId: {
+        type: String,
+        default: null,
+        index: true
     }
 }, { timestamps: true });
 

@@ -595,15 +595,15 @@
                 <div class="flex items-center">
                     <a href="#" class="flex-shrink-0">
                         <!-- Assuming logo.svg is available -->
-                        <img src="logo.svg" alt="Roomhy Logo" class="h-10 w-auto">
+                        <img src="images/logoroomhy.jpg" alt="Roomhy Logo" class="h-10 w-25">
                     </a>
                 </div>
                 
                 <div class="flex items-center gap-3 sm:gap-6">
                     <nav class="hidden lg:flex items-center space-x-6">
-                        <a href="#why-roomhy" class="text-gray-600 hover:text-blue-600 font-medium transition-colors">About Us</a>
+                        <a href="about.html" class="text-gray-600 hover:text-blue-600 font-medium transition-colors">About Us</a>
                         <a href="#faq" class="text-gray-600 hover:text-blue-600 font-medium transition-colors">FAQ</a>
-                        <a href="#contact-us" class="text-gray-600 hover:text-blue-600 font-medium transition-colors">Contact</a>
+                        <a href="contact.html" class="text-gray-600 hover:text-blue-600 font-medium transition-colors">Contact</a>
                     </nav>
 
                     <a href="list.html" class="flex-shrink-0 flex items-center space-x-1 bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
@@ -1423,73 +1423,6 @@
             <button id="websiteChatSend" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded">Send</button>
         </div>
     </div>
-            // Website Chat Socket.IO Logic
-            (function(){
-                const SOCKET_HOST = 'http://localhost:5002';
-                const script = document.createElement('script');
-                script.src = 'https://cdn.socket.io/4.7.5/socket.io.min.js';
-                script.onload = function(){
-                    let socket = null;
-                    let user = JSON.parse(localStorage.getItem('website_user') || localStorage.getItem('user') || 'null');
-                    let loginName = user ? (user.firstName || user.loginId || user.id || 'website_guest') : 'website_guest';
-                    let propertyOwnerId = null;
-                    // Try to get property owner from page context if available
-                    if(window.propertyOwnerId) propertyOwnerId = window.propertyOwnerId;
-                    // Fallback: use a demo owner
-                    if(!propertyOwnerId) propertyOwnerId = 'OWNER001';
-
-                    // UI Elements
-                    const chatBtn = document.getElementById('websiteChatBtn');
-                    const chatModal = document.getElementById('websiteChatModal');
-                    const closeBtn = document.getElementById('closeWebsiteChat');
-                    const chatInput = document.getElementById('websiteChatInput');
-                    const chatSend = document.getElementById('websiteChatSend');
-                    const chatMessages = document.getElementById('websiteChatMessages');
-
-                    let messages = [];
-
-                    function renderMessages() {
-                        chatMessages.innerHTML = messages.map(m => `<div class="mb-2"><span class="font-semibold">${m.from === loginName ? 'You' : 'Owner'}:</span> <span>${m.message}</span></div>`).join('');
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
-                    }
-
-                    function openChat() {
-                        chatModal.classList.remove('hidden');
-                        renderMessages();
-                    }
-                    function closeChat() {
-                        chatModal.classList.add('hidden');
-                    }
-
-                    chatBtn.addEventListener('click', openChat);
-                    closeBtn.addEventListener('click', closeChat);
-                    chatSend.addEventListener('click', sendMessage);
-                    chatInput.addEventListener('keypress', function(e){ if(e.key==='Enter') sendMessage(); });
-
-                    function sendMessage() {
-                        const text = chatInput.value.trim();
-                        if(!text) return;
-                        const msg = { from: loginName, to: propertyOwnerId, message: text, type: 'text', timestamp: new Date().toISOString() };
-                        if(socket) socket.emit('chat:message', msg);
-                        messages.push(msg);
-                        renderMessages();
-                        chatInput.value = '';
-                    }
-
-                    // Connect to Socket.IO
-                    socket = io(SOCKET_HOST, { transports: ['websocket'] });
-                    socket.on('connect', function(){
-                        socket.emit('join', loginName);
-                    });
-                    socket.on('chat:message', function(msg){
-                        if((msg.from === propertyOwnerId && msg.to === loginName) || (msg.from === loginName && msg.to === propertyOwnerId)) {
-                            messages.push(msg);
-                            renderMessages();
-                        }
-                    });
-                };
-                document.head.appendChild(script);
-            })();
     
     <!-- START: UPDATED FOOTER -->
     <footer class="footer container mx-auto px-4 sm:px-6 mt-16">
@@ -1558,9 +1491,8 @@
         lucide.createIcons();
         
         // ======================================================
-        // START: JAVASCRIPT CITY DATA (Loads from admin-managed localStorage)
-        // If admin adds cities in superadmin/location.html they are stored
-        // under `roomhy_cities` and will be used here. Falls back to defaults.
+        // START: JAVASCRIPT CITY DATA (Dynamically loads from MongoDB)
+        // Fetches approved properties and extracts unique cities
         // ======================================================
         (function(){
             var defaultCities = [
@@ -1569,12 +1501,62 @@
                 { name: "Indore", img: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=2070&auto:format&fit=crop", icon: "landmark" }
             ];
 
-            // load helper script if available
+            // Initialize with defaults immediately
+            window.cityInfo = defaultCities;
+
+            // Fetch approved properties to get unique cities
+            async function loadCitiesFromProperties() {
+                try {
+                    const response = await fetch('/api/website-enquiry/all');
+                    if (!response.ok) throw new Error('Failed to fetch properties');
+                    
+                    const data = await response.json();
+                    let properties = (data.enquiries || []).filter(p => p.status === 'completed');
+                    
+                    // Extract unique cities from approved properties
+                    const citiesMap = new Map();
+                    properties.forEach(prop => {
+                        const city = prop.city;
+                        if (city && !citiesMap.has(city)) {
+                            // Try to find a matching default city for consistent images/icons
+                            const defaultCity = defaultCities.find(c => c.name.toLowerCase() === city.toLowerCase());
+                            citiesMap.set(city, defaultCity || {
+                                name: city,
+                                img: 'https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?q=80&w=2070&auto:format&fit=crop',
+                                icon: 'map-pin'
+                            });
+                        }
+                    });
+                    
+                    const cities = Array.from(citiesMap.values());
+                    if (cities.length > 0) {
+                        window.cityInfo = cities;
+                        if (typeof rebuildCityList === 'function') {
+                            rebuildCityList(window.cityInfo);
+                        }
+                    }
+                } catch (error) {
+                    console.log('Using default cities:', error.message);
+                    window.cityInfo = defaultCities;
+                }
+            }
+
+            // Load cities on page load
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadCitiesFromProperties);
+            } else {
+                loadCitiesFromProperties();
+            }
+
+            // Also try to load helper script if available
             var s = document.createElement('script');
             s.src = 'js/locations-sync.js';
             s.onload = function(){
                 var cities = (window.roomhyLocations && typeof window.roomhyLocations.getCities === 'function') ? window.roomhyLocations.getCities() : [];
-                window.cityInfo = (cities && cities.length) ? cities : defaultCities;
+                if (cities && cities.length) {
+                    window.cityInfo = cities;
+                    if (typeof rebuildCityList === 'function') rebuildCityList(window.cityInfo);
+                }
                 // subscribe for updates from admin UI
                 if (window.roomhyLocations && typeof window.roomhyLocations.onChange === 'function') {
                     window.roomhyLocations.onChange(function(c){
@@ -1774,6 +1756,16 @@
             const slider = document.getElementById('cities-category-slider');
             if (!slider) return;
 
+            // Ensure data is valid
+            if (!data || !Array.isArray(data) || data.length === 0) {
+                console.warn('No city data provided to rebuildCityList, using defaults');
+                data = [
+                    { name: "Kota", img: "images/OIP.webp", icon: "university" },
+                    { name: "Sikar", img: "https://images.unsplash.com/photo-1549487560-671520624a9e?q=80&w=2070&auto:format&fit=crop", icon: "building-2" },
+                    { name: "Indore", img: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=2070&auto:format&fit=crop", icon: "landmark" }
+                ];
+            }
+
             // Function to generate a single city card HTML
             const generateCityCard = (city) => `
                 <a href="#" class="city-filter group flex flex-col items-center justify-start text-center flex-shrink-0 w-28 space-y-2" data-city="${city.name}">
@@ -1847,6 +1839,24 @@
         }
         // ======================================================
         // END: `rebuildCityList` FUNCTION
+        // ======================================================
+
+        // ======================================================
+        // START: `selectCity` FUNCTION (Filter properties by city on page)
+        // ======================================================
+        function selectCity(city) {
+            const topSpaces = document.getElementById('top-spaces');
+            if (topSpaces) {
+                topSpaces.style.display = 'block';
+                const title = document.getElementById('top-spaces-title');
+                if (title) title.textContent = `Top Spaces in ${city}`;
+                loadPropertiesForCity(city, 'spaces-slider');
+                // Scroll to the section smoothly
+                topSpaces.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+        // ======================================================
+        // END: `selectCity` FUNCTION
         // ======================================================
 
 
@@ -2042,57 +2052,74 @@
                 return;
             }
 
-            const spaces = propertyData["Indore"]; 
-            // Map titles from the propertyData/featured feed to the local property ids
-            // so that "View Details" opens the correct property.html?id=... page.
-            const titleToId = {
-                "Athena House": 1,
-                "The Scholar's Loft": 2,
-                "Campus Corner": 3,
-                "Modern Student Hub": 4,
-                "The Scholar's Den": 5,
-                "Prime Student Living": 6,
-                "Kota Academy Hostel": 7,
-                "Raj Nivas PG": 8,
-                "Sikar Education Hub": 9,
-                // Some feed titles used on index page
-                "The Hive": 2,
-                "Modern Loft": 4
-            };
-            
-            spacesSlider.innerHTML = '';
-            
+            // Fetch trending enquiries from MongoDB API
+            fetch('http://localhost:5000/api/website-enquiry/all')
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to fetch properties');
+                    return response.json();
+                })
+                .then(data => {
+                    const enquiries = data.enquiries || [];
+                    
+                    if (enquiries.length === 0) {
+                        spacesSlider.innerHTML = '<p class="text-gray-500 px-4">No properties available at the moment.</p>';
+                        return;
+                    }
+
+                    // Convert enquiries to property format (just use first 4 for trending)
+                    const properties = enquiries.slice(0, 8).map((enq, idx) => ({
+                        img: enq.photos && enq.photos.length > 0 ? enq.photos[0] : 'https://images.unsplash.com/photo-1567016432779-1fee749a1532?q=80&w=1974&auto=format&fit=crop',
+                        title: enq.property_name,
+                        location: `${enq.locality || ''}, ${enq.city}`.trim(),
+                        price: enq.rent || 'Contact',
+                        facilities: enq.amenities || [],
+                        id: enq.enquiry_id
+                    }));
+
+                    renderTrendingProperties(properties, spacesSlider);
+                })
+                .catch(error => {
+                    console.error('Error fetching trending properties:', error);
+                    // Fallback to hardcoded data
+                    const fallbackSpaces = propertyData["Indore"] || [];
+                    if (fallbackSpaces.length > 0) {
+                        renderTrendingProperties(fallbackSpaces, spacesSlider);
+                    } else {
+                        spacesSlider.innerHTML = '<p class="text-gray-500 px-4">Unable to load properties at the moment.</p>';
+                    }
+                });
+        }
+
+        // ======================================================
+        // RENDER TRENDING PROPERTIES
+        // ======================================================
+        function renderTrendingProperties(spaces, spacesSlider) {
             if (!spaces || spaces.length === 0) {
                 spacesSlider.innerHTML = '<p class="text-gray-500 px-4">No properties found.</p>';
                 return;
             }
-            
+
             let newSlidesHTML = '';
             spaces.forEach(space => {
                 let facilitiesHTML = '';
                 if (space.facilities && space.facilities.length > 0) {
-                    facilitiesHTML = space.facilities.map(icon => 
-                        `<i data-lucide="${icon}" class="w-4 h-4"></i>`
-                    ).join('');
-                }
-                
-                let moreFacilitiesHTML = '';
-                if (space.moreFacilities && space.moreFacilities > 0) {
-                    moreFacilitiesHTML = `<span class_name="text-xs font-bold text-blue-600">+${space.moreFacilities} More</span>`;
+                    const amenitiesList = Array.isArray(space.facilities) ? space.facilities : [];
+                    facilitiesHTML = amenitiesList.slice(0, 3).map(amenity => {
+                        // Map amenity names to lucide icons
+                        const iconMap = {
+                            'wifi': 'wifi', 'ac': 'wind', 'tv': 'tv', 'laundry': 'shirt',
+                            'parking': 'car', 'food': 'utensils', 'gym': 'dumbbell'
+                        };
+                        const icon = iconMap[amenity.toLowerCase()] || 'star';
+                        return `<i data-lucide="${icon}" class="w-4 h-4"></i>`;
+                    }).join('');
                 }
 
-                let oldPriceHTML = '';
-                if (space.oldPrice) {
-                    oldPriceHTML = `<p class="text-xs text-gray-500 line-through">₹${space.oldPrice}</p>`;
-                }
+                const price = typeof space.price === 'number' ? space.price.toLocaleString() : space.price;
                 
-                const priceColor = space.oldPrice ? 'text-green-600' : 'text-gray-900';
-
                 newSlidesHTML += `
-                    <!-- Changed from w-80 lg:w-96 for consistent scrolling width on mobile/desktop -->
-                    <div class="group flex-shrink-0 snap-start w-80 lg:w-96"> 
+                    <div class="group flex-shrink-0 snap-start w-80 lg:w-96">
                         <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col h-full">
-                            
                             <div class="relative">
                                 <img src="${space.img}" alt="${space.title}" class="w-full h-48 object-cover">
                                 <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-1.5">
@@ -2104,14 +2131,13 @@
                             </div>
 
                             <div class="p-4 flex flex-col flex-grow">
-                                
                                 <div class="flex justify-between items-start">
                                     <div>
                                         <h3 class="font-bold text-lg text-gray-900">${space.title}</h3>
                                         <p class="text-gray-600 text-sm mt-1">${space.location}</p>
                                     </div>
                                     <div class="text-right flex-shrink-0 ml-2">
-                                        <p class="font-bold ${priceColor} text-lg">₹${space.price}</p>
+                                        <p class="font-bold text-gray-900 text-lg">₹${price}</p>
                                         <p class="text-xs text-gray-500">onwards</p>
                                     </div>
                                 </div>
@@ -2120,11 +2146,10 @@
                                     <h4 class="text-xs font-semibold text-gray-500 mb-2">Key Facilities</h4>
                                     <div class="flex items-center space-x-3 text-gray-600">
                                         ${facilitiesHTML}
-                                        ${moreFacilitiesHTML}
                                     </div>
                                 </div>
 
-                                <a href="property.html?id=${titleToId[space.title] || 1}" class="block w-full text-center bg-blue-600 text-white font-medium py-2 px-4 rounded-lg text-sm hover:bg-blue-700 transition-colors mt-auto pt-2.5">
+                                <a href="property.html?id=${space.id || ''}" class="block w-full text-center bg-blue-600 text-white font-medium py-2 px-4 rounded-lg text-sm hover:bg-blue-700 transition-colors mt-auto pt-2.5">
                                     View Details
                                 </a>
                             </div>
@@ -2137,7 +2162,241 @@
             lucide.createIcons();
         }
         // ======================================================
-        // END: `updateFeaturedProperties` FUNCTION
+        // END: RENDER TRENDING PROPERTIES
+        // ======================================================
+
+        // ======================================================
+        // START: DYNAMIC TOP SPACES LOADER (FROM LOCALSTORAGE)
+        // ======================================================
+        function loadDynamicTopSpaces() {
+            // Get cities from localStorage (added via location.html)
+            let citiesData = JSON.parse(localStorage.getItem('roomhy_cities') || '[]');
+            
+            // Extract city names - handle both string and object formats
+            let cityNames = citiesData.map(city => {
+                if (typeof city === 'string') return city;
+                if (typeof city === 'object' && city.name) return city.name;
+                return null;
+            }).filter(city => city !== null);
+            
+            // Filter out hardcoded cities (Indore and Kota)
+            const customCities = cityNames.filter(city => 
+                city.toLowerCase() !== 'indore' && city.toLowerCase() !== 'kota'
+            );
+            
+            if (customCities.length === 0) {
+                console.log('No custom cities configured. Top Spaces sections hidden.');
+                return;
+            }
+            
+            // Find the city with the most properties
+            const promises = customCities.map(city => 
+                fetch(`http://localhost:5000/api/website-enquiry/city/${encodeURIComponent(city)}`)
+                    .then(res => res.json())
+                    .then(data => ({
+                        city: city,
+                        count: (data.enquiries || []).length,
+                        enquiries: data.enquiries || []
+                    }))
+                    .catch(err => {
+                        console.error(`Error fetching data for ${city}:`, err);
+                        return {
+                            city: city,
+                            count: 0,
+                            enquiries: []
+                        };
+                    })
+            );
+            
+            Promise.all(promises).then(results => {
+                // Filter out cities with no properties
+                const validResults = results.filter(r => r.count > 0);
+                
+                if (validResults.length === 0) {
+                    console.log('No properties found in any city.');
+                    return;
+                }
+                
+                // Find city with highest property count
+                const topCity = validResults.reduce((max, current) => 
+                    current.count > max.count ? current : max
+                );
+                
+                // Find the container to insert the section
+                const topSpacesKotaSection = document.getElementById('top-spaces-kota');
+                if (!topSpacesKotaSection) {
+                    console.log('Could not find top-spaces-kota container');
+                    return;
+                }
+                
+                const container = topSpacesKotaSection.parentElement;
+                const sectionId = `top-spaces-${topCity.city.toLowerCase().replace(/\s+/g, '-')}`;
+                const sliderId = `spaces-slider-${topCity.city.toLowerCase().replace(/\s+/g, '-')}`;
+                
+                // Check if section already exists
+                if (document.getElementById(sectionId)) return;
+                
+                const sectionHTML = `
+                    <section id="${sectionId}" class="light-card rounded-2xl p-6">
+                        <h2 id="${sectionId}-title" class="text-2xl md:text-3xl font-bold mb-6 text-gray-900">Top Spaces in ${topCity.city}</h2>
+                        <div class="relative -m-2">
+                            <button class="spaces-prev-btn hidden absolute -left-2 top-1/2 -translate-y-1/2 z-10 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 text-gray-700 sm:block lg:hidden" data-slider="${sliderId}">
+                                <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                            </button>
+                            <div id="${sliderId}" class="flex gap-6 overflow-x-auto pb-2 pt-2 -mx-4 px-4 snap-x snap-mandatory scroll-smooth horizontal-slider lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:p-0 lg:m-0">
+                                <!-- Dynamic content will be loaded here -->
+                            </div>
+                            <button class="spaces-next-btn hidden absolute -right-2 top-1/2 -translate-y-1/2 z-10 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 text-gray-700 sm:block lg:hidden" data-slider="${sliderId}">
+                                <i data-lucide="chevron-right" class="w-6 h-6"></i>
+                            </button>
+                        </div>
+                    </section>
+                `;
+                
+                // Insert before the 'why-choose-us' section
+                const whyChooseUs = document.getElementById('why-choose-us');
+                if (whyChooseUs) {
+                    whyChooseUs.insertAdjacentHTML('beforebegin', sectionHTML);
+                } else {
+                    container.appendChild(new DOMParser().parseFromString(sectionHTML, 'text/html').body.firstChild);
+                }
+                
+                // Render properties for the top city
+                const slider = document.getElementById(sliderId);
+                if (slider && topCity.enquiries.length > 0) {
+                    const spaces = topCity.enquiries.slice(0, 4).map(enq => ({
+                        img: enq.photos && enq.photos.length > 0 ? enq.photos[0] : 'https://images.unsplash.com/photo-1567016432779-1fee749a1532?q=80&w=1974&auto=format&fit=crop',
+                        title: enq.property_name,
+                        location: `${enq.locality || ''}, ${enq.city}`.trim(),
+                        price: enq.rent || 'Contact',
+                        facilities: enq.amenities || [],
+                        id: enq.enquiry_id
+                    }));
+                    renderPropertySlider(spaces, slider);
+                    // Re-run lucide icons for the new HTML
+                    lucide.createIcons();
+                } else {
+                    slider.innerHTML = '<p class="text-gray-500 px-4">No properties available for this city yet.</p>';
+                }
+            });
+        }
+        
+        // ======================================================
+        // LOAD PROPERTIES FOR A SPECIFIC CITY
+        // ======================================================
+        function loadPropertiesForCity(city, sliderId) {
+            const slider = document.getElementById(sliderId);
+            
+            if (!slider) return;
+            
+            // Fetch properties from MongoDB API for this specific city
+            fetch(`http://localhost:5000/api/website-enquiry/city/${encodeURIComponent(city)}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to fetch properties');
+                    return response.json();
+                })
+                .then(data => {
+                    const enquiries = data.enquiries || [];
+                    
+                    if (enquiries.length === 0) {
+                        slider.innerHTML = '<p class="text-gray-500 px-4">No properties available for this city yet.</p>';
+                        return;
+                    }
+                    
+                    // Convert enquiries to property format
+                    const spaces = enquiries.slice(0, 4).map(enq => ({
+                        img: enq.photos && enq.photos.length > 0 ? enq.photos[0] : 'https://images.unsplash.com/photo-1567016432779-1fee749a1532?q=80&w=1974&auto=format&fit=crop',
+                        title: enq.property_name,
+                        location: `${enq.locality || ''}, ${enq.city}`.trim(),
+                        price: enq.rent || 'Contact',
+                        facilities: enq.amenities || [],
+                        id: enq.enquiry_id
+                    }));
+                    
+                    renderPropertySlider(spaces, slider);
+                })
+                .catch(error => {
+                    console.error(`Error fetching properties for ${city}:`, error);
+                    // Try fallback to propertyData
+                    const spaces = propertyData[city];
+                    if (spaces && spaces.length > 0) {
+                        renderPropertySlider(spaces, slider);
+                    } else {
+                        slider.innerHTML = '<p class="text-gray-500 px-4">No properties available for this city yet.</p>';
+                    }
+                });
+        }
+        
+        // ======================================================
+        // RENDER PROPERTY SLIDER
+        // ======================================================
+        function renderPropertySlider(spaces, slider) {
+            let html = '';
+            spaces.forEach(space => {
+                let facilitiesHTML = '';
+                if (space.facilities && space.facilities.length > 0) {
+                    facilitiesHTML = space.facilities.map(icon => 
+                        `<i data-lucide="${icon}" class="w-4 h-4"></i>`
+                    ).join('');
+                }
+                
+                let moreFacilitiesHTML = '';
+                if (space.moreFacilities && space.moreFacilities > 0) {
+                    moreFacilitiesHTML = `<span class="text-xs font-bold text-blue-600 bg-blue-100 py-0.5 px-1.5 rounded">+${space.moreFacilities}</span>`;
+                }
+
+                let oldPriceHTML = '';
+                if (space.oldPrice) {
+                    oldPriceHTML = `<p class="text-xs text-gray-500 line-through">₹${space.oldPrice}</p>`;
+                }
+
+                html += `
+                    <div class="group flex-shrink-0 snap-start w-80 lg:w-full">
+                        <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col h-full">
+                            <div class="relative">
+                                <img src="${space.img}" alt="${space.title}" class="w-full h-48 object-cover">
+                                <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-1.5">
+                                    <span class="w-2 h-2 bg-white rounded-full opacity-90"></span>
+                                    <span class="w-2 h-2 bg-white rounded-full opacity-50"></span>
+                                    <span class="w-2 h-2 bg-white rounded-full opacity-50"></span>
+                                    <span class="w-2 h-2 bg-white rounded-full opacity-50"></span>
+                                </div>
+                            </div>
+
+                            <div class="p-4 flex flex-col flex-grow">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="font-bold text-lg text-gray-900">${space.title}</h3>
+                                    <div class="text-right flex-shrink-0 ml-2">
+                                        <p class="font-bold text-blue-600 text-lg">₹${space.price}</p>
+                                        ${oldPriceHTML}
+                                        <p class="text-xs text-gray-500">onwards</p>
+                                    </div>
+                                </div>
+
+                                <p class="text-gray-600 text-sm mt-1">${space.location}</p>
+
+                                <div class="mt-4 pt-4 border-t border-gray-100">
+                                    <h4 class="text-xs font-semibold text-gray-500 mb-2">Key Facilities</h4>
+                                    <div class="flex items-center space-x-3 text-gray-600">
+                                        ${facilitiesHTML}
+                                        ${moreFacilitiesHTML}
+                                    </div>
+                                </div>
+
+                                <a href="#" class="block w-full text-center bg-blue-600 text-white font-medium py-2.5 px-4 rounded-lg text-sm hover:bg-blue-700 transition-colors mt-4">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            slider.innerHTML = html;
+            lucide.createIcons();
+        }
+        // ======================================================
+        // END: `renderTrendingProperties` FUNCTION
         // ======================================================
 
         // ======================================================
@@ -2311,8 +2570,16 @@
             // Build the city list with hover effects
             rebuildCityList(window.cityInfo);
 
-            updateTopSpaces('Indore');
-            updateTopSpacesKota('Kota');
+            // Hide hardcoded Indore and Kota sections
+            const topSpacesIndore = document.getElementById('top-spaces');
+            const topSpacesKota = document.getElementById('top-spaces-kota');
+            if (topSpacesIndore) topSpacesIndore.style.display = 'none';
+            if (topSpacesKota) topSpacesKota.style.display = 'none';
+
+            // Load dynamic Top Spaces sections for each city from localStorage
+            loadDynamicTopSpaces();
+
+            // Load featured/trending properties from MongoDB
             updateFeaturedProperties();
 
             // Build testimonial rows
@@ -2332,12 +2599,32 @@
         // END: HOW IT WORKS SCROLL ANIMATION LOGIC
         // ======================================================
 
+        // ======================================================
+        // DYNAMIC SLIDER NAVIGATION (Top Spaces & Featured)
+        // ======================================================
+        document.addEventListener('click', (e) => {
+            // Handle slider navigation buttons
+            const prevBtn = e.target.closest('.spaces-prev-btn, .offer-prev, #offer-prev, #featured-prev');
+            const nextBtn = e.target.closest('.spaces-next-btn, .offer-next, #offer-next, #featured-next');
+            
+            if (prevBtn) {
+                const sliderId = prevBtn.dataset.slider || prevBtn.closest('.relative')?.querySelector('[class*="slider"]')?.id;
+                const slider = document.getElementById(sliderId);
+                if (slider) {
+                    slider.scrollBy({ left: -300, behavior: 'smooth' });
+                }
+            }
+            
+            if (nextBtn) {
+                const sliderId = nextBtn.dataset.slider || nextBtn.closest('.relative')?.querySelector('[class*="slider"]')?.id;
+                const slider = document.getElementById(sliderId);
+                if (slider) {
+                    slider.scrollBy({ left: 300, behavior: 'smooth' });
+                }
+            }
+        });
 
-        /*
-        ============================================================
-        JavaScript for Mobile Side Menu
-        ============================================================
-        */
+        // ======================================================
         const menuToggle = document.getElementById('menu-toggle');
         const menuClose = document.getElementById('menu-close');
         const mobileMenu = document.getElementById('mobile-menu');

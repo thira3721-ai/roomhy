@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoomHy - Chat Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="js/socket-chat.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f3f4f6; }
+        .container { max-width: 800px; margin: 40px auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .section { margin-bottom: 30px; }
+        h1 { color: #333; margin-bottom: 20px; }
+        h2 { color: #666; font-size: 18px; margin: 15px 0 10px 0; }
+        button { background-color: #9333ea; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; margin: 5px 0; }
+        button:hover { background-color: #7e22ce; }
+        input { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        .output { background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px; padding: 10px; margin-top: 10px; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; }
+        .success { color: #059669; }
+        .error { color: #dc2626; }
+        .info { color: #2563eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Socket.IO Chat Test</h1>
+        
+        <div class="section">
+            <h2>1. Login Simulation</h2>
+            <input type="text" id="userId" placeholder="Enter User ID (e.g., SUPERADMIN001)" value="SUPERADMIN001">
+            <button onclick="simulateLogin()">Simulate Login</button>
+            <div class="output" id="loginOutput"></div>
+        </div>
+
+        <div class="section">
+            <h2>2. Socket Status</h2>
+            <button onclick="checkSocketStatus()">Check Socket Status</button>
+            <div class="output" id="statusOutput"></div>
+        </div>
+
+        <div class="section">
+            <h2>3. Join Room</h2>
+            <input type="text" id="otherUserId" placeholder="Other User ID (e.g., OTHERUSER)" value="OTHERUSER">
+            <button onclick="joinRoom()">Join Room</button>
+            <div class="output" id="roomOutput"></div>
+        </div>
+
+        <div class="section">
+            <h2>4. Send Message</h2>
+            <input type="text" id="messageText" placeholder="Enter message" value="Test message">
+            <button onclick="sendMessage()">Send Message</button>
+            <div class="output" id="messageOutput"></div>
+        </div>
+
+        <div class="section">
+            <h2>5. Received Messages</h2>
+            <button onclick="clearMessages()">Clear Messages</button>
+            <div class="output" id="receivedOutput">No messages yet...</div>
+        </div>
+    </div>
+
+    <script>
+        const log = (elementId, message, type = 'info') => {
+            const el = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            el.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            el.scrollTop = el.scrollHeight;
+        };
+
+        const simulateLogin = () => {
+            const userId = document.getElementById('userId').value;
+            if (!userId) {
+                log('loginOutput', 'Please enter a user ID', 'error');
+                return;
+            }
+            
+            // Store in session storage
+            sessionStorage.setItem('superadmin_user', JSON.stringify({ loginId: userId }));
+            log('loginOutput', `Stored user ID: ${userId}`, 'success');
+            
+            // Initialize socket
+            if (window.ChatSocket) {
+                log('loginOutput', 'Initializing Socket.IO...', 'info');
+                window.ChatSocket.init(userId);
+            }
+        };
+
+        const checkSocketStatus = () => {
+            if (!window.ChatSocket) {
+                log('statusOutput', 'ChatSocket not initialized', 'error');
+                return;
+            }
+            const status = window.ChatSocket.getStatus();
+            log('statusOutput', `Connected: ${status.connected}`, status.connected ? 'success' : 'error');
+            log('statusOutput', `User ID: ${status.userId}`, 'info');
+            log('statusOutput', `Room: ${status.roomId || 'Not in a room'}`, 'info');
+        };
+
+        const joinRoom = () => {
+            const otherUserId = document.getElementById('otherUserId').value;
+            if (!otherUserId) {
+                log('roomOutput', 'Please enter other user ID', 'error');
+                return;
+            }
+            
+            if (window.ChatSocket) {
+                log('roomOutput', `Attempting to join room with ${otherUserId}...`, 'info');
+                window.ChatSocket.joinRoom(otherUserId);
+                setTimeout(() => checkSocketStatus(), 1000);
+            }
+        };
+
+        const sendMessage = () => {
+            const message = document.getElementById('messageText').value;
+            if (!message) {
+                log('messageOutput', 'Please enter a message', 'error');
+                return;
+            }
+            
+            if (window.ChatSocket) {
+                const otherUserId = document.getElementById('otherUserId').value;
+                log('messageOutput', `Sending: "${message}" to ${otherUserId}...`, 'info');
+                const result = window.ChatSocket.sendMessage(message, otherUserId);
+                if (result) {
+                    log('messageOutput', 'Message sent successfully', 'success');
+                } else {
+                    log('messageOutput', 'Failed to send message', 'error');
+                }
+            }
+        };
+
+        const clearMessages = () => {
+            document.getElementById('receivedOutput').innerHTML = 'No messages yet...';
+        };
+
+        // Listen for incoming messages
+        window.addEventListener('chat-message-received', (event) => {
+            const msg = event.detail;
+            const timestamp = new Date().toLocaleTimeString();
+            log('receivedOutput', `From ${msg.from}: ${msg.message}`, 'success');
+        });
+
+        // Log socket initialization on page load
+        window.addEventListener('load', () => {
+            log('loginOutput', 'Page loaded. Ready to test Socket.IO', 'info');
+        });
+    </script>
+</body>
+</html>

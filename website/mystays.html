@@ -387,13 +387,13 @@
                 
                 <div class="flex items-center">
                     <a href="index.html" class="flex-shrink-0">
-                        <img src="logo.svg" alt="Roomhy Logo" class="h-10 w-auto">
+                        <img src="images/logoroomhy.jpg" alt="Roomhy Logo" class="h-20 w-auto">
                     </a>
                 </div>
                 
                 <div class="flex items-center gap-3 sm:gap-6">
                     <nav class="hidden lg:flex items-center space-x-6">
-                        <a href="index.html#why-roomhy" class="text-gray-600 hover:text-blue-600 font-medium transition-colors">About Us</a>
+                        <a href="about.html" class="text-gray-600 hover:text-blue-600 font-medium transition-colors">About Us</a>
                         <a href="contact.html" class="text-gray-600 hover:text-blue-600 font-medium transition-colors">Contact</a>
                     </nav>
 
@@ -486,7 +486,7 @@
                 </div>
                 <span>Favorites</span>
             </a>
-            <a href="contact.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+            <a href="chathome.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
                  <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                     <i data-lucide="message-square" class="w-5 h-5 text-green-600"></i>
                 </div>
@@ -498,7 +498,7 @@
                 </div>
                 <span>My Stays</span>
             </a>
-            <a href="index.html#why-roomhy" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+            <a href="about.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
                 <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
                     <i data-lucide="info" class="w-5 h-5 text-yellow-600"></i>
                 </div>
@@ -721,7 +721,7 @@
     
       <div class="footer-main">
         <div class="footer-logo">
-          <img src="https://roomhy.com/assets/logo.png" alt="Roomhy Logo">
+          <img src="images/logoroomhy.jpg" alt="Roomhy Logo">
           <p>Discover Your Next Home, Together.</p>
         </div>
     
@@ -729,7 +729,7 @@
           <h4>Quick Links</h4>
           <ul>
             <li><a href="contact.html">Contact Us</a></li>
-            <li><a href="index.html#why-roomhy">About Us</a></li>
+            <li><a href="about.html">About Us</a></li>
             <li><a href="index.html">Our Properties</a></li>
           </ul>
         </div>
@@ -764,6 +764,52 @@
     </footer>
     <script>
         lucide.createIcons();
+
+        // Load cities from localStorage and render dynamically
+        function loadDynamicCities() {
+            const citiesData = JSON.parse(localStorage.getItem('roomhy_cities') || '[]');
+            
+            // Extract city names - handle both string and object formats
+            const cityNames = citiesData.map(city => {
+                if (typeof city === 'string') return city;
+                if (typeof city === 'object' && city.name) return city.name;
+                return null;
+            }).filter(city => city !== null);
+
+            if (cityNames.length === 0) {
+                console.log('No cities configured');
+                return;
+            }
+
+            // Find the cities container
+            const citiesContainer = document.querySelector('.flex.gap-4.overflow-x-auto');
+            if (!citiesContainer) return;
+
+            // Clear existing city filters (except the View All button)
+            const cityFilters = citiesContainer.querySelectorAll('.city-filter');
+            cityFilters.forEach(filter => filter.remove());
+
+            // Add dynamic cities
+            const viewAllBtn = citiesContainer.querySelector('a:last-child');
+            cityNames.slice(0, 4).forEach(city => {
+                const cityElement = document.createElement('a');
+                cityElement.href = '#';
+                cityElement.className = 'city-filter group flex flex-col items-center justify-start text-center flex-shrink-0 w-20 snap-start space-y-2';
+                cityElement.dataset.city = city;
+                cityElement.innerHTML = `
+                    <div class="w-16 h-16 rounded-full relative overflow-hidden border border-gray-200 shadow-sm bg-gray-100 flex items-center justify-center">
+                        <i data-lucide="map-pin" class="w-8 h-8 text-gray-600"></i>
+                    </div>
+                    <h3 class="text-sm font-medium text-gray-800 leading-tight">${city}</h3>
+                `;
+                citiesContainer.insertBefore(cityElement, viewAllBtn);
+            });
+
+            lucide.createIcons();
+        }
+
+        // Load cities on page load
+        document.addEventListener('DOMContentLoaded', loadDynamicCities);
         
         /*
         ============================================================

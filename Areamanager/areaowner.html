@@ -54,6 +54,7 @@
                 <a href="areatenant.html" class="sidebar-link"><i data-lucide="users" class="w-5 h-5 mr-3"></i> Tenants</a>
                 <!-- Active Page -->
                 <a href="areaowner.html" class="sidebar-link active"><i data-lucide="briefcase" class="w-5 h-5 mr-3"></i> Owners</a>
+                <a href="booking_request.html" class="sidebar-link"><i data-lucide="calendar-check" class="w-5 h-5 mr-3"></i> Booking Requests</a>
 
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Operations</div>
                 <a href="areapayment.html" class="sidebar-link"><i data-lucide="wallet" class="w-5 h-5 mr-3"></i> Payments</a>
@@ -199,28 +200,54 @@
 
         function loadAreaOwners() {
             const tbody = document.getElementById('areaOwnersTableBody');
-            tbody.innerHTML = '';
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-8 text-gray-500">Loading area owners...</td></tr>';
 
             (async () => {
                 try {
                     let owners = [];
-                    if (myAreaCode) {
-                        // Only fetch verified owners for the area manager
-                        const res = await fetch(`/api/owners?locationCode=${encodeURIComponent(myAreaCode)}&kycStatus=verified`);
-                        if (res.ok) owners = await res.json();
+                    let apiError = null;
+
+                    // Try to fetch from API
+                    try {
+                        if (myAreaCode) {
+                            // Fetch owners for specific area, including all KYC statuses for area managers
+                            const url = `/api/owners?locationCode=${encodeURIComponent(myAreaCode)}`;
+                            console.log('Fetching owners from API:', url);
+                            const res = await fetch(url);
+                            
+                            if (res.ok) {
+                                const data = await res.json();
+                                owners = data.owners || data || [];
+                                console.log('API Response:', owners);
+                            } else {
+                                apiError = `API returned status ${res.status}`;
+                                console.warn('API Error:', apiError);
+                            }
+                        }
+                    } catch (apiErr) {
+                        apiError = apiErr.message;
+                        console.warn('API fetch failed:', apiError);
                     }
 
                     // Fallback to localStorage if backend not available or returned empty
-                    if (!owners || owners.length === 0) {
+                    if ((!owners || owners.length === 0) && apiError) {
+                        console.log('Using localStorage fallback...');
                         const db = JSON.parse(localStorage.getItem('roomhy_owners_db') || '{}');
                         owners = Object.keys(db).map(id => ({ loginId: id, ...db[id] }));
-                        if (!isAreaManager && myArea) owners = owners.filter(o => (o.ownerArea === myArea) || (o.area === myArea));
-                        if (myAreaCode) owners = owners.filter(o => (o.loginId && o.loginId.startsWith(myAreaCode)) || (o.locationCode && o.locationCode.startsWith(myAreaCode)));
+                        
+                        // Filter by area
+                        if (!isAreaManager && myArea) {
+                            owners = owners.filter(o => (o.ownerArea === myArea) || (o.area === myArea));
+                        }
+                        if (myAreaCode) {
+                            owners = owners.filter(o => (o.loginId && o.loginId.startsWith(myAreaCode)) || (o.locationCode && o.locationCode === myAreaCode));
+                        }
                     }
 
-                            if (owners.length === 0) {
-                                const msg = myArea ? `No owners found for ${myArea} area.` : (myAreaCode ? `No owners found for ${myAreaCode} area.` : 'No owners found.');
-                                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-gray-500">${msg}</td></tr>`;
+                    // Display empty message if no owners found
+                    if (!owners || owners.length === 0) {
+                        const msg = myArea ? `No owners found for ${myArea} area.` : (myAreaCode ? `No owners found for area code ${myAreaCode}.` : 'No owners found.');
+                        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-gray-500">${msg}</td></tr>`;
                         return;
                     }
 
@@ -233,16 +260,20 @@
                         const kyc = data.kyc || {};
                         const creds = data.credentials || {};
 
+                        // Get fields from profile first, then fallback to top-level
+                        const ownerName = profile.name || data.name || 'Unknown';
+                        const ownerPhone = profile.phone || data.phone || '-';
+                        const ownerAddress = profile.address || data.address || '-';
+                        const areaCode = data.locationCode || profile.locationCode || data.area || myAreaCode || '';
+
                         const passwordDisplay = (isAreaManager || canViewAllDetails) ? (creds.password || '-') : '●●●●●●●●';
                         const aadharDisplay = (isAreaManager || canViewAllDetails) ? (kyc.aadharNumber || '-') : '●●●●●●●●';
 
-                        const areaCode = data.locationCode || data.profile?.locationCode || data.area || myAreaCode || '';
-
                         currentOwnersData.push({
                             "Owner ID": id,
-                            "Name": profile.name || 'Unknown',
-                            "Phone": profile.phone || '-',
-                            "Address": profile.address || '-',
+                            "Name": ownerName,
+                            "Phone": ownerPhone,
+                            "Address": ownerAddress,
                             "Area": areaCode,
                             "Password": passwordDisplay,
                             "Aadhar": aadharDisplay,
@@ -251,6 +282,7 @@
 
                         let kycStatus = `<span class="text-yellow-600 font-bold text-xs">Pending</span>`;
                         if (kyc.status === 'verified') kycStatus = `<span class="text-green-600 font-bold text-xs">Verified</span>`;
+                        else if (kyc.status === 'rejected') kycStatus = `<span class="text-red-600 font-bold text-xs">Rejected</span>`;
 
                         let viewBtn = `<span class="text-gray-300 text-xs">-</span>`;
                         if (kyc.documentImage && (isAreaManager || canViewAllDetails)) {
@@ -260,8 +292,8 @@
                         tbody.innerHTML += `
                             <tr class="hover:bg-gray-50 border-b border-gray-100" id="row-${id}">
                                 <td class="font-mono font-bold text-slate-700">${id}</td>
-                                <td class="font-medium text-slate-800">${profile.name || 'Unknown'}<br><span class="text-xs text-gray-500">${profile.phone || '-'}</span></td>
-                                <td class="text-sm text-gray-600 max-w-xs truncate" title="${profile.address || '-'}">${profile.address || '-'}</td>
+                                <td class="font-medium text-slate-800">${ownerName}<br><span class="text-xs text-gray-500">${ownerPhone}</span></td>
+                                <td class="text-sm text-gray-600 max-w-xs truncate" title="${ownerAddress}">${ownerAddress}</td>
                                 <td class="text-sm text-gray-700 font-mono">${areaCode}</td>
                                 <td><code class="text-xs font-mono bg-red-50 text-red-600 px-2 py-1 rounded border border-red-100">${passwordDisplay}</code></td>
                                 <td class="font-mono text-sm text-gray-700">${aadharDisplay}</td>
@@ -276,10 +308,11 @@
                         `;
                     });
 
+                    console.log('Loaded', owners.length, 'owners for area', myAreaCode || myArea);
                     lucide.createIcons();
                 } catch (err) {
-                    console.warn('Failed to load area owners', err);
-                    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-500">Error loading owners</td></tr>`;
+                    console.error('Failed to load area owners', err);
+                    tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-gray-500">Error loading owners: ${err.message}</td></tr>`;
                 }
             })();
         }

@@ -3,14 +3,643 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roomhy - Chats</title>
+    <title>RoomHy - Chat Admin Monitoring</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        body {
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body class="bg-gray-50 font-sans">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-80 bg-gray-900 text-white flex flex-col hidden lg:flex border-r border-gray-800">
+            <div class="p-6 border-b border-gray-700">
+                <h1 class="text-2xl font-bold">RoomHy Admin</h1>
+                <p class="text-sm text-gray-400">Chat Monitoring</p>
+            </div>
+
+            <!-- Dashboard Stats -->
+            <div class="p-4 space-y-3 border-b border-gray-700">
+                <div class="bg-blue-900/30 border border-blue-700 rounded-lg p-3">
+                    <p class="text-xs text-blue-300">Total Chats</p>
+                    <p class="text-2xl font-bold text-blue-400" id="totalChats">0</p>
+                </div>
+                <div class="bg-green-900/30 border border-green-700 rounded-lg p-3">
+                    <p class="text-xs text-green-300">Active Now</p>
+                    <p class="text-2xl font-bold text-green-400" id="activeNow">0</p>
+                </div>
+                <div class="bg-purple-900/30 border border-purple-700 rounded-lg p-3">
+                    <p class="text-xs text-purple-300">Total Messages</p>
+                    <p class="text-2xl font-bold text-purple-400" id="totalMessages">0</p>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="p-4 space-y-3 border-b border-gray-700">
+                <h3 class="text-xs font-semibold text-gray-400 uppercase">Filters</h3>
+                
+                <div>
+                    <label class="text-xs text-gray-400 mb-2 block">Chat Type</label>
+                    <select id="chatTypeFilter" class="w-full bg-gray-800 border border-gray-700 text-white rounded px-2 py-2 text-xs">
+                        <option value="">All Types</option>
+                        <option value="tenant_manager_booking">Tenant ↔ Manager (Booking)</option>
+                        <option value="manager_owner_helpdesk">Manager ↔ Owner (Help Desk)</option>
+                        <option value="tenant_owner_support">Tenant ↔ Owner (Support)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-xs text-gray-400 mb-2 block">Property</label>
+                    <input type="text" id="propertyFilter" placeholder="Search property..." class="w-full bg-gray-800 border border-gray-700 text-white rounded px-2 py-2 text-xs">
+                </div>
+
+                <div>
+                    <label class="text-xs text-gray-400 mb-2 block">Area</label>
+                    <input type="text" id="areaFilter" placeholder="Search area..." class="w-full bg-gray-800 border border-gray-700 text-white rounded px-2 py-2 text-xs">
+                </div>
+
+                <div>
+                    <label class="text-xs text-gray-400 mb-2 block">User/Participant</label>
+                    <input type="text" id="userFilter" placeholder="Search user..." class="w-full bg-gray-800 border border-gray-700 text-white rounded px-2 py-2 text-xs">
+                </div>
+
+                <button id="applyFiltersBtn" class="w-full bg-blue-600 text-white px-3 py-2 rounded text-xs font-semibold hover:bg-blue-700">
+                    Apply Filters
+                </button>
+                <button id="clearFiltersBtn" class="w-full bg-gray-800 text-gray-300 px-3 py-2 rounded text-xs font-semibold hover:bg-gray-700 border border-gray-700">
+                    Clear All
+                </button>
+            </div>
+
+            <!-- Chat List -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-2">
+                <h3 class="text-xs font-semibold text-gray-400 uppercase sticky top-0 bg-gray-900 py-2">Chats</h3>
+                <div id="chatsList" class="space-y-2">
+                    <!-- Chats loaded here -->
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-gray-700">
+                <a href="admin.html" class="block px-4 py-2 bg-gray-800 text-gray-300 rounded hover:bg-gray-700 text-xs font-semibold text-center">
+                    ← Back to Admin
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Header -->
+            <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900">Chat Monitoring Dashboard</h2>
+                    <p class="text-sm text-gray-500">Real-time monitoring of all conversations</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="autoRefreshBtn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-semibold flex items-center gap-2">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Auto Refresh ON
+                    </button>
+                    <button id="exportBtn" class="px-4 py-2 bg-gray-200 text-gray-900 rounded hover:bg-gray-300 text-sm font-semibold flex items-center gap-2">
+                        <i data-lucide="download" class="w-4 h-4"></i> Export
+                    </button>
+                </div>
+            </header>
+
+            <!-- View Selector -->
+            <div class="bg-gray-100 border-b border-gray-200 px-6 py-3 flex gap-2">
+                <button id="viewList" class="px-4 py-2 bg-white text-gray-900 rounded font-semibold text-sm border-2 border-blue-500">
+                    📋 List View
+                </button>
+                <button id="viewDetail" class="px-4 py-2 bg-gray-200 text-gray-900 rounded font-semibold text-sm hover:bg-white">
+                    📝 Detail View
+                </button>
+                <button id="viewAnalytics" class="px-4 py-2 bg-gray-200 text-gray-900 rounded font-semibold text-sm hover:bg-white">
+                    📊 Analytics
+                </button>
+            </div>
+
+            <!-- Content Area -->
+            <div class="flex-1 overflow-auto p-6">
+                
+                <!-- LIST VIEW -->
+                <div id="listView" class="space-y-4">
+                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-900">Property</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-900">Chat Type</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-900">Participants</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-900">Messages</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-900">Last Activity</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-900">Visits</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-900">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody" class="divide-y divide-gray-200">
+                                <!-- Rows loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <p id="noChatsMsg" class="text-center text-gray-500 py-8">No chats found. Try adjusting your filters.</p>
+                </div>
+
+                <!-- DETAIL VIEW -->
+                <div id="detailView" class="hidden space-y-4">
+                    <div id="selectedChatDetail" class="bg-white rounded-lg border border-gray-200 p-6">
+                        <p class="text-gray-500">Select a chat from the list to view details</p>
+                    </div>
+                </div>
+
+                <!-- ANALYTICS VIEW -->
+                <div id="analyticsView" class="hidden space-y-4">
+                    <div class="grid grid-cols-4 gap-4">
+                        <div class="bg-white rounded-lg border border-gray-200 p-4">
+                            <p class="text-sm text-gray-600 mb-2">Booking Chats</p>
+                            <p class="text-3xl font-bold text-blue-600" id="statBooking">0</p>
+                        </div>
+                        <div class="bg-white rounded-lg border border-gray-200 p-4">
+                            <p class="text-sm text-gray-600 mb-2">Help Desk Chats</p>
+                            <p class="text-3xl font-bold text-green-600" id="statHelpdesk">0</p>
+                        </div>
+                        <div class="bg-white rounded-lg border border-gray-200 p-4">
+                            <p class="text-sm text-gray-600 mb-2">Support Chats</p>
+                            <p class="text-3xl font-bold text-purple-600" id="statSupport">0</p>
+                        </div>
+                        <div class="bg-white rounded-lg border border-gray-200 p-4">
+                            <p class="text-sm text-gray-600 mb-2">Avg Messages</p>
+                            <p class="text-3xl font-bold text-orange-600" id="statAvgMsg">0</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white rounded-lg border border-gray-200 p-4">
+                            <h3 class="font-semibold text-gray-900 mb-4">Messages by Type</h3>
+                            <div id="chatTypeChart" class="space-y-3">
+                                <!-- Chart data -->
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg border border-gray-200 p-4">
+                            <h3 class="font-semibold text-gray-900 mb-4">Top Areas</h3>
+                            <div id="areasChart" class="space-y-3">
+                                <!-- Chart data -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg border border-gray-200 p-4">
+                        <h3 class="font-semibold text-gray-900 mb-4">Scheduled Visits</h3>
+                        <div id="visitsChart" class="space-y-2">
+                            <!-- Visits data -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Socket.IO connection
+        const socket = io();
+
+        // User info
+        const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || localStorage.getItem('admin_user') || sessionStorage.getItem('admin_user') || '{}');
+        const userId = user.admin_id || user.loginId || user.id || 'unknown';
+        const userName = user.name || user.username || 'Super Admin';
+        const userRole = 'super_admin';
+
+        let allChats = [];
+        let filteredChats = [];
+        let selectedChat = null;
+        let autoRefreshInterval = null;
+        const apiUrl = window.location.hostname === 'localhost' 
+            ? 'http://localhost:5002'
+
+        // ============ INITIALIZATION ============
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!user || (user.role !== 'superadmin' && user.role !== 'super_admin' && user.role !== 'admin')) {
+                alert('Please login as a Super Admin');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            socket.emit('user_join', { user_id: userId, user_name: userName, user_role: userRole });
+
+            // Load initial data
+            loadAllChats();
+
+            // Auto-refresh every 5 seconds
+            startAutoRefresh();
+
+            // Event listeners
+            setupEventListeners();
+        });
+
+        // ============ EVENT LISTENERS ============
+        function setupEventListeners() {
+            document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
+            document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
+            document.getElementById('autoRefreshBtn').addEventListener('click', toggleAutoRefresh);
+            document.getElementById('exportBtn').addEventListener('click', exportData);
+            document.getElementById('viewList').addEventListener('click', () => switchView('list'));
+            document.getElementById('viewDetail').addEventListener('click', () => switchView('detail'));
+            document.getElementById('viewAnalytics').addEventListener('click', () => switchView('analytics'));
+            
+            // Filter inputs on change
+            document.getElementById('chatTypeFilter').addEventListener('change', applyFilters);
+            document.getElementById('propertyFilter').addEventListener('input', applyFilters);
+            document.getElementById('areaFilter').addEventListener('input', applyFilters);
+            document.getElementById('userFilter').addEventListener('input', applyFilters);
+        }
+
+        // ============ SOCKET EVENTS ============
+        socket.on('new_message', (data) => {
+            const chat = allChats.find(c => c.chat_id === data.chat_id);
+            if (chat && !chat.messages.find(m => m.timestamp === data.timestamp)) {
+                chat.messages.push(data);
+                updateChatStats();
+                if (selectedChat?.chat_id === data.chat_id) {
+                    displayChatDetail(selectedChat.chat_id);
+                }
+            }
+        });
+
+        socket.on('visit_scheduled', (data) => {
+            const chat = allChats.find(c => c.chat_id === data.chat_id);
+            if (chat) {
+                chat.scheduled_visits.push(data);
+                if (selectedChat?.chat_id === data.chat_id) {
+                    displayChatDetail(selectedChat.chat_id);
+                }
+            }
+        });
+
+        // ============ FUNCTIONS ============
+        async function loadAllChats() {
+            try {
+                const response = await fetch(`${apiUrl}/api/chats`);
+                const data = await response.json();
+
+                if (data.success) {
+                    allChats = data.chats || [];
+                    applyFilters();
+                    updateChatStats();
+                } else {
+                    console.error('Failed to load chats:', data.message);
+                }
+            } catch (error) {
+                console.error('Error loading chats:', error);
+            }
+        }
+
+        function applyFilters() {
+            const chatType = document.getElementById('chatTypeFilter').value;
+            const property = document.getElementById('propertyFilter').value.toLowerCase();
+            const area = document.getElementById('areaFilter').value.toLowerCase();
+            const user = document.getElementById('userFilter').value.toLowerCase();
+
+            filteredChats = allChats.filter(chat => {
+                if (chatType && chat.chat_type !== chatType) return false;
+                if (property && !chat.property_name?.toLowerCase().includes(property)) return false;
+                if (area && !chat.area?.toLowerCase().includes(area)) return false;
+                if (user) {
+                    const matchesUser = chat.participants?.some(p => 
+                        p.user_name?.toLowerCase().includes(user) || 
+                        p.user_id?.toLowerCase().includes(user)
+                    );
+                    if (!matchesUser) return false;
+                }
+                return true;
+            });
+
+            renderListView();
+            renderAnalytics();
+        }
+
+        function clearFilters() {
+            document.getElementById('chatTypeFilter').value = '';
+            document.getElementById('propertyFilter').value = '';
+            document.getElementById('areaFilter').value = '';
+            document.getElementById('userFilter').value = '';
+            applyFilters();
+        }
+
+        function updateChatStats() {
+            const total = allChats.length;
+            const totalMessages = allChats.reduce((sum, c) => sum + (c.messages?.length || 0), 0);
+
+            document.getElementById('totalChats').textContent = total;
+            document.getElementById('totalMessages').textContent = totalMessages;
+            
+            const oneHourAgo = new Date(Date.now() - 3600000);
+            const active = allChats.filter(c => {
+                const lastMsg = c.messages?.[c.messages.length - 1];
+                return lastMsg && new Date(lastMsg.timestamp) > oneHourAgo;
+            }).length;
+            document.getElementById('activeNow').textContent = active;
+        }
+
+        function renderListView() {
+            const tbody = document.getElementById('tableBody');
+            const noChatsMsg = document.getElementById('noChatsMsg');
+
+            if (filteredChats.length === 0) {
+                tbody.innerHTML = '';
+                noChatsMsg.classList.remove('hidden');
+                return;
+            }
+
+            noChatsMsg.classList.add('hidden');
+            tbody.innerHTML = filteredChats.map(chat => {
+                const lastMsg = chat.messages?.[chat.messages.length - 1];
+                const lastActivity = lastMsg ? formatTime(lastMsg.timestamp) : 'No messages';
+                const visitCount = chat.scheduled_visits?.length || 0;
+                const typeEmoji = chat.chat_type === 'tenant_manager_booking' ? '📋' : 
+                                 chat.chat_type === 'manager_owner_helpdesk' ? '🏢' : '👥';
+
+                return `
+                    <tr class="hover:bg-gray-50 cursor-pointer" onclick="selectChatFromTable('${chat.chat_id}')">
+                        <td class="px-4 py-3 text-gray-900 font-medium">${chat.property_name || 'N/A'}</td>
+                        <td class="px-4 py-3 text-gray-700">${typeEmoji} ${getChatTypeLabel(chat.chat_type)}</td>
+                        <td class="px-4 py-3 text-gray-700">${chat.participants?.map(p => p.user_name).join(', ') || 'N/A'}</td>
+                        <td class="px-4 py-3">
+                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">
+                                ${chat.messages?.length || 0}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-gray-600 text-xs">${lastActivity}</td>
+                        <td class="px-4 py-3">
+                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">
+                                ${visitCount}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <button onclick="viewChatDetail('${chat.chat_id}'); event.stopPropagation();" class="text-blue-600 hover:text-blue-900 text-xs font-semibold">
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderAnalytics() {
+            const bookingCount = filteredChats.filter(c => c.chat_type === 'tenant_manager_booking').length;
+            const helpdeskCount = filteredChats.filter(c => c.chat_type === 'manager_owner_helpdesk').length;
+            const supportCount = filteredChats.filter(c => c.chat_type === 'tenant_owner_support').length;
+            const totalMsg = filteredChats.reduce((sum, c) => sum + (c.messages?.length || 0), 0);
+            const avgMsg = filteredChats.length > 0 ? Math.round(totalMsg / filteredChats.length) : 0;
+
+            document.getElementById('statBooking').textContent = bookingCount;
+            document.getElementById('statHelpdesk').textContent = helpdeskCount;
+            document.getElementById('statSupport').textContent = supportCount;
+            document.getElementById('statAvgMsg').textContent = avgMsg;
+
+            const typeData = [
+                { label: 'Booking Chats', count: bookingCount, color: 'bg-blue-500' },
+                { label: 'Help Desk', count: helpdeskCount, color: 'bg-green-500' },
+                { label: 'Support', count: supportCount, color: 'bg-purple-500' }
+            ];
+            const maxCount = Math.max(...typeData.map(d => d.count), 1);
+
+            document.getElementById('chatTypeChart').innerHTML = typeData.map(d => `
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm font-semibold text-gray-900">${d.label}</span>
+                        <span class="text-sm text-gray-600">${d.count}</span>
+                    </div>
+                    <div class="bg-gray-200 rounded-full h-2">
+                        <div class="${d.color} h-2 rounded-full" style="width: ${(d.count / maxCount) * 100}%"></div>
+                    </div>
+                </div>
+            `).join('');
+
+            const areaMap = {};
+            filteredChats.forEach(c => {
+                areaMap[c.area] = (areaMap[c.area] || 0) + 1;
+            });
+            const topAreas = Object.entries(areaMap)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+
+            document.getElementById('areasChart').innerHTML = topAreas.map(([area, count]) => `
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-700">${area || 'Unknown'}</span>
+                    <span class="bg-gray-200 text-gray-900 px-2 py-1 rounded text-xs font-semibold">${count}</span>
+                </div>
+            `).join('') || '<p class="text-gray-500 text-sm">No data</p>';
+
+            const allVisits = filteredChats.flatMap(c => c.scheduled_visits || []);
+            document.getElementById('visitsChart').innerHTML = allVisits.slice(0, 10).map(v => `
+                <div class="flex justify-between items-center border-l-4 border-green-500 pl-3 py-2">
+                    <span class="text-sm text-gray-900">${v.visit_type} - ${formatDate(v.scheduled_date)}</span>
+                    <span class="text-xs font-semibold ${v.status === 'confirmed' ? 'text-green-600' : 'text-yellow-600'}">${v.status}</span>
+                </div>
+            `).join('') || '<p class="text-gray-500 text-sm">No scheduled visits</p>';
+        }
+
+        function displayChatDetail(chatId) {
+            const chat = allChats.find(c => c.chat_id === chatId);
+            if (!chat) return;
+
+            selectedChat = chat;
+
+            const detail = document.getElementById('selectedChatDetail');
+            const messages = chat.messages || [];
+            const visits = chat.scheduled_visits || [];
+
+            detail.innerHTML = `
+                <div class="space-y-4">
+                    <div class="border-b border-gray-200 pb-4">
+                        <h3 class="text-lg font-bold text-gray-900 mb-2">${chat.property_name}</h3>
+                        <div class="grid grid-cols-4 gap-4 text-sm">
+                            <div>
+                                <p class="text-gray-600">Chat Type</p>
+                                <p class="font-semibold text-gray-900">${getChatTypeLabel(chat.chat_type)}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Area</p>
+                                <p class="font-semibold text-gray-900">${chat.area || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Messages</p>
+                                <p class="font-semibold text-gray-900">${messages.length}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Visits</p>
+                                <p class="font-semibold text-gray-900">${visits.length}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-b border-gray-200 pb-4">
+                        <h4 class="font-semibold text-gray-900 mb-3">Participants</h4>
+                        <div class="space-y-2">
+                            ${chat.participants?.map(p => `
+                                <div class="flex items-center gap-3 bg-gray-50 p-3 rounded">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <div>
+                                        <p class="font-semibold text-gray-900">${p.user_name}</p>
+                                        <p class="text-xs text-gray-600">${p.user_role}</p>
+                                    </div>
+                                </div>
+                            `).join('') || 'No participants'}
+                        </div>
+                    </div>
+
+                    <div class="border-b border-gray-200 pb-4">
+                        <h4 class="font-semibold text-gray-900 mb-3">Messages (${messages.length})</h4>
+                        <div class="space-y-2 max-h-96 overflow-y-auto">
+                            ${messages.slice(-20).map(msg => `
+                                <div class="bg-gray-50 p-3 rounded text-sm">
+                                    <div class="flex justify-between mb-1">
+                                        <span class="font-semibold text-gray-900">${msg.sender_name}</span>
+                                        <span class="text-xs text-gray-500">${formatTime(msg.timestamp)}</span>
+                                    </div>
+                                    <p class="text-gray-700">${msg.message}</p>
+                                </div>
+                            `).join('') || '<p class="text-gray-500">No messages</p>'}
+                        </div>
+                    </div>
+
+                    ${visits.length > 0 ? `
+                        <div class="border-b border-gray-200 pb-4">
+                            <h4 class="font-semibold text-gray-900 mb-3">Scheduled Visits</h4>
+                            <div class="space-y-2">
+                                ${visits.map(v => `
+                                    <div class="bg-green-50 border border-green-200 p-3 rounded text-sm">
+                                        <div class="flex justify-between mb-1">
+                                            <span class="font-semibold text-gray-900">${v.visit_type}</span>
+                                            <span class="text-xs font-bold ${v.status === 'confirmed' ? 'text-green-600' : 'text-yellow-600'}">${v.status}</span>
+                                        </div>
+                                        <p class="text-gray-700">${formatDate(v.scheduled_date)} at ${v.scheduled_time}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function switchView(view) {
+            document.getElementById('listView').classList.add('hidden');
+            document.getElementById('detailView').classList.add('hidden');
+            document.getElementById('analyticsView').classList.add('hidden');
+
+            document.getElementById('viewList').classList.remove('border-2', 'border-blue-500', 'bg-white');
+            document.getElementById('viewList').classList.add('bg-gray-200');
+            document.getElementById('viewDetail').classList.remove('border-2', 'border-blue-500', 'bg-white');
+            document.getElementById('viewDetail').classList.add('bg-gray-200');
+            document.getElementById('viewAnalytics').classList.remove('border-2', 'border-blue-500', 'bg-white');
+            document.getElementById('viewAnalytics').classList.add('bg-gray-200');
+
+            if (view === 'list') {
+                document.getElementById('listView').classList.remove('hidden');
+                document.getElementById('viewList').classList.remove('bg-gray-200');
+                document.getElementById('viewList').classList.add('border-2', 'border-blue-500', 'bg-white');
+                renderListView();
+            } else if (view === 'detail') {
+                document.getElementById('detailView').classList.remove('hidden');
+                document.getElementById('viewDetail').classList.remove('bg-gray-200');
+                document.getElementById('viewDetail').classList.add('border-2', 'border-blue-500', 'bg-white');
+                if (selectedChat) {
+                    displayChatDetail(selectedChat.chat_id);
+                }
+            } else if (view === 'analytics') {
+                document.getElementById('analyticsView').classList.remove('hidden');
+                document.getElementById('viewAnalytics').classList.remove('bg-gray-200');
+                document.getElementById('viewAnalytics').classList.add('border-2', 'border-blue-500', 'bg-white');
+                renderAnalytics();
+            }
+        }
+
+        function selectChatFromTable(chatId) {
+            selectedChat = allChats.find(c => c.chat_id === chatId);
+            displayChatDetail(chatId);
+        }
+
+        function viewChatDetail(chatId) {
+            switchView('detail');
+            displayChatDetail(chatId);
+        }
+
+        function startAutoRefresh() {
+            autoRefreshInterval = setInterval(loadAllChats, 5000);
+        }
+
+        function toggleAutoRefresh() {
+            const btn = document.getElementById('autoRefreshBtn');
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                btn.textContent = '⭕ Auto Refresh OFF';
+                btn.classList.remove('bg-blue-600');
+                btn.classList.add('bg-gray-600');
+            } else {
+                startAutoRefresh();
+                btn.textContent = '⚫ Auto Refresh ON';
+                btn.classList.remove('bg-gray-600');
+                btn.classList.add('bg-blue-600');
+            }
+        }
+
+        function exportData() {
+            const data = filteredChats.map(c => ({
+                property: c.property_name,
+                type: c.chat_type,
+                participants: c.participants?.map(p => p.user_name).join(', '),
+                messages: c.messages?.length || 0,
+                visits: c.scheduled_visits?.length || 0,
+                lastActivity: c.messages?.[c.messages.length - 1]?.timestamp
+            }));
+
+            const csv = [
+                ['Property', 'Type', 'Participants', 'Messages', 'Visits', 'Last Activity'],
+                ...data.map(d => [d.property, d.type, d.participants, d.messages, d.visits, d.lastActivity])
+            ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `chat-monitoring-${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function getChatTypeLabel(type) {
+            const labels = {
+                'tenant_manager_booking': 'Tenant ↔ Manager (Booking)',
+                'manager_owner_helpdesk': 'Manager ↔ Owner (Help Desk)',
+                'tenant_owner_support': 'Tenant ↔ Owner (Support)'
+            };
+            return labels[type] || type;
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+
+            return date.toLocaleDateString();
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        lucide.createIcons();
+    </script>
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
         }
@@ -115,127 +744,46 @@
 </head>
 <body class="text-slate-800 h-screen overflow-hidden flex flex-col">
     <div class="flex h-full overflow-hidden">
-       <!-- Sidebar -->
-          <aside class="sidebar w-72 flex-shrink-0 hidden md:flex flex-col z-20 overflow-y-auto custom-scrollbar">
-            <!-- Logo -->
+               <!-- Sidebar -->
+        <aside class="sidebar w-72 flex-shrink-0 hidden md:flex flex-col z-20 overflow-y-auto custom-scrollbar">
             <div class="h-16 flex items-center px-6 border-b border-gray-800 sticky top-0 bg-[#111827] z-10">
                  <div class="flex items-center gap-3">
-                     <div class="bg-purple-600 p-1.5 rounded-lg">
-                        <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
-                     </div>
-                     <div>
-                        <h1 class="text-xl font-bold text-white leading-none tracking-tight">RoomHy</h1>
-                        <span class="text-[10px] text-gray-500 font-medium tracking-wider">ADMIN PANEL</span>
-                     </div>
+                     <div class="bg-purple-600 p-1.5 rounded-lg"><i data-lucide="building-2" class="w-5 h-5 text-white"></i></div>
+                     <div><h1 class="text-xl font-bold text-white">RoomHy</h1><span class="text-[10px] text-gray-500">SUPER ADMIN</span></div>
                  </div>
             </div>
-            
-            <!-- Navigation -->
             <nav class="flex-1 py-6 space-y-1">
                 <div class="px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Overview</div>
-                <a href="superadmin.html" class="sidebar-link">
-                    <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard
-                </a>
-
+                <a href="superadmin.html" class="sidebar-link"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard</a>
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Management</div>
-                <a href="manager.html" class="sidebar-link">
-                    <i data-lucide="map-pin" class="w-5 h-5 mr-3"></i> Teams
-                </a>
-                <a href="owner.html" class="sidebar-link">
-                    <i data-lucide="briefcase" class="w-5 h-5 mr-3"></i> Property Owners
-                </a>
-                <a href="properties.html" class="sidebar-link">
-                    <i data-lucide="home" class="w-5 h-5 mr-3"></i> Properties
-                </a>
-                <a href="tenant.html" class="sidebar-link">
-                    <i data-lucide="users" class="w-5 h-5 mr-3"></i> Tenants
-                </a>
-                 <a href="kyc_verification.html" class="sidebar-link">
-                    <i data-lucide="file-badge" class="w-5 h-5 mr-3"></i> KYC Verification
-                </a>
-
+                <a href="manager.html" class="sidebar-link"><i data-lucide="map-pin" class="w-5 h-5 mr-3"></i> Teams</a>
+                <a href="owner.html" class="sidebar-link"><i data-lucide="briefcase" class="w-5 h-5 mr-3"></i> Property Owners</a>
+                <a href="properties.html" class="sidebar-link"><i data-lucide="home" class="w-5 h-5 mr-3"></i> Properties</a>
+                <a href="tenant.html" class="sidebar-link"><i data-lucide="users" class="w-5 h-5 mr-3"></i> Tenants</a>
+                <a href="new_signups.html" class="sidebar-link"><i data-lucide="file-badge" class="w-5 h-5 mr-3"></i> New Signups</a>
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Operations</div>
-                <a href="tenant_rec.html" class="sidebar-link">
-                    <i data-lucide="folder-open" class="w-5 h-5 mr-3"></i> Tenant Records
-                </a>
-                <a href="enquiry.html" class="sidebar-link">
-                    <i data-lucide="help-circle" class="w-5 h-5 mr-3"></i> Enquiries
-                </a>
-                <a href="booking.html" class="sidebar-link">
-                    <i data-lucide="calendar-check" class="w-5 h-5 mr-3"></i> Bookings
-                </a>
-                <a href="reviews.html" class="sidebar-link">
-                    <i data-lucide="star" class="w-5 h-5 mr-3"></i> Reviews
-                </a>
-                <a href="complaint-history.html" class="sidebar-link">
-                    <i data-lucide="alert-circle" class="w-5 h-5 mr-3"></i> Complaint History
-                </a>
-
+                <a href="websiteenq.html" class="sidebar-link"><i data-lucide="folder-open" class="w-5 h-5 mr-3"></i> Web Enquiry</a>
+                <a href="enquiry.html" class="sidebar-link"><i data-lucide="help-circle" class="w-5 h-5 mr-3"></i> Enquiries</a>
+                <a href="booking.html" class="sidebar-link"><i data-lucide="calendar-check" class="w-5 h-5 mr-3"></i> Bookings</a>
+                <a href="reviews.html" class="sidebar-link"><i data-lucide="star" class="w-5 h-5 mr-3"></i> Reviews</a>
+                <a href="complaint-history.html" class="sidebar-link"><i data-lucide="alert-circle" class="w-5 h-5 mr-3"></i> Complaint History</a>
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Website</div>
                 <a href="website.html" class="sidebar-link"><i data-lucide="globe" class="w-5 h-5 mr-3"></i> Live Properties</a>
-
-                <!-- Dropdown: Payment & Finance -->
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Finance</div>
                 <div class="group">
                     <div class="sidebar-link justify-between" onclick="toggleSubmenu('finance-submenu', this)">
-                        <div class="flex items-center">
-                            <i data-lucide="wallet" class="w-5 h-5 mr-3"></i> Payment & Finance
-                        </div>
+                        <div class="flex items-center"><i data-lucide="wallet" class="w-5 h-5 mr-3"></i> Finance</div>
                         <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
                     </div>
                     <div id="finance-submenu" class="submenu">
-                        <a href="rentcollection.html" class="sidebar-link text-sm hover:text-white">All Rent Collections</a>
-                        <a href="platform.html" class="sidebar-link text-sm hover:text-white">Platform Commissions</a>
-                        <a href="refund.html" class="sidebar-link text-sm hover:text-white">Refund Approvals</a>
-                        <a href="payment_disputes.html" class="sidebar-link text-sm hover:text-white">Payment Disputes</a>
+                        <a href="rentcollection.html" class="sidebar-link text-sm hover:text-white">Rent Collections</a>
+                        <a href="platform.html" class="sidebar-link text-sm hover:text-white">Commissions</a>
+                        <a href="refund.html" class="sidebar-link text-sm hover:text-white">Refunds</a>
                     </div>
                 </div>
-
-                <!-- Dropdown: Reports -->
-                <div class="group">
-                    <div class="sidebar-link justify-between" onclick="toggleSubmenu('reports-submenu', this)">
-                        <div class="flex items-center">
-                            <i data-lucide="bar-chart-3" class="w-5 h-5 mr-3"></i> Reports
-                        </div>
-                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
-                    </div>
-                    <div id="reports-submenu" class="submenu">
-                        <a href="platform_reports.html" class="sidebar-link text-sm hover:text-white">Platform-wide Reports</a>
-                        <a href="monthly.html" class="sidebar-link text-sm hover:text-white">Monthly Revenue</a>
-                        <a href="#" class="sidebar-link text-sm hover:text-white text-purple-400 flex items-center"><i data-lucide="download" class="w-3 h-3 mr-2"></i> Export PDF/Excel</a>
-                    </div>
-                </div>
-
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">System</div>
-                 <a href="chatadmin.html" class="sidebar-link active">
-                    <i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Chats
-                </a>
-                 <a href="profile.html" class="sidebar-link">
-                    <i data-lucide="user" class="w-5 h-5 mr-3"></i> Profile
-                </a>
-                 <a href="settings.html" class="sidebar-link">
-                    <i data-lucide="settings" class="w-5 h-5 mr-3"></i> Settings
-                </a>
-                 <a href="location.html" class="sidebar-link">
-                    <i data-lucide="globe" class="w-5 h-5 mr-3"></i> RoomHy Location
-                </a>
-
-                <!-- 3-Dot Menu / Settings Section -->
-                <div class="group">
-                    <div class="sidebar-link justify-between" onclick="toggleSubmenu('settings-submenu', this)">
-                        <div class="flex items-center">
-                            <i data-lucide="more-horizontal" class="w-5 h-5 mr-3"></i> System Settings
-                        </div>
-                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
-                    </div>
-                    <div id="settings-submenu" class="submenu">
-                        <a href="log.html" class="sidebar-link text-sm hover:text-white">Login Logs</a>
-                        <a href="security.html" class="sidebar-link text-sm hover:text-white">Security Settings</a>
-                        <a href="backup.html" class="sidebar-link text-sm hover:text-white">Backup Settings</a>
-                    </div>
-                </div>
-                
-                <div class="h-20"></div> <!-- Spacer -->
+                 <a href="chatadmin.html" class="sidebar-link"><i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Chats</a>
+                 <a href="location.html" class="sidebar-link"><i data-lucide="globe" class="w-5 h-5 mr-3"></i> Locations</a>
             </nav>
         </aside>
 
@@ -245,19 +793,19 @@
             <div class="md:hidden h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 shadow-sm z-20">
                 <button id="mobile-menu-open" class="text-gray-500"><i data-lucide="menu" class="w-6 h-6"></i></button>
                 <span class="font-semibold text-gray-800">Chats</span>
-                <button class="text-gray-500"><i data-lucide="search" class="w-5 h-5"></i></button>
+                <button id="mobile-chat-list-open" class="text-gray-500" onclick="toggleMobileChatList()"><i data-lucide="message-square" class="w-5 h-5"></i></button>
             </div>
 
             <div class="flex flex-1 overflow-hidden">
                 <!-- Chat List Sidebar -->
-                <div class="w-full md:w-80 border-r border-gray-200 flex flex-col bg-white h-full">
+                <div class="hidden md:flex w-80 border-r border-gray-200 flex-col bg-white h-full">
                     <!-- Search & Filters -->
                     <div class="p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
                         <div class="relative mb-3">
                             <input type="text" id="searchInput" placeholder="Search conversations..." class="w-full pl-9 pr-4 py-2 bg-gray-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-purple-500">
                             <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3 top-2.5"></i>
                         </div>
-                        
+
                         <!-- Role Filters -->
                         <div class="flex justify-between bg-gray-100 p-1 rounded-lg items-center">
                             <div class="flex gap-1 w-full">
@@ -275,6 +823,45 @@
 
                     <!-- Create Group Button (Hidden unless Group tab active) -->
                     <div id="createGroupArea" class="p-4 border-t hidden">
+                         <button onclick="createNewGroup()" class="w-full bg-purple-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-purple-700 flex items-center justify-center gap-2">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i> Create Group
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mobile Chat List Overlay -->
+                <div id="mobile-chat-list" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden backdrop-blur-sm" onclick="toggleMobileChatList()"></div>
+                <div id="mobile-chat-sidebar" class="fixed inset-y-0 left-0 w-80 bg-white z-40 transform -translate-x-full transition-transform duration-300 md:hidden flex flex-col border-r border-gray-200">
+                    <!-- Mobile Chat List Header -->
+                    <div class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 shadow-sm">
+                        <span class="font-semibold text-gray-800">Chats</span>
+                        <button onclick="toggleMobileChatList()" class="text-gray-500"><i data-lucide="x" class="w-6 h-6"></i></button>
+                    </div>
+
+                    <!-- Search & Filters -->
+                    <div class="p-4 border-b border-gray-200 bg-white">
+                        <div class="relative mb-3">
+                            <input type="text" id="mobileSearchInput" placeholder="Search conversations..." class="w-full pl-9 pr-4 py-2 bg-gray-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-purple-500">
+                            <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3 top-2.5"></i>
+                        </div>
+
+                        <!-- Role Filters -->
+                        <div class="flex justify-between bg-gray-100 p-1 rounded-lg items-center">
+                            <div class="flex gap-1 w-full">
+                                <button onclick="filterChats('personal', event)" id="mobile-tab-personal" class="chat-filter-btn active flex-1 text-xs font-medium py-1.5 rounded-md text-center bg-white text-purple-600 shadow-sm">Team</button>
+                                <button onclick="filterChats('group', event)" id="mobile-tab-group" class="chat-filter-btn flex-1 text-xs font-medium py-1.5 rounded-md text-center text-gray-500 hover:text-gray-700">Group</button>
+                                <button onclick="filterChats('direct', event)" id="mobile-tab-direct" class="chat-filter-btn flex-1 text-xs font-medium py-1.5 rounded-md text-center text-gray-500 hover:text-gray-700">Direct Support</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Conversations List -->
+                    <div class="flex-1 overflow-y-auto custom-scrollbar" id="mobileChatList">
+                        <!-- Contacts injected here -->
+                    </div>
+
+                    <!-- Create Group Button (Hidden unless Group tab active) -->
+                    <div id="mobileCreateGroupArea" class="p-4 border-t hidden">
                          <button onclick="createNewGroup()" class="w-full bg-purple-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-purple-700 flex items-center justify-center gap-2">
                             <i data-lucide="plus-circle" class="w-4 h-4"></i> Create Group
                         </button>
@@ -359,55 +946,116 @@
             document.head.appendChild(s);
         })();
 
-        // Load Socket.IO Client
-        const SOCKET_HOST = 'http://localhost:5000';
-        (function loadSocketIO() {
-            if (window.io) return;
-            const script = document.createElement('script');
-            script.src = 'https://cdn.socket.io/4.7.5/socket.io.min.js';
-            script.onload = () => { window.io = window.io || window.io; };
-            document.head.appendChild(script);
-        })();
-
-        let currentTab = 'personal';
-        let activeChatId = null;
-        let messagesCache = [];
+        var currentTab = 'personal';
+        var activeChatId = null;
+        var messagesCache = [];
 
         // Initialize superadmin user ID
         const user = JSON.parse(sessionStorage.getItem('superadmin_user') || localStorage.getItem('superadmin_user') || sessionStorage.getItem('user') || localStorage.getItem('user') || 'null');
         const superadminId = user ? (user.loginId || user.id) : 'SUPERADMIN001';
+        
+        // Socket.IO initialization moved to DOMContentLoaded to ensure proper timing
 
-        // Socket.IO Connection (for real-time updates)
-        (function initSocketSuperadmin() {
-            let retries = 0;
-            const maxRetries = 20;
-            let socket = null;
-            const tryConnect = () => {
-                try {
-                    if (typeof io !== 'undefined') {
-                        socket = io(SOCKET_HOST, { transports: ['websocket'] });
-                        socket.on('connect', () => {
-                            socket.emit('join', superadminId);
-                        });
-                        socket.on('chat:message', (msg) => {
-                            if (activeChatId && (msg.from === activeChatId || msg.to === activeChatId)) {
-                                renderMessages();
-                            }
-                        });
-                        socket.on('disconnect', () => console.warn('Socket disconnected'));
-                        window._socket = socket;
-                    } else if (retries < maxRetries) {
-                        retries++;
-                        setTimeout(tryConnect, 200);
-                    } else {
-                        console.warn('Socket.IO library failed to load after retries');
-                    }
-                } catch (e) {
-                    console.warn('Socket.IO init failed:', e.message);
-                }
-            };
-            setTimeout(tryConnect, 100);
-        })();
+        // Auto-populate test data if localStorage is empty (for development/testing)
+        if (!localStorage.getItem('roomhy_employees')) {
+            console.log('ChatAdmin: Initializing test employees data');
+            localStorage.setItem('roomhy_employees', JSON.stringify([
+                { loginId: 'EMP001', name: 'John Employee', areaCode: 'KO', role: 'Senior Manager', email: 'john@roomhy.com' },
+                { loginId: 'EMP002', name: 'Jane Employee', areaCode: 'KO', role: 'Coordinator', email: 'jane@roomhy.com' },
+                { loginId: 'RYKO3530', name: 'Area Manager Rakesh', areaCode: 'KO', role: 'Area Manager', email: 'rakesh@roomhy.com' }
+            ]));
+        }
+
+        // Display received message immediately in DOM
+        function displayReceivedMessage(msg) {
+            const container = document.getElementById('messageContainer');
+            if (!container) {
+                console.error('ChatAdmin: messageContainer not found!');
+                return;
+            }
+
+            const isMe = msg.from === superadminId;
+            const timeText = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
+
+            // Skip if system message
+            if (msg.message && (msg.message.includes('🚨') || msg.message.includes('🔒'))) {
+                const sys = document.createElement('div');
+                sys.className = "flex justify-center my-2";
+                sys.innerHTML = `<div class="chat-bubble-system px-4 py-2">${msg.message}</div>`;
+                container.appendChild(sys);
+                container.scrollTop = container.scrollHeight;
+                return;
+            }
+
+            let content = `<p class="text-sm">${escapeHtml(msg.message || '')}</p>`;
+
+            // Audio handler
+            if (msg.type === 'audio' && msg.audioData) {
+                content = `<div class="flex items-center gap-2"><i data-lucide="mic" class="w-4 h-4"></i> <audio controls src="${msg.audioData}" class="h-8 w-40"></audio></div>`;
+            }
+
+            // File handler
+            if (msg.type === 'file') {
+                content = `<div class="flex items-center gap-2"><i data-lucide="file" class="w-4 h-4"></i> <a href="${msg.meta?.fileUrl || '#'}" target="_blank" class="underline">${msg.meta?.filename || 'File'}</a></div>`;
+            }
+
+            const wrap = document.createElement('div');
+            wrap.className = isMe ? 'flex items-end justify-end gap-2' : 'flex items-end gap-2';
+
+            if (isMe) {
+                wrap.innerHTML = `
+                    <div class="chat-bubble-admin p-3 max-w-[70%] shadow-sm">
+                        ${content}
+                        <span class="text-[10px] text-purple-200 block mt-1 text-right">${timeText} <i data-lucide="check" class="w-3 h-3 inline ml-1"></i></span>
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 text-xs font-bold mb-1">SA</div>
+                `;
+            } else {
+                const senderName = activeChatId.startsWith('group:') ? `<div class="text-[10px] font-bold opacity-70 mb-1">${msg.from || 'User'}</div>` : '';
+                const fromChar = msg.from ? msg.from.charAt(0) : '?';
+                wrap.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-bold mb-1">${fromChar}</div>
+                    <div class="chat-bubble-user p-3 max-w-[70%] shadow-sm">
+                        ${senderName}
+                        ${content}
+                        <span class="text-[10px] text-gray-400 block mt-1 text-right">${timeText}</span>
+                    </div>
+                `;
+            }
+
+            container.appendChild(wrap);
+            container.scrollTop = container.scrollHeight;
+            if(typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+            console.log('ChatAdmin: Message displayed immediately in DOM');
+        }
+
+        // Listen for incoming messages via socket-chat.js
+        window.addEventListener('chat-message-received', (event) => {
+            const msg = event.detail;
+            console.log('ChatAdmin: Socket message received:', msg);
+            console.log('ChatAdmin: activeChatId:', activeChatId);
+            console.log('ChatAdmin: msg.from:', msg.from, 'msg.to:', msg.to);
+            
+            // Only display if this message is relevant to the currently active chat
+            if (!activeChatId) {
+                console.log('ChatAdmin: No active chat - not displaying');
+                return;
+            }
+            
+            // Check if the message involves the superadmin and the active chat user
+            const isRelevant = (msg.from === superadminId && msg.to === activeChatId) ||
+                               (msg.from === activeChatId && msg.to === superadminId);
+            
+            if (isRelevant) {
+                console.log('ChatAdmin: Message is relevant - displaying');
+                // Display immediately in DOM
+                displayReceivedMessage(msg);
+            } else {
+                console.log('ChatAdmin: Message is NOT relevant to current chat - not displaying');
+            }
+        });
 
         // Data Helpers with Safety Checks
         function getEmployees() { 
@@ -418,15 +1066,20 @@
         // Fetch messages from MongoDB API
         async function getChats(fromId, toId) {
             try {
-                const resp = await fetch(`http://localhost:5000/api/chat/messages?from=${encodeURIComponent(fromId)}&to=${encodeURIComponent(toId)}&limit=500`);
+                console.log('ChatAdmin: getChats called with from:', fromId, 'to:', toId);
+                const url = `http://localhost:5002/api/chat/messages?from=${encodeURIComponent(fromId)}&to=${encodeURIComponent(toId)}&limit=500`;
+                console.log('ChatAdmin: Fetching from URL:', url);
+                const resp = await fetch(url);
+                console.log('ChatAdmin: Fetch response status:', resp.status);
                 if (!resp.ok) {
-                    console.warn('getChats API failed:', resp.status);
+                    console.warn('ChatAdmin: getChats API failed:', resp.status);
                     return [];
                 }
                 const json = await resp.json();
+                console.log('ChatAdmin: API returned:', json);
                 return json.data || [];
             } catch (e) {
-                console.warn('getChats error:', e.message);
+                console.warn('ChatAdmin: getChats error:', e.message);
                 return [];
             }
         }
@@ -456,17 +1109,26 @@
             if(groupArea) {
                 groupArea.classList.toggle('hidden', role !== 'group');
             }
+            const mobileGroupArea = document.getElementById('mobileCreateGroupArea');
+            if(mobileGroupArea) {
+                mobileGroupArea.classList.toggle('hidden', role !== 'group');
+            }
 
-            await renderChatList();
+            // Determine if mobile or desktop
+            const isMobile = target && target.id && target.id.startsWith('mobile-');
+            const searchInputId = isMobile ? 'mobileSearchInput' : 'searchInput';
+            const containerId = isMobile ? 'mobileChatList' : 'chatList';
+
+            await renderChatList(searchInputId, containerId);
         }
 
         // Render Chat List based on Tab
-        async function renderChatList() {
-            const container = document.getElementById('chatList');
+        async function renderChatList(searchInputId = 'searchInput', containerId = 'chatList') {
+            const container = document.getElementById(containerId);
             if(!container) return;
             container.innerHTML = '';
-            
-            const searchInput = document.getElementById('searchInput');
+
+            const searchInput = document.getElementById(searchInputId);
             const search = searchInput ? searchInput.value.toLowerCase() : '';
 
             if (currentTab === 'personal') {
@@ -512,7 +1174,7 @@
                 // If no local cache, attempt to fetch recent conversations via backend
                 if (!allMsgs || allMsgs.length === 0) {
                     try {
-                        const resp = await fetch(`http://localhost:5000/api/chat/user/${encodeURIComponent(superadminId)}`);
+                        const resp = await fetch(`http://localhost:5002/api/chat/user/${encodeURIComponent(superadminId)}`);
                         if (resp.ok) {
                             const json = await resp.json();
                             // json.data contains conversation summaries; convert to minimal messages array
@@ -576,7 +1238,33 @@
         }
 
         async function openConversation(id, name, sub) {
+            console.log('ChatAdmin: openConversation called with id:', id, 'name:', name);
             activeChatId = id;
+            
+            // Join the conversation room with the other user's ID
+            // socket-chat.js will handle creating the consistent room ID
+            if (window.ChatSocket) {
+                // Register callback BEFORE joining room
+                window.ChatSocket.onMessage((msg) => {
+                    console.log('ChatAdmin openConversation: Received message via callback:', msg);
+                    displayReceivedMessage(msg);
+                    // Update cache if not duplicate
+                    const exists = messagesCache.some(m => 
+                        m._id === msg._id || 
+                        (m.timestamp === msg.timestamp && m.from === msg.from && m.message === msg.message)
+                    );
+                    if (!exists) {
+                        messagesCache.push(msg);
+                        messagesCache.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                    }
+                });
+                
+                window.ChatSocket.joinRoom(id);
+                console.log('ChatAdmin: Joined conversation with user:', id);
+            } else {
+                console.warn('ChatAdmin: ChatSocket not available!');
+            }
+            
             // Header Update
             const headerName = document.getElementById('chatHeaderName');
             const headerInitials = document.getElementById('chatHeaderInitials');
@@ -590,20 +1278,37 @@
             }
             if(headerAvatar) headerAvatar.classList.add('hidden');
             if(headerStatus) headerStatus.classList.remove('hidden');
-            
+
             // Highlight list item
             renderChatList();
+            console.log('ChatAdmin: About to call renderMessages');
             renderMessages();
+            
+            // Start polling for new messages every 1.5 seconds for better real-time feel
+            if (window.chatAdminPoll) clearInterval(window.chatAdminPoll);
+            window.chatAdminPoll = setInterval(async () => {
+                console.log('ChatAdmin: Polling for new messages');
+                renderMessages();
+            }, 1500);
         }
 
         async function renderMessages() {
-            if (!activeChatId) return;
+            if (!activeChatId) {
+                console.log('ChatAdmin: renderMessages skipped - no activeChatId');
+                return;
+            }
             const container = document.getElementById('messageContainer');
-            if(!container) return;
+            console.log('ChatAdmin: renderMessages - container found?', !!container);
+            if(!container) {
+                console.log('ChatAdmin: messageContainer not found');
+                return;
+            }
             container.innerHTML = '';
             
             try {
+                console.log('ChatAdmin: Fetching messages for', activeChatId);
                 const msgs = await getChats(superadminId, activeChatId);
+                console.log('ChatAdmin: Fetched', msgs.length, 'messages');
 
                 // Date divider
                 const dateDiv = document.createElement('div');
@@ -611,18 +1316,19 @@
                 dateDiv.innerHTML = '<span class="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">Today</span>';
                 container.appendChild(dateDiv);
 
-                msgs.forEach(m => {
+                msgs.forEach((m, idx) => {
+                    console.log('ChatAdmin: Rendering message', idx, ':', m.message, '- From:', m.from, 'To:', m.to, 'isMe:', m.from === superadminId);
                     const isMe = m.from === superadminId;
                     const timeText = m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
                     
                     // System message (Escalation alert)
                     if (m.message && (m.message.includes('🚨') || m.message.includes('🔒'))) {
-                         const sys = document.createElement('div');
-                         sys.className = "flex justify-center my-2";
-                         sys.innerHTML = `<div class="chat-bubble-system px-4 py-2">${m.message}</div>`;
-                     container.appendChild(sys);
-                     return;
-                }
+                        const sys = document.createElement('div');
+                        sys.className = "flex justify-center my-2";
+                        sys.innerHTML = `<div class="chat-bubble-system px-4 py-2">${m.message}</div>`;
+                        container.appendChild(sys);
+                        return;
+                    }
 
                 // Call/Video/File types handled generally
                 let content = `<p class="text-sm">${escapeHtml(m.message || '')}</p>`;
@@ -661,44 +1367,44 @@
                     `;
                 }
                 container.appendChild(wrap);
-            });
-            container.scrollTop = container.scrollHeight;
-            if(typeof lucide !== 'undefined') lucide.createIcons();
-        } catch (err) {
-            console.error('renderMessages error:', err);
-        }
+                });
+                console.log('ChatAdmin: renderMessages complete - container children:', container.children.length);
+                console.log('ChatAdmin: Container innerHTML:', container.innerHTML.substring(0, 200));
+                console.log('ChatAdmin: Container style:', window.getComputedStyle(container).display, window.getComputedStyle(container).height);
+                container.scrollTop = container.scrollHeight;
+                if(typeof lucide !== 'undefined') {
+                    console.log('ChatAdmin: Calling lucide.createIcons()');
+                    lucide.createIcons();
+                }
+            } catch (err) {
+                console.error('ChatAdmin renderMessages error:', err);
+            }
         }
 
         async function sendMessage() {
             const input = document.getElementById('chatInput');
             const text = input.value.trim();
-            if (!text || !activeChatId) return;
-            const newMsg = {
-                from: superadminId,
-                to: activeChatId,
-                message: text,
-                type: 'text',
-                isEscalated: currentTab === 'direct'
-            };
+            if (!text || !activeChatId) {
+                console.warn('ChatAdmin: Cannot send - missing text or activeChatId');
+                return;
+            }
+
+            console.log('ChatAdmin: Sending message to', activeChatId, ':', text);
+
             try {
-                const resp = await fetch('http://localhost:5000/api/chat/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newMsg)
-                });
-                if (!resp.ok) {
-                    console.warn('sendMessage API failed:', resp.status);
-                    return;
+                // Use socket-chat.js which handles REST API + Socket.IO
+                const success = await window.ChatSocket.sendMessage(text, activeChatId);
+                
+                if (success) {
+                    input.value = '';
+                    console.log('ChatAdmin: Message sent successfully');
+                } else {
+                    console.error('ChatAdmin: Failed to send message via socket-chat');
+                    alert('Failed to send message');
                 }
-                const savedMsg = await resp.json();
-                if (window._socket) {
-                    window._socket.emit('chat:message', newMsg);
-                }
-                input.value = '';
-                // Refresh messages to show the sent message
-                renderMessages();
-            } catch (e) {
-                console.error('sendMessage error:', e.message);
+            } catch (err) {
+                console.error('ChatAdmin: Error sending message:', err);
+                alert('Error sending message: ' + err.message);
             }
         }
 
@@ -930,8 +1636,28 @@
         const mobileMenuOpen = document.getElementById('mobile-menu-open');
         if(mobileMenuOpen) mobileMenuOpen.addEventListener('click', toggleMobileMenu);
 
-        // Init
-        // Run init inside DOMContentLoaded to be safe
+        // Init - Ensure Socket.IO initializes IMMEDIATELY when page loads
+        // Initialize Socket.IO as soon as possible (don't wait for DOMContentLoaded)
+        let initSocketAttempt = 0;
+        const initSocketIO = () => {
+            if (window.ChatSocket && typeof window.ChatSocket.init === 'function') {
+                window.ChatSocket.init(superadminId);
+                console.log('ChatAdmin: Socket.IO initialized immediately with user ID:', superadminId);
+            } else {
+                initSocketAttempt++;
+                if (initSocketAttempt < 10) {
+                    // Keep trying every 100ms until Socket.IO is ready
+                    setTimeout(initSocketIO, 100);
+                } else {
+                    console.error('ChatAdmin: Failed to initialize ChatSocket after 10 attempts');
+                }
+            }
+        };
+        
+        // Start trying to initialize Socket.IO immediately
+        initSocketIO();
+        
+        // Also run init inside DOMContentLoaded as backup
         window.addEventListener('DOMContentLoaded', () => {
             renderChatList();
             // Start polling notifications for Super Admin (every 5s)
@@ -941,3 +1667,4 @@
     </script>
 </body>
 </html>
+

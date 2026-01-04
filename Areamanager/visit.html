@@ -52,6 +52,7 @@
                 <a href="visit.html" class="sidebar-link active"><i data-lucide="clipboard-list" class="w-5 h-5 mr-3"></i> Visit Reports</a>
                 <a href="areatenant.html" class="sidebar-link"><i data-lucide="users" class="w-5 h-5 mr-3"></i> Tenants</a>
                 <a href="areaowner.html" class="sidebar-link"><i data-lucide="briefcase" class="w-5 h-5 mr-3"></i> Owners</a>
+                <a href="booking_request.html" class="sidebar-link"><i data-lucide="calendar-check" class="w-5 h-5 mr-3"></i> Booking Requests</a>
 
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Operations</div>
                 <a href="areapayment.html" class="sidebar-link"><i data-lucide="wallet" class="w-5 h-5 mr-3"></i> Payments</a>
@@ -126,6 +127,8 @@
                                         <th>Owner Name</th>
                                         <th>Owner Contact</th>
                                         <th>Gender</th>
+                                        <th>Student Reviews</th>
+                                        <th>Employee Rating</th>
                                         <th>Amenities</th>
                                         <th>Cleanliness</th>
                                         <th>Owner Behaviour</th>
@@ -186,6 +189,14 @@
                 <div class="grid grid-cols-2 gap-3">
                     <input name="ownerName" id="ownerName" type="text" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Owner Name">
                     <input name="contactPhone" id="contactPhone" type="tel" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Owner Contact (full number)">
+                </div>
+                <div class="grid grid-cols-1 gap-3">
+                    <select name="gender" id="gender" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                        <option value="">Select Gender Preference</option>
+                        <option value="Male Only">Male Only</option>
+                        <option value="Female Only">Female Only</option>
+                        <option value="Co-Ed">Co-Ed</option>
+                    </select>
                 </div>
                 <div class="grid grid-cols-3 gap-3">
                     <input name="areaLocality" id="areaLocality" type="text" readonly class="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-gray-100 cursor-not-allowed" placeholder="Area / Locality">
@@ -285,7 +296,34 @@
                             <p class="text-xs text-gray-500 mt-1" id="behaviourLabel">Select behaviour</p>
                         </div>
                     </div>
+                    <div class="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-300">
+                        <div>
+                            <label class="text-xs font-medium text-gray-600 block mb-2">Student Reviews Rating (★)</label>
+                            <div id="studentReviewsStars" class="flex gap-1 text-2xl cursor-pointer" onclick="handleStarClick(event, 'studentReviewsRating')">
+                                <span class="star text-gray-300" data-value="1">★</span>
+                                <span class="star text-gray-300" data-value="2">★</span>
+                                <span class="star text-gray-300" data-value="3">★</span>
+                                <span class="star text-gray-300" data-value="4">★</span>
+                                <span class="star text-gray-300" data-value="5">★</span>
+                            </div>
+                            <input type="hidden" id="studentReviewsRating" name="studentReviewsRating" value="">
+                            <p class="text-xs text-gray-500 mt-1" id="studentReviewsLabel">Click to rate</p>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-gray-600 block mb-2">Employee Rating (★)</label>
+                            <div id="employeeRatingStars" class="flex gap-1 text-2xl cursor-pointer" onclick="handleStarClick(event, 'employeeRating')">
+                                <span class="star text-gray-300" data-value="1">★</span>
+                                <span class="star text-gray-300" data-value="2">★</span>
+                                <span class="star text-gray-300" data-value="3">★</span>
+                                <span class="star text-gray-300" data-value="4">★</span>
+                                <span class="star text-gray-300" data-value="5">★</span>
+                            </div>
+                            <input type="hidden" id="employeeRating" name="employeeRating" value="">
+                            <p class="text-xs text-gray-500 mt-1" id="employeeRatingLabel">Click to rate</p>
+                        </div>
+                    </div>
                 </div>
+                <textarea name="studentReviews" id="studentReviews" rows="2" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Student reviews feedback"></textarea>
                 <textarea name="internalRemarks" id="internalRemarks" rows="2" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Internal remarks (private)"></textarea>
                 <textarea name="cleanlinessNote" id="cleanlinessNote" rows="2" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Cleanliness note (private)"></textarea>
                 <textarea name="ownerBehaviour" id="ownerBehaviour" rows="2" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Owner behaviour (private)"></textarea>
@@ -481,17 +519,23 @@
             }
         }
 
-        // Helper: handle star rating
+        // Helper: handle star rating (works with any star field)
         function handleStarClick(e, fieldId) {
             if (e.target.classList.contains('star')) {
                 const value = e.target.getAttribute('data-value');
                 document.getElementById(fieldId).value = value;
-                const stars = document.querySelectorAll(`#cleanlinessStars .star`);
+                
+                // Find the parent container (works for all star rating fields)
+                const starsContainer = e.currentTarget;
+                const stars = starsContainer.querySelectorAll('.star');
                 stars.forEach((s, i) => {
                     s.classList.toggle('text-yellow-400', i < value);
                     s.classList.toggle('text-gray-300', i >= value);
                 });
-                const label = document.getElementById('cleanlinessLabel');
+                
+                // Update label if it exists
+                const labelId = fieldId + 'Label';
+                const label = document.getElementById(labelId);
                 if (label) label.innerText = `Rating: ${value}/5 ⭐`;
             }
         }
@@ -582,8 +626,50 @@
             });
         }
 
+        // ======================================================
+        // SYNC VISITS FROM BACKEND DATABASE (New Feature)
+        // ======================================================
+        async function syncVisitsFromBackend(staffId) {
+            try {
+                console.log('🔄 Syncing visits from backend for staff:', staffId);
+                
+                const response = await fetch(`http://localhost:5000/api/visits?staffId=${encodeURIComponent(staffId)}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    console.warn('⚠️ Backend sync failed:', response.status);
+                    return false;
+                }
+
+                const data = await response.json();
+                const visits = data.visits || data || [];
+
+                if (visits.length > 0) {
+                    console.log('✅ Synced', visits.length, 'visits from backend');
+                    
+                    // Save to localStorage to persist across refreshes
+                    try {
+                        localStorage.setItem('roomhy_visits', JSON.stringify(visits));
+                        console.log('💾 Saved synced visits to localStorage');
+                    } catch (e) {
+                        console.warn('⚠️ Failed to save to localStorage:', e.message);
+                    }
+                    
+                    return true;
+                } else {
+                    console.log('ℹ️ No visits found on backend');
+                    return false;
+                }
+            } catch (err) {
+                console.error('❌ Backend sync error:', err);
+                return false;
+            }
+        }
+
         // Populate auth UI and load visits
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             const user = JSON.parse(sessionStorage.getItem('manager_user') || sessionStorage.getItem('user') || localStorage.getItem('manager_user') || localStorage.getItem('user') || 'null');
             if (!user) return;
             document.getElementById('headerName').innerText = user.name || '';
@@ -612,6 +698,11 @@
                 if (document.getElementById('locationCode')) document.getElementById('locationCode').value = myAreaCode;
             }
 
+            // Sync visits from backend to ensure data persists across refreshes
+            console.log('🔄 Attempting to sync visits from backend...');
+            await syncVisitsFromBackend(staffId);
+
+            // Load and display visits (from localStorage or synced data)
             loadVisits();
         });
 
@@ -861,8 +952,18 @@
                         <td class="text-sm text-gray-600">${landmark}</td>
                         <td class="text-sm text-gray-600 text-center">${ownerName}</td>
                         <td class="text-sm text-gray-600 text-center">${masked}</td>
-                        <td class="text-sm text-gray-600 text-center">${gender}</td>
-                        <td class="text-sm text-gray-600 text-center">${amList || '-'}</td>
+                        <td class="text-sm text-gray-600">${gender}</td>
+                        <td class="text-center py-3 bg-amber-50 border-x border-amber-200">
+                            <div class="flex items-center justify-center gap-1">
+                                <span class="text-lg font-bold text-amber-600">${visit.studentReviewsRating ? `${'★'.repeat(Math.floor(visit.studentReviewsRating))}${`☆`.repeat(5-Math.floor(visit.studentReviewsRating))}` : '-'}</span>
+                            </div>
+                        </td>
+                        <td class="text-center py-3 bg-emerald-50 border-x border-emerald-200">
+                            <div class="flex items-center justify-center gap-1">
+                                <span class="text-lg font-bold text-emerald-600">${visit.employeeRating ? `${'★'.repeat(Math.floor(visit.employeeRating))}${`☆`.repeat(5-Math.floor(visit.employeeRating))}` : '-'}</span>
+                            </div>
+                        </td>
+                        <td class="text-sm text-gray-600">${amList || '-'}</td>
                         <td class="text-sm text-gray-600 text-center">${visit.cleanlinessRating || '-'}</td>
                         <td class="text-sm text-gray-600 text-center">${visit.ownerBehaviourPublic || '-'}</td>
                         <td class="text-center">${photoCount}</td>
@@ -1392,6 +1493,9 @@
                     nearbyLocation: fd.get('nearbyLocation') || '',
                     cleanlinessRating: fd.get('cleanlinessRating'),
                     ownerBehaviourPublic: fd.get('ownerBehaviourPublic'),
+                    studentReviewsRating: fd.get('studentReviewsRating'),
+                    studentReviews: fd.get('studentReviews'),
+                    employeeRating: fd.get('employeeRating'),
                     gender: fd.get('gender'),
                     furnishing: fd.get('furnishing'),
                     ventilation: fd.get('ventilation'),
@@ -1487,6 +1591,24 @@
                 
                 if (!saveSuccess) {
                     console.warn('⚠️ Visit may not have been saved. Please check console.');
+                } else {
+                    // Also save to backend database as backup
+                    console.log('💾 Attempting to save visit to backend...');
+                    try {
+                        const backendRes = await fetch('http://localhost:5000/api/visits', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(mode === 'create' ? newVisit : visits[idx])
+                        });
+                        if (backendRes.ok) {
+                            console.log('✅ Visit saved to backend database');
+                        } else {
+                            console.warn('⚠️ Backend save failed:', backendRes.status);
+                        }
+                    } catch (err) {
+                        console.warn('⚠️ Could not save to backend:', err.message);
+                        // This is non-critical - data is safe in localStorage
+                    }
                 }
                 // Rooms are now added only by property owners in their dashboard
             } else {
@@ -1515,6 +1637,9 @@
                 v.longitude = fd.get('longitude') || document.getElementById('longitude').value || v.longitude;
                 v.cleanlinessRating = fd.get('cleanlinessRating');
                 v.ownerBehaviourPublic = fd.get('ownerBehaviourPublic');
+                v.studentReviewsRating = fd.get('studentReviewsRating');
+                v.studentReviews = fd.get('studentReviews');
+                v.employeeRating = fd.get('employeeRating');
                 v.gender = fd.get('gender');
                 v.furnishing = fd.get('furnishing');
                 v.ventilation = fd.get('ventilation');

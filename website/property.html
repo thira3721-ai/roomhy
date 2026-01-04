@@ -112,7 +112,7 @@
                 
                 <div class="flex items-center gap-3">
                     <a href="index.html" class="flex-shrink-0 hover:opacity-80 transition-opacity">
-                        <img src="logo.svg" alt="Roomhy Logo" class="h-10 w-auto">
+                        <img src="images/logoroomhy.jpg" alt="Roomhy Logo" class="h-10 w-25">
                     </a>
                     <div class="hidden md:block h-6 border-l border-gray-300"></div>
                 </div>
@@ -193,7 +193,7 @@
                 </div>
                 <span>About Us</span>
             </a>
-            <a href="index.html#contact" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+            <a href="contact.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
                 <div class="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0">
                     <i data-lucide="phone" class="w-5 h-5 text-cyan-600"></i>
                 </div>
@@ -349,6 +349,47 @@
                 </section>
 
                 <section>
+                    <h2 class="text-3xl font-bold mb-8 flex items-center gap-3"><i data-lucide="star" class="w-7 h-7 text-amber-600"></i>Ratings & Reviews</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- Student Reviews Card -->
+                        <div class="light-card rounded-2xl p-8 border-l-4 border-amber-500">
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-900 mb-2">Student Reviews</h3>
+                                    <p class="text-sm text-gray-600">Based on student feedback</p>
+                                </div>
+                                <div class="text-right">
+                                    <p id="student-reviews-rating" class="text-4xl font-bold text-amber-600">-</p>
+                                    <p class="text-xs text-gray-500">out of 5</p>
+                                </div>
+                            </div>
+                            <div id="student-reviews-stars" class="flex gap-1 text-3xl text-amber-400 mb-4">
+                                <span>★</span><span>★</span><span>★</span><span>★</span><span>☆</span>
+                            </div>
+                            <p id="student-reviews-comment" class="text-gray-700 text-sm italic border-t border-gray-200 pt-4">No student reviews available yet</p>
+                        </div>
+
+                        <!-- Employee Rating Card -->
+                        <div class="light-card rounded-2xl p-8 border-l-4 border-emerald-500">
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-900 mb-2">Employee Rating</h3>
+                                    <p class="text-sm text-gray-600">Staff assessment rating</p>
+                                </div>
+                                <div class="text-right">
+                                    <p id="employee-rating-rating" class="text-4xl font-bold text-emerald-600">-</p>
+                                    <p class="text-xs text-gray-500">out of 5</p>
+                                </div>
+                            </div>
+                            <div id="employee-rating-stars" class="flex gap-1 text-3xl text-emerald-500 mb-4">
+                                <span>★</span><span>★</span><span>★</span><span>★</span><span>☆</span>
+                            </div>
+                            <p id="employee-rating-comment" class="text-gray-700 text-sm italic border-t border-gray-200 pt-4">No employee rating available yet</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
                     <h2 class="text-3xl font-bold mb-8 flex items-center gap-3"><i data-lucide="check-square" class="w-7 h-7 text-emerald-600"></i>Common Amenities</h2>
                     <div id="amenitiesGrid" class="light-card rounded-2xl p-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
                         <div class="flex flex-col items-center text-center p-5 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 hover:shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 border border-blue-200"><i data-lucide="wifi" class="w-8 h-8 text-blue-600 mb-3 flex-shrink-0 font-bold"></i><span class="font-bold text-sm text-gray-800">High-Speed Wi-Fi</span></div>
@@ -414,65 +455,105 @@
             </div>
 
             <div class="lg:col-span-1 mt-12 lg:mt-0">
-                <div class="light-card p-8 rounded-2xl sticky sticky-booking-card border-l-4 border-blue-500"> 
+                <div class="light-card p-8 rounded-2xl sticky sticky-booking-card border-l-4 border-teal-500">
+                    <!-- Pricing Header -->
                     <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Monthly Budget</p>
-                    <p id="property-budget" class="text-4xl font-bold text-gray-900 mb-6">₹10,000 <span class="text-lg font-normal text-gray-500">/ month</span></p>
+                    <p id="property-budget" class="text-4xl font-bold text-gray-900 mb-8">₹10,000 <span class="text-lg font-normal text-gray-500">/ month</span></p>
                     
-                    <!-- Bid Type Info -->
-                    <div class="mt-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200">
-                        <div class="flex items-start space-x-3">
-                            <i data-lucide="zap" class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0 font-bold"></i>
-                            <div class="text-sm">
-                                <p id="bid-type-label" class="font-bold text-blue-900 mb-1">Quick Bid System</p>
-                                <p id="bid-type-description" class="text-blue-800 text-xs">Send your bid to match with owner instantly</p>
+                    <!-- Tab Navigation -->
+                    <div class="flex gap-3 mb-6 border-b border-gray-200">
+                        <button id="schedule-tab" class="pb-3 px-2 font-semibold text-teal-600 border-b-2 border-teal-600 transition-all duration-200">Request</button>
+                        <button id="reserve-tab" class="pb-3 px-2 font-semibold text-gray-500 border-b-2 border-transparent hover:text-gray-700 transition-all duration-200">Bid Now</button>
+                    </div>
+
+                    <!-- Request Tab -->
+                    <div id="schedule-content" class="space-y-4">
+                        <form id="schedule-form" class="space-y-3">
+                            <input type="text" id="visit-name" placeholder="Name" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" required>
+                            
+                            <div class="flex items-center gap-2 border border-gray-300 rounded-lg px-3 py-2.5">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Crect fill='%23FF9933' width='36' height='12'/%3E%3Crect fill='white' y='12' width='36' height='12'/%3E%3Crect fill='%23138808' y='24' width='36' height='12'/%3E%3C/svg%3E" alt="India" class="w-6 h-4">
+                                <span class="text-gray-500 text-sm">+91</span>
+                                <input type="tel" id="visit-phone" placeholder="Mobile Number" class="flex-1 text-sm focus:outline-none bg-transparent" required>
+                            </div>
+
+                            <div class="bg-teal-50 border border-teal-200 rounded-lg p-3 text-center">
+                                <p class="text-sm text-teal-700 font-medium">We accept bookings with a minimum stay of 3 months.</p>
+                            </div>
+
+                            <div class="flex items-center gap-2 mt-4">
+                                <div class="relative w-10 h-6 bg-teal-500 rounded-full cursor-pointer transition-colors duration-200" id="whatsapp-toggle">
+                                    <div class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200"></div>
+                                </div>
+                                <span class="text-sm text-gray-700"><i data-lucide="message-circle" class="w-4 h-4 inline mr-1 text-teal-600"></i>Get updates over WhatsApp</span>
+                            </div>
+
+                            <div class="flex items-start gap-2 mt-4">
+                                <input type="checkbox" id="visit-terms" class="w-4 h-4 mt-1 accent-teal-600" required>
+                                <span class="text-xs text-gray-700">I have read and agreed to the <a href="#" class="text-teal-600 hover:underline font-semibold">terms and conditions</a> and <a href="#" class="text-teal-600 hover:underline font-semibold">privacy policy</a> and hereby confirm to proceed.</span>
+                            </div>
+
+                            <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 mt-5">Send Request</button>
+                        </form>
+                    </div>
+
+                    <!-- Bid Now Tab -->
+                    <div id="reserve-content" class="space-y-4 hidden">
+                        <!-- Info Box -->
+                        <div class="border-2 border-teal-200 rounded-lg p-4 space-y-3 bg-teal-50">
+                            <div class="flex items-start gap-3">
+                                <i data-lucide="home" class="w-5 h-5 text-teal-600 mt-0.5 flex-shrink-0"></i>
+                                <div>
+                                    <p class="text-sm font-bold text-gray-800">If you like a residence or apartment, make an initial payment of just ₹500/- to bid and reserve</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i data-lucide="percent" class="w-5 h-5 text-teal-600 mt-0.5 flex-shrink-0"></i>
+                                <div>
+                                    <p class="text-sm font-bold text-gray-800">This will unlock special offers and priority consideration from the property owner</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i data-lucide="undo-2" class="w-5 h-5 text-teal-600 mt-0.5 flex-shrink-0"></i>
+                                <div>
+                                    <p class="text-sm font-bold text-gray-800">But if you change your mind anytime, you can get your money back (no questions asked)</p>
+                                </div>
                             </div>
                         </div>
+
+                        <form id="reserve-form" class="space-y-3">
+                            <input type="text" id="reserve-name" placeholder="First Name" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" required>
+                            
+                            <div class="flex items-center gap-2 border border-gray-300 rounded-lg px-3 py-2.5">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Crect fill='%23FF9933' width='36' height='12'/%3E%3Crect fill='white' y='12' width='36' height='12'/%3E%3Crect fill='%23138808' y='24' width='36' height='12'/%3E%3C/svg%3E" alt="India" class="w-6 h-4">
+                                <span class="text-gray-500 text-sm">+91</span>
+                                <input type="tel" id="reserve-phone" placeholder="Mobile Number" class="flex-1 text-sm focus:outline-none bg-transparent" required>
+                            </div>
+
+                            <input type="text" id="referral-code" placeholder="Enter Referral Code (Optional)" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            
+                            <select id="occupancy-select" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white" required>
+                                <option value="">Select Occupancy</option>
+                                <option value="Single">Single Occupancy</option>
+                                <option value="Double">Double Occupancy</option>
+                                <option value="Triple">Triple Occupancy</option>
+                            </select>
+
+                            <div class="bg-teal-50 border border-teal-200 rounded-lg p-3 text-center">
+                                <p class="text-sm text-teal-700 font-medium">We accept bookings with a minimum stay of 3 months.</p>
+                            </div>
+
+                            <div class="flex items-start gap-2 mt-4">
+                                <input type="checkbox" id="reserve-terms" class="w-4 h-4 mt-1 accent-teal-600" required>
+                                <span class="text-xs text-gray-700">I have read and agreed to the <a href="#" class="text-teal-600 hover:underline font-semibold">terms and conditions</a> and <a href="#" class="text-teal-600 hover:underline font-semibold">privacy policy</a> and hereby confirm to proceed.</span>
+                            </div>
+
+                            <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 mt-5">Place Bid (₹500)</button>
+                        </form>
                     </div>
 
-                    <!-- Fees Info -->
-                    <div class="mt-6 space-y-3 text-sm border-b border-gray-200 pb-6">
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-700 font-medium">Bid Fee</span>
-                            <span id="activation-fee" class="font-bold text-gray-900">₹49</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-700 font-medium">Security Deposit <span class="text-xs text-gray-500">(Refundable)</span></span>
-                            <span id="visit-security" class="font-bold text-gray-900">₹500</span>
-                        </div>
-                        <div class="flex justify-between items-center text-base font-bold bg-gradient-to-r from-amber-100 to-orange-100 -mx-4 -mb-3 px-4 py-3 rounded-b-lg border-t-2 border-amber-200">
-                            <span class="text-gray-900">Total Cost</span>
-                            <span id="total-amount" class="text-orange-700">₹549</span>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-8 space-y-3">
-                        <button id="request-btn" class="w-full bg-white border-2 border-green-500 text-green-600 font-bold py-3 px-4 rounded-lg hover:bg-green-50 hover:border-green-600 transition-all duration-200 text-base flex items-center justify-center space-x-2 shadow-sm">
-                            <i data-lucide="message-square" class="w-5 h-5"></i>
-                            <span>Contact Owner</span>
-                        </button>
-                        <button id="bid-now-btn" class="w-full glow-button text-white font-bold py-3 px-4 rounded-lg text-base flex items-center justify-center space-x-2 shadow-lg" data-property-id="">
-                            <i data-lucide="zap" class="w-5 h-5"></i>
-                            <span id="bid-btn-text">Place Bid (₹500)</span>
-                        </button>
-                    </div>
-
-                    <!-- Bid Details -->
-                    <div class="mt-8 space-y-3 text-xs">
-                        <div class="flex items-start space-x-2">
-                            <i data-lucide="check-circle-2" class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0 font-bold"></i>
-                            <span class="text-gray-700"><span class="font-semibold">Chat enabled</span> when owner accepts your bid</span>
-                        </div>
-                        <div class="flex items-start space-x-2">
-                            <i data-lucide="check-circle-2" class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0 font-bold"></i>
-                            <span class="text-gray-700"><span class="font-semibold">1-2 visits</span> allowed per bid to verify property</span>
-                        </div>
-                        <div class="flex items-start space-x-2">
-                            <i data-lucide="check-circle-2" class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0 font-bold"></i>
-                            <span class="text-gray-700"><span class="font-semibold">Security adjusted</span> on successful booking</span>
-                        </div>
-                    </div>
-
-                     <div class="mt-6 text-center text-xs text-gray-600 border-t border-gray-200 pt-4 flex items-center justify-center gap-2">
+                    <!-- Safety Badge -->
+                    <div class="mt-6 text-center text-xs text-gray-600 border-t border-gray-200 pt-4 flex items-center justify-center gap-2">
                         <i data-lucide="shield-check" class="w-4 h-4 text-green-600 font-bold"></i>
                         <span><span class="font-semibold text-gray-800">100% Safe</span> & Protected</span>
                     </div>
@@ -606,7 +687,7 @@
 
     </main>
 
-    <a href="index.html#contact" class="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white p-4 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 hover:-translate-y-1 group">
+    <a href="contact.html" class="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white p-4 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 hover:-translate-y-1 group">
         <i data-lucide="message-circle" class="w-8 h-8 group-hover:rotate-12 transition-transform duration-300"></i>
         <span class="absolute bottom-16 right-0 bg-gray-900 text-white px-3 py-2 rounded-lg text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none">Need help? Chat with us</span>
     </a>
@@ -616,7 +697,7 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8 mb-12">
                 <div class="md:col-span-1">
                     <a href="index.html" class="mb-4 inline-block">
-                        <img src="logo.svg" alt="Roomhy Logo" class="h-10 w-auto brightness-0 invert">
+                        <img src="images/logoroomhy.jpg" alt="Roomhy Logo" class="h-10 w-25">
                     </a>
                     <p class="text-gray-400 text-sm leading-relaxed mt-3">Your trusted partner in finding the perfect student accommodation. Live, learn, and grow with us.</p>
                     <div class="flex space-x-5 mt-6">
@@ -930,13 +1011,53 @@
                     verifiedEl.style.display = verified ? 'inline-flex' : 'none';
                 }
 
-                // Owner & Contact
+                // Location Display (instead of phone number)
                 const ownerContactEl = document.getElementById('property-owner-contact');
                 if (ownerContactEl) {
-                    const owner = prop.ownerName || prop.owner || '-';
-                    const phone = prop.contactPhone || prop.contact || '-';
-                    ownerContactEl.innerHTML = `<div>Owner: <strong>${owner}</strong> • <a href="tel:${phone}" class="text-blue-600 hover:underline">${phone}</a></div>`;
+                    const address = v.address || '-';
+                    const nearbyLocation = v.nearbyLocation || v.nearbyLocations || '';
+                    let locationText = `<div class="flex items-start gap-2"><i data-lucide="map-pin" class="w-4 h-4 mt-0.5 text-blue-600 flex-shrink-0"></i><div><strong>Location:</strong> ${address}`;
+                    if (nearbyLocation) {
+                        locationText += `<br><strong>Nearby:</strong> ${nearbyLocation}`;
+                    }
+                    locationText += '</div></div>';
+                    ownerContactEl.innerHTML = locationText;
                 }
+
+                // Student Reviews and Employee Rating Display
+                const updateRatingDisplay = (rating, starsId, ratingId, commentId, isStudent = true) => {
+                    const starsEl = document.getElementById(starsId);
+                    const ratingEl = document.getElementById(ratingId);
+                    const commentEl = document.getElementById(commentId);
+                    
+                    if (!rating || rating === '-' || rating === 0) {
+                        if (starsEl) starsEl.innerHTML = '<span>★</span><span>★</span><span>★</span><span>★</span><span>☆</span>';
+                        if (ratingEl) ratingEl.textContent = '-';
+                        if (commentEl) commentEl.textContent = isStudent ? 'No student reviews available yet' : 'No employee rating available yet';
+                        return;
+                    }
+                    
+                    const ratingValue = parseFloat(rating);
+                    const fullStars = Math.floor(ratingValue);
+                    const emptyStars = 5 - fullStars;
+                    let starsHtml = '';
+                    for (let i = 0; i < fullStars; i++) starsHtml += '<span>★</span>';
+                    for (let i = 0; i < emptyStars; i++) starsHtml += '<span>☆</span>';
+                    
+                    if (starsEl) starsEl.innerHTML = starsHtml;
+                    if (ratingEl) ratingEl.textContent = ratingValue.toFixed(1);
+                    if (commentEl) {
+                        const comment = isStudent ? (v.studentReviews || 'Based on student feedback and reviews') : (v.employeeRatingComment || 'Professional staff assessment rating');
+                        commentEl.textContent = comment;
+                    }
+                };
+                
+                // Display Student Reviews Rating
+                updateRatingDisplay(v.studentReviewsRating, 'student-reviews-stars', 'student-reviews-rating', 'student-reviews-comment', true);
+                
+                // Display Employee Rating
+                updateRatingDisplay(v.employeeRating, 'employee-rating-stars', 'employee-rating-rating', 'employee-rating-comment', false);
+
 
                 // Quick Facts
                 const factIconMap = (key) => {
@@ -1427,6 +1548,215 @@
 
                 // Load and display website banner photo
                 loadWebsiteBannerPhoto();
+
+                // ============ Booking Tabs & Forms ============
+                const scheduleTab = document.getElementById('schedule-tab');
+                const reserveTab = document.getElementById('reserve-tab');
+                const scheduleContent = document.getElementById('schedule-content');
+                const reserveContent = document.getElementById('reserve-content');
+                const scheduleForm = document.getElementById('schedule-form');
+                const reserveForm = document.getElementById('reserve-form');
+                const whatsappToggle = document.getElementById('whatsapp-toggle');
+
+                // Tab switching
+                if (scheduleTab && reserveTab && scheduleContent && reserveContent) {
+                    scheduleTab.addEventListener('click', () => {
+                        scheduleTab.classList.add('text-teal-600', 'border-teal-600');
+                        scheduleTab.classList.remove('text-gray-500', 'border-transparent');
+                        reserveTab.classList.remove('text-teal-600', 'border-teal-600');
+                        reserveTab.classList.add('text-gray-500', 'border-transparent');
+                        scheduleContent.classList.remove('hidden');
+                        reserveContent.classList.add('hidden');
+                    });
+
+                    reserveTab.addEventListener('click', () => {
+                        reserveTab.classList.add('text-teal-600', 'border-teal-600');
+                        reserveTab.classList.remove('text-gray-500', 'border-transparent');
+                        scheduleTab.classList.remove('text-teal-600', 'border-teal-600');
+                        scheduleTab.classList.add('text-gray-500', 'border-transparent');
+                        reserveContent.classList.remove('hidden');
+                        scheduleContent.classList.add('hidden');
+                    });
+                }
+
+                // WhatsApp toggle
+                if (whatsappToggle) {
+                    let whatsappEnabled = true;
+                    whatsappToggle.addEventListener('click', () => {
+                        whatsappEnabled = !whatsappEnabled;
+                        const slider = whatsappToggle.querySelector('div');
+                        if (whatsappEnabled) {
+                            whatsappToggle.classList.add('bg-teal-500');
+                            whatsappToggle.classList.remove('bg-gray-300');
+                            slider.classList.remove('translate-x-4');
+                        } else {
+                            whatsappToggle.classList.remove('bg-teal-500');
+                            whatsappToggle.classList.add('bg-gray-300');
+                            slider.classList.add('translate-x-4');
+                        }
+                    });
+                }
+
+                // Schedule Visit Form (Request)
+                if (scheduleForm) {
+                    scheduleForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        
+                        // Check if user is logged in
+                        const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
+                        if (!user || !user.loginId) {
+                            alert('Please login to submit a request');
+                            window.location.href = '../index.html';
+                            return;
+                        }
+                        
+                        const name = document.getElementById('visit-name').value;
+                        const phone = document.getElementById('visit-phone').value;
+                        const email = user.email || '';
+
+                        if (!name || !phone) {
+                            alert('Please fill in all required fields');
+                            return;
+                        }
+
+                        // Validate phone number (10 digits)
+                        const phoneRegex = /^\d{10}$/;
+                        if (!phoneRegex.test(phone.replace(/\D/g, ''))) {
+                            alert('Please enter a valid 10-digit phone number');
+                            return;
+                        }
+
+                        // Get property details from page
+                        const propertyId = getParam('id') || '1';
+                        const propertyName = document.getElementById('property-title')?.textContent || 'Property';
+                        const area = document.querySelector('[id="property-location"]')?.textContent || 'Unknown';
+                        const propertyType = document.querySelector('[data-field="property-type"]')?.textContent || 'PG';
+                        const rentAmount = document.querySelector('[data-field="rent-amount"]')?.textContent?.replace(/₹|,/g, '') || 0;
+
+                        try {
+                            const apiUrl = window.location.hostname === 'localhost' 
+                                ? 'http://localhost:5000' 
+                                : window.location.origin;
+
+                            const response = await fetch(`${apiUrl}/api/booking/create`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    property_id: propertyId,
+                                    property_name: propertyName,
+                                    area: area,
+                                    property_type: propertyType,
+                                    rent_amount: parseInt(rentAmount),
+                                    user_id: user.loginId,
+                                    name: name,
+                                    email: email || user.loginId,
+                                    phone: phone,
+                                    request_type: 'request',
+                                    message: ''
+                                })
+                            });
+
+                            if (response.ok) {
+                                const result = await response.json();
+                                alert(`Thank you ${name}! Your request has been sent to the area manager. We'll contact you soon.`);
+                                scheduleForm.reset();
+                            } else {
+                                const error = await response.json();
+                                alert('Error: ' + (error.message || 'Could not submit request'));
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                            alert('Error submitting request. Please check your connection.');
+                        }
+                    });
+                }
+
+                // Reserve Now Form (Bid Now)
+                if (reserveForm) {
+                    reserveForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        
+                        // Check if user is logged in
+                        const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
+                        if (!user || !user.loginId) {
+                            alert('Please login to place a bid');
+                            window.location.href = '../index.html';
+                            return;
+                        }
+                        
+                        const name = document.getElementById('reserve-name').value;
+                        const phone = document.getElementById('reserve-phone').value;
+                        const email = user.email || user.loginId;
+                        const referral = document.getElementById('referral-code').value;
+                        const occupancy = document.getElementById('occupancy-select').value;
+
+                        if (!name || !phone || !occupancy) {
+                            alert('Please fill in all required fields');
+                            return;
+                        }
+
+                        // Validate phone number (10 digits)
+                        const phoneRegex = /^\d{10}$/;
+                        if (!phoneRegex.test(phone.replace(/\D/g, ''))) {
+                            alert('Please enter a valid 10-digit phone number');
+                            return;
+                        }
+
+                        // Get property details
+                        const propertyId = getParam('id') || '1';
+                        const propertyName = document.getElementById('property-title')?.textContent || 'Property';
+                        const area = document.querySelector('[id="property-location"]')?.textContent || 'Unknown';
+                        const propertyType = document.querySelector('[data-field="property-type"]')?.textContent || 'PG';
+                        const rentAmount = document.querySelector('[data-field="rent-amount"]')?.textContent?.replace(/₹|,/g, '') || 0;
+
+                        try {
+                            const apiUrl = window.location.hostname === 'localhost' 
+                                ? 'http://localhost:5000' 
+                                : window.location.origin;
+
+                            // Create booking bid
+                            const response = await fetch(`${apiUrl}/api/booking/create`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    property_id: propertyId,
+                                    property_name: propertyName,
+                                    area: area,
+                                    property_type: propertyType,
+                                    rent_amount: parseInt(rentAmount),
+                                    user_id: user.loginId,
+                                    name: name,
+                                    email: email,
+                                    phone: phone,
+                                    request_type: 'bid',
+                                    bid_amount: 500,
+                                    message: referral ? `Referral: ${referral}` : ''
+                                })
+                            });
+
+                            if (response.ok) {
+                                const result = await response.json();
+                                
+                                // Disable Bid Now button
+                                const bidNowBtn = document.getElementById('bid-now-btn');
+                                if (bidNowBtn) {
+                                    bidNowBtn.disabled = true;
+                                    bidNowBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                                    bidNowBtn.textContent = 'Property on Hold';
+                                }
+
+                                alert(`Bid placed successfully for ${name}! Payment of ₹500/- is confirmed. Your bid is now active.`);
+                                reserveForm.reset();
+                            } else {
+                                const error = await response.json();
+                                alert('Error: ' + (error.message || 'Could not place bid'));
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                            alert('Error placing bid. Please check your connection.');
+                        }
+                    });
+                }
             });
         })();
 
@@ -1595,6 +1925,12 @@
         const saveButton = document.getElementById('save-button');
         if (saveButton) {
             let isSaved = false;
+            let propertyData = {};
+            
+            // Get property ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const propertyId = urlParams.get('id');
+            
             // lucide may replace the <i> element with an <svg>, so try both
             function getHeartIcon() {
                 return saveButton.querySelector('i[data-lucide="heart"]') || saveButton.querySelector('svg') || null;
@@ -1619,8 +1955,47 @@
 
             saveButton.addEventListener('click', () => {
                 isSaved = !isSaved;
+                
+                if (isSaved) {
+                    // Add to favorites
+                    let favorites = JSON.parse(localStorage.getItem('roomhy_favorites') || '[]');
+                    
+                    // Get property details from the page
+                    const propertyTitle = document.querySelector('h1') ? document.querySelector('h1').innerText : 'Property';
+                    const propertyLocation = document.querySelector('.text-gray-600.text-lg') ? document.querySelector('.text-gray-600.text-lg').innerText : 'Location';
+                    const propertyPrice = document.querySelector('.text-3xl.font-bold') ? document.querySelector('.text-3xl.font-bold').innerText : 'Price';
+                    const propertyImg = document.querySelector('img[alt*="property"], img[alt*="image"]') ? document.querySelector('img[alt*="property"], img[alt*="image"]').src : 'https://images.unsplash.com/photo-1567016432779-1fee749a1532?q=80&w=1974&auto=format&fit=crop';
+                    
+                    const favorite = {
+                        id: propertyId || Date.now(),
+                        title: propertyTitle,
+                        location: propertyLocation,
+                        price: propertyPrice,
+                        img: propertyImg,
+                        url: window.location.href
+                    };
+                    
+                    // Check if already in favorites
+                    const exists = favorites.some(fav => fav.id === favorite.id);
+                    if (!exists) {
+                        favorites.push(favorite);
+                        localStorage.setItem('roomhy_favorites', JSON.stringify(favorites));
+                    }
+                    
+                    // Show toast and redirect
+                    console.log('Property saved to favorites!');
+                    setTimeout(() => {
+                        window.location.href = 'fav.html';
+                    }, 300);
+                } else {
+                    // Remove from favorites
+                    let favorites = JSON.parse(localStorage.getItem('roomhy_favorites') || '[]');
+                    favorites = favorites.filter(fav => fav.id !== (propertyId || ''));
+                    localStorage.setItem('roomhy_favorites', JSON.stringify(favorites));
+                    console.log('Property removed from favorites');
+                }
+                
                 updateSaveButton();
-                console.log('Save status toggled:', isSaved);
             });
 
             updateSaveButton();

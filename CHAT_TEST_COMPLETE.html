@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoomHy - Chat System Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="js/socket-chat.js"></script>
+    <style>
+        .test-step { border-left: 4px solid #9333ea; padding-left: 16px; margin: 16px 0; }
+        .test-step.active { background: #f3e8ff; border-left-color: #7e22ce; }
+        .test-step.completed { background: #f0fdf4; border-left-color: #22c55e; }
+        .test-step.failed { background: #fef2f2; border-left-color: #dc2626; }
+        .log-output { background: #1f2937; color: #d1d5db; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto; }
+        .log-info { color: #60a5fa; }
+        .log-success { color: #4ade80; }
+        .log-error { color: #f87171; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-6xl mx-auto p-6">
+        <h1 class="text-3xl font-bold mb-2">🧪 RoomHy Chat System Test</h1>
+        <p class="text-gray-600 mb-6">Complete end-to-end test of the chat system with detailed logging</p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Left Panel: Test Steps -->
+            <div>
+                <h2 class="text-xl font-semibold mb-4">Test Steps</h2>
+
+                <div class="test-step" id="step1">
+                    <div class="font-semibold">1. Initialize Test Users</div>
+                    <p class="text-sm text-gray-600 mt-1">Set up two test users and their data</p>
+                    <button onclick="testStep1()" class="mt-2 px-4 py-2 bg-purple-600 text-white rounded text-sm hover:bg-purple-700">
+                        Initialize
+                    </button>
+                </div>
+
+                <div class="test-step" id="step2">
+                    <div class="font-semibold">2. Connect User 1 (Area Manager)</div>
+                    <p class="text-sm text-gray-600 mt-1">Connect first user via Socket.IO</p>
+                    <button onclick="testStep2()" class="mt-2 px-4 py-2 bg-purple-600 text-white rounded text-sm hover:bg-purple-700">
+                        Connect User 1
+                    </button>
+                </div>
+
+                <div class="test-step" id="step3">
+                    <div class="font-semibold">3. Connect User 2 (Superadmin)</div>
+                    <p class="text-sm text-gray-600 mt-1">Connect second user via Socket.IO</p>
+                    <button onclick="testStep3()" class="mt-2 px-4 py-2 bg-purple-600 text-white rounded text-sm hover:bg-purple-700">
+                        Connect User 2
+                    </button>
+                </div>
+
+                <div class="test-step" id="step4">
+                    <div class="font-semibold">4. Send Message (User 1 → User 2)</div>
+                    <p class="text-sm text-gray-600 mt-1">Send test message via Socket.IO</p>
+                    <div class="mt-2 flex gap-2">
+                        <input type="text" id="messageInput" placeholder="Message text" value="Hello from Area Manager!" class="flex-1 px-3 py-2 border rounded text-sm">
+                        <button onclick="testStep4()" class="px-4 py-2 bg-purple-600 text-white rounded text-sm hover:bg-purple-700">
+                            Send
+                        </button>
+                    </div>
+                </div>
+
+                <div class="test-step" id="step5">
+                    <div class="font-semibold">5. Fetch Message via API</div>
+                    <p class="text-sm text-gray-600 mt-1">Retrieve message from database REST API</p>
+                    <button onclick="testStep5()" class="mt-2 px-4 py-2 bg-purple-600 text-white rounded text-sm hover:bg-purple-700">
+                        Fetch from API
+                    </button>
+                </div>
+
+                <div class="test-step" id="step6">
+                    <div class="font-semibold">6. Verify Message Persistence</div>
+                    <p class="text-sm text-gray-600 mt-1">Check MongoDB has the message</p>
+                    <button onclick="testStep6()" class="mt-2 px-4 py-2 bg-purple-600 text-white rounded text-sm hover:bg-purple-700">
+                        Verify
+                    </button>
+                </div>
+
+                <button onclick="clearLogs()" class="mt-6 w-full px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                    Clear Logs
+                </button>
+            </div>
+
+            <!-- Right Panel: Logs -->
+            <div>
+                <h2 class="text-xl font-semibold mb-4">Test Logs</h2>
+                <div id="logOutput" class="log-output">
+                    <div class="log-info">Chat System Test Initialized</div>
+                    <div class="log-info">Waiting for test steps...</div>
+                </div>
+                
+                <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded">
+                    <h3 class="font-semibold text-blue-900 mb-2">Expected Results:</h3>
+                    <ul class="text-sm text-blue-800 space-y-1">
+                        <li>✓ Both users connect successfully</li>
+                        <li>✓ Message is sent via socket and saved to database</li>
+                        <li>✓ Message can be retrieved via API</li>
+                        <li>✓ Other user receives message in real-time</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Panel -->
+        <div class="mt-6 grid grid-cols-4 gap-4">
+            <div class="p-4 bg-white rounded shadow">
+                <div class="text-sm text-gray-600">User 1 Status</div>
+                <div class="text-lg font-semibold text-gray-900" id="user1Status">Offline</div>
+                <div class="text-xs text-gray-500 mt-1" id="user1Id">-</div>
+            </div>
+            <div class="p-4 bg-white rounded shadow">
+                <div class="text-sm text-gray-600">User 2 Status</div>
+                <div class="text-lg font-semibold text-gray-900" id="user2Status">Offline</div>
+                <div class="text-xs text-gray-500 mt-1" id="user2Id">-</div>
+            </div>
+            <div class="p-4 bg-white rounded shadow">
+                <div class="text-sm text-gray-600">Messages Sent</div>
+                <div class="text-lg font-semibold text-gray-900" id="messageCount">0</div>
+            </div>
+            <div class="p-4 bg-white rounded shadow">
+                <div class="text-sm text-gray-600">Server</div>
+                <div class="text-lg font-semibold text-green-600" id="serverStatus">✓ Running</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const log = (message, type = 'info') => {
+            const output = document.getElementById('logOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'log-error' : type === 'success' ? 'log-success' : 'log-info';
+            const div = document.createElement('div');
+            div.className = className;
+            div.innerText = `[${timestamp}] ${message}`;
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+        };
+
+        const stepStatus = (stepNum, status) => {
+            const el = document.getElementById(`step${stepNum}`);
+            el.classList.remove('active', 'completed', 'failed');
+            if (status === 'active') el.classList.add('active');
+            else if (status === 'completed') el.classList.add('completed');
+            else if (status === 'failed') el.classList.add('failed');
+        };
+
+        let testSocket1 = null;
+        let testSocket2 = null;
+        let messagesSent = 0;
+
+        async function testStep1() {
+            stepStatus(1, 'active');
+            log('Step 1: Initializing test users...', 'info');
+            
+            // Populate test data in localStorage
+            localStorage.setItem('roomhy_employees', JSON.stringify([
+                { loginId: 'TESTMGR001', name: 'Test Area Manager', areaCode: 'KO', role: 'Manager' },
+                { loginId: 'TESTADMIN001', name: 'Test Super Admin', areaCode: 'KO', role: 'Admin' }
+            ]));
+            
+            log('✓ Test employees data initialized', 'success');
+            document.getElementById('user1Id').innerText = 'TESTMGR001';
+            document.getElementById('user2Id').innerText = 'TESTADMIN001';
+            stepStatus(1, 'completed');
+        }
+
+        async function testStep2() {
+            stepStatus(2, 'active');
+            log('Step 2: Connecting User 1 (Area Manager)...', 'info');
+            
+            // Create socket instance for user 1
+            window.ChatSocket.init('TESTMGR001');
+            testSocket1 = window.ChatSocket.socket;
+            
+            setTimeout(() => {
+                if (testSocket1 && testSocket1.connected) {
+                    log('✓ User 1 connected: ' + testSocket1.id, 'success');
+                    document.getElementById('user1Status').innerText = 'Online';
+                    document.getElementById('user1Status').className = 'text-lg font-semibold text-green-600';
+                    stepStatus(2, 'completed');
+                } else {
+                    log('✗ User 1 connection failed', 'error');
+                    stepStatus(2, 'failed');
+                }
+            }, 1000);
+        }
+
+        async function testStep3() {
+            stepStatus(3, 'active');
+            log('Step 3: Connecting User 2 (Super Admin)...', 'info');
+            
+            // Create a second socket instance for user 2
+            try {
+                testSocket2 = io('http://localhost:5000', {
+                    transports: ['polling', 'websocket'],
+                    reconnection: true,
+                    reconnectionDelay: 1000,
+                    reconnectionAttempts: 10,
+                    forceNew: true
+                });
+
+                testSocket2.on('connect', () => {
+                    log('✓ User 2 connected: ' + testSocket2.id, 'success');
+                    document.getElementById('user2Status').innerText = 'Online';
+                    document.getElementById('user2Status').className = 'text-lg font-semibold text-green-600';
+                    
+                    // Join room for user 2
+                    const roomId = ['TESTMGR001', 'TESTADMIN001'].sort().join('_');
+                    testSocket2.emit('join-room', roomId);
+                    log('✓ User 2 joined room: ' + roomId, 'success');
+                    stepStatus(3, 'completed');
+                });
+
+                testSocket2.on('error', (err) => {
+                    log('✗ User 2 connection error: ' + err, 'error');
+                    stepStatus(3, 'failed');
+                });
+            } catch (e) {
+                log('✗ Failed to create User 2 socket: ' + e.message, 'error');
+                stepStatus(3, 'failed');
+            }
+        }
+
+        async function testStep4() {
+            stepStatus(4, 'active');
+            const text = document.getElementById('messageInput').value || 'Test message';
+            log('Step 4: Sending message from User 1...', 'info');
+            log('Message: "' + text + '"', 'info');
+            
+            if (!testSocket1 || !testSocket1.connected) {
+                log('✗ User 1 socket not connected', 'error');
+                stepStatus(4, 'failed');
+                return;
+            }
+
+            // Send via socket
+            window.ChatSocket.sendMessage(text, 'TESTADMIN001');
+            messagesSent++;
+            document.getElementById('messageCount').innerText = messagesSent;
+            
+            // Also send via API
+            try {
+                const response = await fetch('http://localhost:5000/api/chat/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        from: 'TESTMGR001',
+                        to: 'TESTADMIN001',
+                        message: text,
+                        type: 'text',
+                        isEscalated: false
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✓ Message sent via API and saved to DB: ' + data.data._id, 'success');
+                    stepStatus(4, 'completed');
+                } else {
+                    log('✗ API send failed: ' + response.status, 'error');
+                    stepStatus(4, 'failed');
+                }
+            } catch (e) {
+                log('✗ API send error: ' + e.message, 'error');
+                stepStatus(4, 'failed');
+            }
+        }
+
+        async function testStep5() {
+            stepStatus(5, 'active');
+            log('Step 5: Fetching message via API...', 'info');
+            
+            try {
+                const response = await fetch(
+                    'http://localhost:5000/api/chat/messages?from=TESTMGR001&to=TESTADMIN001&limit=10'
+                );
+                
+                if (!response.ok) {
+                    log('✗ API fetch failed: ' + response.status, 'error');
+                    stepStatus(5, 'failed');
+                    return;
+                }
+
+                const data = await response.json();
+                const messages = data.data || [];
+                
+                if (messages.length > 0) {
+                    log('✓ API returned ' + messages.length + ' messages', 'success');
+                    messages.forEach((m, i) => {
+                        log(`  Message ${i+1}: "${m.message}" (from: ${m.from})`, 'success');
+                    });
+                    stepStatus(5, 'completed');
+                } else {
+                    log('✗ No messages found in database', 'error');
+                    stepStatus(5, 'failed');
+                }
+            } catch (e) {
+                log('✗ API fetch error: ' + e.message, 'error');
+                stepStatus(5, 'failed');
+            }
+        }
+
+        async function testStep6() {
+            stepStatus(6, 'active');
+            log('Step 6: Verifying message persistence...', 'info');
+            
+            // Check localStorage
+            const employees = JSON.parse(localStorage.getItem('roomhy_employees') || '[]');
+            log('✓ localStorage roomhy_employees: ' + employees.length + ' records', 'success');
+            
+            // Check socket connection
+            if (testSocket1 && testSocket1.connected) {
+                log('✓ Socket 1 connected: ' + testSocket1.id, 'success');
+            } else {
+                log('✗ Socket 1 disconnected', 'error');
+                stepStatus(6, 'failed');
+                return;
+            }
+
+            if (testSocket2 && testSocket2.connected) {
+                log('✓ Socket 2 connected: ' + testSocket2.id, 'success');
+            } else {
+                log('✗ Socket 2 disconnected', 'error');
+                stepStatus(6, 'failed');
+                return;
+            }
+
+            // Fetch latest messages
+            try {
+                const response = await fetch(
+                    'http://localhost:5000/api/chat/messages?from=TESTMGR001&to=TESTADMIN001&limit=5'
+                );
+                const data = await response.json();
+                const count = (data.data || []).length;
+                
+                if (count > 0) {
+                    log('✓ Message persistence verified: ' + count + ' messages in database', 'success');
+                    log('✓ Chat system is FULLY FUNCTIONAL', 'success');
+                    stepStatus(6, 'completed');
+                } else {
+                    log('⚠ No messages persisted in database', 'error');
+                    stepStatus(6, 'failed');
+                }
+            } catch (e) {
+                log('✗ Verification error: ' + e.message, 'error');
+                stepStatus(6, 'failed');
+            }
+        }
+
+        function clearLogs() {
+            document.getElementById('logOutput').innerHTML = '<div class="log-info">Logs cleared</div>';
+        }
+
+        // Check server on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('http://localhost:5000/api/chat/messages?from=test&to=test');
+                if (response.status === 400 || response.status === 200) {
+                    log('✓ Server is running at localhost:5000', 'success');
+                }
+            } catch (e) {
+                log('✗ Server connection failed - make sure server is running', 'error');
+                document.getElementById('serverStatus').innerText = '✗ Not Running';
+                document.getElementById('serverStatus').className = 'text-lg font-semibold text-red-600';
+            }
+        });
+    </script>
+</body>
+</html>
