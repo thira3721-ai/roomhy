@@ -1605,6 +1605,8 @@
         }
 
         async function submitRequestAll() {
+            console.log('Submit request all clicked');
+            const submitBtn = document.getElementById('submit-request-all');
             const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
             
             if (!user || !user.loginId) {
@@ -1615,6 +1617,8 @@
             const name = document.getElementById('request-all-name')?.value || '';
             const phone = document.getElementById('request-all-phone')?.value || '';
             const message = document.getElementById('request-all-message')?.value || '';
+
+            console.log('Form values:', { name, phone, message });
 
             if (!name || !phone) {
                 alert('Please fill in name and phone number');
@@ -1628,8 +1632,17 @@
             }
 
             try {
+                // Disable button and show loading state
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="flex items-center gap-2"><i data-lucide="loader" class="w-4 h-4 animate-spin"></i>Sending...</span>';
+                    lucide.createIcons();
+                }
+
                 let successCount = 0;
                 let failureCount = 0;
+
+                console.log('Submitting requests for', currentFilteredProperties.length, 'properties');
 
                 // Submit request for each property
                 for (const property of currentFilteredProperties) {
@@ -1685,22 +1698,46 @@
             } catch (error) {
                 console.error('Error:', error);
                 alert('Error submitting requests. Please check your connection.');
+            } finally {
+                // Re-enable button and reset text
+                const submitBtn = document.getElementById('submit-request-all');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Send Requests';
+                }
             }
         }
 
-        // Wire up button handlers
-        document.getElementById('mobile-request-all')?.addEventListener('click', showRequestAllModal);
-        document.getElementById('desktop-request-all')?.addEventListener('click', showRequestAllModal);
-        document.getElementById('close-request-all-modal')?.addEventListener('click', closeRequestAllModal);
-        document.getElementById('close-request-all-modal-btn')?.addEventListener('click', closeRequestAllModal);
-        document.getElementById('submit-request-all')?.addEventListener('click', submitRequestAll);
-        
-        // Close modal when clicking outside
-        document.getElementById('request-all-modal')?.addEventListener('click', (e) => {
-            if (e.target.id === 'request-all-modal') {
-                closeRequestAllModal();
-            }
-        });
+        // Wire up button handlers - wrapped in setTimeout to ensure DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                document.getElementById('mobile-request-all')?.addEventListener('click', showRequestAllModal);
+                document.getElementById('desktop-request-all')?.addEventListener('click', showRequestAllModal);
+                document.getElementById('close-request-all-modal')?.addEventListener('click', closeRequestAllModal);
+                document.getElementById('close-request-all-modal-btn')?.addEventListener('click', closeRequestAllModal);
+                document.getElementById('submit-request-all')?.addEventListener('click', submitRequestAll);
+                
+                // Close modal when clicking outside
+                document.getElementById('request-all-modal')?.addEventListener('click', (e) => {
+                    if (e.target.id === 'request-all-modal') {
+                        closeRequestAllModal();
+                    }
+                });
+            });
+        } else {
+            document.getElementById('mobile-request-all')?.addEventListener('click', showRequestAllModal);
+            document.getElementById('desktop-request-all')?.addEventListener('click', showRequestAllModal);
+            document.getElementById('close-request-all-modal')?.addEventListener('click', closeRequestAllModal);
+            document.getElementById('close-request-all-modal-btn')?.addEventListener('click', closeRequestAllModal);
+            document.getElementById('submit-request-all')?.addEventListener('click', submitRequestAll);
+            
+            // Close modal when clicking outside
+            document.getElementById('request-all-modal')?.addEventListener('click', (e) => {
+                if (e.target.id === 'request-all-modal') {
+                    closeRequestAllModal();
+                }
+            });
+        }
 
     </script>
 
