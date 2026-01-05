@@ -1911,9 +1911,9 @@
         // ======================================================
 
         // ======================================================
-        // START: `updateFeaturedProperties` FUNCTION (Button Text Changed, Desktop Slider changed)
+        // START: `updateFeaturedProperties` FUNCTION - Fetches from Backend API
         // ======================================================
-        function updateFeaturedProperties() {
+        async function updateFeaturedProperties() {
             const spacesSlider = document.querySelector('#featured #featured-slider');
             
             if (!spacesSlider) {
@@ -1921,99 +1921,112 @@
                 return;
             }
 
-            const spaces = propertyData["Indore"]; 
-            // Map titles from the propertyData/featured feed to the local property ids
-            // so that "View Details" opens the correct property.html?id=... page.
-            const titleToId = {
-                "Athena House": 1,
-                "The Scholar's Loft": 2,
-                "Campus Corner": 3,
-                "Modern Student Hub": 4,
-                "The Scholar's Den": 5,
-                "Prime Student Living": 6,
-                "Kota Academy Hostel": 7,
-                "Raj Nivas PG": 8,
-                "Sikar Education Hub": 9,
-                // Some feed titles used on index page
-                "The Hive": 2,
-                "Modern Loft": 4
-            };
-            
-            spacesSlider.innerHTML = '';
-            
-            if (!spaces || spaces.length === 0) {
-                spacesSlider.innerHTML = '<p class="text-gray-500 px-4">No properties found.</p>';
-                return;
-            }
-            
-            let newSlidesHTML = '';
-            spaces.forEach(space => {
-                let facilitiesHTML = '';
-                if (space.facilities && space.facilities.length > 0) {
-                    facilitiesHTML = space.facilities.map(icon => 
-                        `<i data-lucide="${icon}" class="w-4 h-4"></i>`
-                    ).join('');
+            try {
+                // Fetch recently approved properties from backend API
+                const response = await fetch(API_URL + '/api/website-enquiry/all');
+                if (!response.ok) throw new Error('Failed to fetch properties');
+                
+                const data = await response.json();
+                
+                // Filter for approved/live properties and get most recent ones
+                let spaces = (data.enquiries || [])
+                    .filter(e => e.status === 'completed' || e.is_live === true)
+                    .sort((a, b) => new Date(b.created_at || b.submittedAt) - new Date(a.created_at || a.submittedAt))
+                    .slice(0, 8); // Show latest 8 properties
+                
+                console.log('✅ Fetched', spaces.length, 'trending properties from API');
+                
+                spacesSlider.innerHTML = '';
+                
+                if (!spaces || spaces.length === 0) {
+                    spacesSlider.innerHTML = '<p class="text-gray-500 px-4">No trending properties available yet.</p>';
+                    return;
                 }
                 
-                let moreFacilitiesHTML = '';
-                if (space.moreFacilities && space.moreFacilities > 0) {
-                    moreFacilitiesHTML = `<span class_name="text-xs font-bold text-blue-600">+${space.moreFacilities} More</span>`;
-                }
+                let newSlidesHTML = '';
+                spaces.forEach((space, idx) => {
+                    // Extract property details from API response
+                    const propertyName = space.propertyInfo?.name || space.property_name || 'Student Property';
+                    const location = space.propertyInfo?.area || space.locality || 'Location not specified';
+                    const price = space.propertyInfo?.monthlyRent || space.monthlyRent || space.rent || 0;
+                    const images = space.professionalPhotos || space.photos || [];
+                    const imageUrl = images.length > 0 ? images[0] : 'https://images.unsplash.com/photo-1567521464027-f127ff144326?q=80&w=2070&auto:format&fit=crop';
+                    const amenities = space.propertyInfo?.amenities || space.amenities || [];
+                    
+                    // Map amenities to lucide icons
+                    const facilityIcons = {
+                        'wifi': 'wifi',
+                        'ac': 'wind',
+                        'parking': 'car',
+                        'gym': 'dumbbell',
+                        'kitchen': 'utensils',
+                        'laundry': 'shirt',
+                        'garden': 'leaf',
+                        'security': 'shield'
+                    };
+                    
+                    let facilitiesHTML = '';
+                    amenities.slice(0, 3).forEach(amenity => {
+                        const icon = facilityIcons[amenity.toLowerCase()] || 'check';
+                        facilitiesHTML += `<i data-lucide="${icon}" class="w-4 h-4"></i>`;
+                    });
+                    
+                    let moreFacilitiesHTML = '';
+                    if (amenities.length > 3) {
+                        moreFacilitiesHTML = `<span class="text-xs font-bold text-blue-600">+${amenities.length - 3} More</span>`;
+                    }
 
-                let oldPriceHTML = '';
-                if (space.oldPrice) {
-                    oldPriceHTML = `<p class="text-xs text-gray-500 line-through">₹${space.oldPrice}</p>`;
-                }
-                
-                const priceColor = space.oldPrice ? 'text-green-600' : 'text-gray-900';
-
-                newSlidesHTML += `
-                    <!-- Changed from w-80 lg:w-96 for consistent scrolling width on mobile/desktop -->
-                    <div class="group flex-shrink-0 snap-start w-80 lg:w-96"> 
-                        <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col h-full">
-                            
-                            <div class="relative">
-                                <img src="${space.img}" alt="${space.title}" class="w-full h-48 object-cover">
-                                <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-1.5">
-                                    <span class="w-2 h-2 bg-white rounded-full opacity-90"></span>
-                                    <span class="w-2 h-2 bg-white rounded-full opacity-50"></span>
-                                    <span class="w-2 h-2 bg-white rounded-full opacity-50"></span>
-                                    <span class="w-2 h-2 bg-white rounded-full opacity-50"></span>
-                                </div>
-                            </div>
-
-                            <div class="p-4 flex flex-col flex-grow">
+                    newSlidesHTML += `
+                        <div class="group flex-shrink-0 snap-start w-80 lg:w-96"> 
+                            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col h-full">
                                 
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <h3 class="font-bold text-lg text-gray-900">${space.title}</h3>
-                                        <p class="text-gray-600 text-sm mt-1">${space.location}</p>
-                                    </div>
-                                    <div class="text-right flex-shrink-0 ml-2">
-                                        <p class="font-bold ${priceColor} text-lg">₹${space.price}</p>
-                                        <p class="text-xs text-gray-500">onwards</p>
-                                    </div>
-                                </div>
-
-                                <div class="mt-4 pt-4 border-t border-gray-100">
-                                    <h4 class="text-xs font-semibold text-gray-500 mb-2">Key Facilities</h4>
-                                    <div class="flex items-center space-x-3 text-gray-600">
-                                        ${facilitiesHTML}
-                                        ${moreFacilitiesHTML}
+                                <div class="relative">
+                                    <img src="${imageUrl}" alt="${propertyName}" class="w-full h-48 object-cover">
+                                    <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-1.5">
+                                        <span class="w-2 h-2 bg-white rounded-full opacity-90"></span>
+                                        <span class="w-2 h-2 bg-white rounded-full opacity-50"></span>
+                                        <span class="w-2 h-2 bg-white rounded-full opacity-50"></span>
+                                        <span class="w-2 h-2 bg-white rounded-full opacity-50"></span>
                                     </div>
                                 </div>
 
-                                <a href="property.html?id=${titleToId[space.title] || 1}" class="block w-full text-center bg-blue-600 text-white font-medium py-2 px-4 rounded-lg text-sm hover:bg-blue-700 transition-colors mt-auto pt-2.5">
-                                    View Details
-                                </a>
+                                <div class="p-4 flex flex-col flex-grow">
+                                    
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h3 class="font-bold text-lg text-gray-900">${propertyName}</h3>
+                                            <p class="text-gray-600 text-sm mt-1">${location}</p>
+                                        </div>
+                                        <div class="text-right flex-shrink-0 ml-2">
+                                            <p class="font-bold text-gray-900 text-lg">₹${price}</p>
+                                            <p class="text-xs text-gray-500">per month</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-4 pt-4 border-t border-gray-100">
+                                        <h4 class="text-xs font-semibold text-gray-500 mb-2">Key Facilities</h4>
+                                        <div class="flex items-center space-x-3 text-gray-600">
+                                            ${facilitiesHTML}
+                                            ${moreFacilitiesHTML}
+                                        </div>
+                                    </div>
+
+                                    <a href="property.html?id=${space._id}" class="block w-full text-center bg-blue-600 text-white font-medium py-2 px-4 rounded-lg text-sm hover:bg-blue-700 transition-colors mt-auto pt-2.5">
+                                        View Details
+                                    </a>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
-            });
-            
-            spacesSlider.innerHTML = newSlidesHTML;
-            lucide.createIcons();
+                    `;
+                });
+                
+                spacesSlider.innerHTML = newSlidesHTML;
+                lucide.createIcons();
+                
+            } catch (error) {
+                console.error('❌ Error fetching trending properties:', error);
+                spacesSlider.innerHTML = '<p class="text-gray-500 px-4">Unable to load trending properties. Please try again later.</p>';
+            }
         }
         // ======================================================
         // END: `updateFeaturedProperties` FUNCTION
