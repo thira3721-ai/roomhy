@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy - Owner KYC</title>
+    <script>
+        // API Configuration
+        const API_URL = 'https://roomhy-backend.onrender.com';
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -273,7 +277,7 @@
                             // Try to create the owner and then retry the PATCH once
                             try {
                                 const createPayload = { loginId: user.loginId, name: user.name || 'Owner' };
-                                const createRes = await fetch('/api/owners', {
+                                const createRes = await fetch(API_URL + '/api/owners', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify(createPayload)

@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>RoomHy - Tenant Chat</title>
+    <script>
+        // API Configuration
+        const API_URL = 'https://roomhy-backend.onrender.com';
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
@@ -241,7 +245,7 @@
             };
 
             try {
-                const resp = await fetch('http://localhost:5000/api/chat/send', {
+                const resp = await fetch(API_URL + '/api/chat/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(escalationMsg)
@@ -264,7 +268,7 @@
             if (chatPoll) clearInterval(chatPoll);
             chatPoll = setInterval(async () => {
                 try {
-                    const resp = await fetch(`http://localhost:5000/api/chat/messages?from=${encodeURIComponent(myId)}&to=${encodeURIComponent(currentTargetId)}&limit=500`);
+                    const resp = await fetch(`${API_URL}/api/chat/messages?from=${encodeURIComponent(myId)}&to=${encodeURIComponent(currentTargetId)}&limit=500`);
                     const json = await resp.ok ? await resp.json() : { data: [] };
                     messagesCache = json.data || [];
                     await renderMessages();
@@ -323,7 +327,7 @@
             };
 
             try {
-                const resp = await fetch('http://localhost:5000/api/chat/send', {
+                const resp = await fetch(API_URL + '/api/chat/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(newMsg)
@@ -365,7 +369,7 @@
                     isEscalated: (currentMode === 'support' && document.getElementById('connectAdminBtn').innerText.includes('Connected'))
                 };
                 try {
-                    await fetch('http://localhost:5000/api/chat/send', {
+                    await fetch(API_URL + '/api/chat/send', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(voiceMsg)
@@ -388,7 +392,7 @@
                     isEscalated: (currentMode === 'support' && document.getElementById('connectAdminBtn').innerText.includes('Connected'))
                 };
                 try {
-                    await fetch('http://localhost:5000/api/chat/send', {
+                    await fetch(API_URL + '/api/chat/send', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(fileMsg)
@@ -416,7 +420,7 @@
         // Test reply button -> create a superadmin reply to this tenant
         document.getElementById('tenantTestReplyBtn').addEventListener('click', async () => {
             try {
-                const resp = await fetch('http://localhost:5000/api/chat/test-reply', {
+                const resp = await fetch(API_URL + '/api/chat/test-reply', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ to: myId, message: 'Test reply from superadmin to tenant' })
                 });

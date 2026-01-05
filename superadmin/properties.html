@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy - All Properties</title>
+    <script>
+        // API Configuration
+        const API_URL = 'https://roomhy-backend.onrender.com';
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
@@ -257,7 +261,7 @@
             try {
                 const token = localStorage.getItem('token');
                 const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
-                const res = await fetch('/api/properties', { headers });
+                const res = await fetch(API_URL + '/api/properties', { headers });
                 if (res.ok) {
                     const data = await res.json();
                     if (data && data.success && Array.isArray(data.properties)) {
@@ -285,7 +289,7 @@
             try {
                 let visits = [];
                 try {
-                    const res = await fetch('/api/admin/visits?status=approved');
+                    const res = await fetch(API_URL + '/api/admin/visits?status=approved');
                     if (res.ok) visits = await res.json();
                 } catch (err) {
                     // ignore backend error

@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy - Website Properties</title>
+    <script>
+        // API Configuration
+        const API_URL = 'https://roomhy-backend.onrender.com';
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
@@ -198,7 +202,7 @@
             
             try {
                 // Fetch from MongoDB via API
-                const response = await fetch('/api/website-enquiry/all');
+                const response = await fetch(API_URL + '/api/website-enquiry/all');
                 if (!response.ok) throw new Error('Failed to fetch properties');
                 
                 const data = await response.json();

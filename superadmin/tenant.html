@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Roomhy - All Tenants</title>
+    <script>
+        // API Configuration
+        const API_URL = 'https://roomhy-backend.onrender.com';
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -309,7 +313,7 @@
                 try {
                     const token = localStorage.getItem('token');
                     if (token) {
-                        const res = await fetch('/api/tenants', { headers: { 'Authorization': 'Bearer ' + token } });
+                        const res = await fetch(API_URL + '/api/tenants', { headers: { 'Authorization': 'Bearer ' + token } });
                         if (res.ok) {
                             const data = await res.json();
                             if (data && data.success && Array.isArray(data.tenants)) tenants = data.tenants;
