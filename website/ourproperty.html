@@ -861,18 +861,19 @@
             const badge = v.property_type || prop.property_type || prop.type || '';
             const photos = (v.photos && v.photos.length) ? v.photos : (v.professionalPhotos || []);
             const img = photos && photos[0] ? photos[0] : 'https://images.unsplash.com/photo-1567016432779-1fee749a1532?q=80&w=1974&auto=format&fit=crop';
+            const propertyId = encodeURIComponent(v._id || v.enquiry_id);
 
             // Build thumbnail scroller (up to 4 thumbnails)
             const thumbs = (photos && photos.length) ? photos.slice(0,4).map(s => `<img src="${s}" class="h-20 w-28 object-cover rounded cursor-pointer">`).join('') : '';
 
             return `
-                <a href="property.html?id=${encodeURIComponent(v._id || v.enquiry_id)}" class="group block">
-                    <div class="light-card rounded-xl overflow-hidden h-full">
+                <div class="light-card rounded-xl overflow-hidden h-full flex flex-col">
+                    <a href="property.html?id=${propertyId}" class="group block flex-grow">
                         <div class="relative">
-                            <img src="${img}" alt="${title}" class="w-full h-56 object-cover">
+                            <img src="${img}" alt="${title}" class="w-full h-56 object-cover group-hover:opacity-90 transition-opacity">
                             ${v.isVerified ? '<div class="absolute top-3 right-3 bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full flex items-center space-x-1"><i data-lucide="shield-check" class="w-4 h-4"></i><span>Verified</span></div>' : ''}
                         </div>
-                        <div class="p-5 text-left bg-white">
+                        <div class="p-5 text-left bg-white flex-grow">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <span class="text-xs text-pink-800 bg-pink-100 px-2 py-1 rounded-full font-medium">${badge}</span>
@@ -886,8 +887,14 @@
                             </div>
                             ${ thumbs ? `<div class="mt-4 overflow-x-auto horizontal-slider flex gap-2">${thumbs}</div>` : '' }
                         </div>
+                    </a>
+                    <div class="p-5 pt-0 bg-white border-t border-gray-100">
+                        <a href="property.html?id=${propertyId}" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                            <i data-lucide="message-square" class="w-4 h-4"></i>
+                            <span>Request Now</span>
+                        </a>
                     </div>
-                </a>`;
+                </div>`;
         }
 
         function loadWebsiteListing() {
