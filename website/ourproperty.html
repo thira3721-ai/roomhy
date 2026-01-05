@@ -859,7 +859,7 @@
             const city = v.city || prop.city || '';
             const rent = v.rent || v.monthlyRent || prop.rent || 0;
             const badge = v.property_type || prop.property_type || prop.type || '';
-            const photos = (v.photos && v.photos.length) ? v.photos : (v.professionalPhotos || []);
+            const photos = (v.professionalPhotos && v.professionalPhotos.length) ? v.professionalPhotos : (v.photos || []);
             const img = photos && photos[0] ? photos[0] : 'https://images.unsplash.com/photo-1567016432779-1fee749a1532?q=80&w=1974&auto=format&fit=crop';
             const propertyId = encodeURIComponent(v._id || v.enquiry_id);
 
