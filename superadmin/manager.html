@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy - Team Management</title>
+    <script>
+        // API Configuration
+        const API_URL = 'https://roomhy-backend.onrender.com';
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -573,7 +577,7 @@
         async function syncEmployeesFromBackend() {
             try {
                 console.log('Starting employee sync from backend...');
-                const res = await fetch('http://localhost:5000/api/employees');
+                const res = await fetch(API_URL + '/api/employees');
                 if (res.ok) {
                     const data = await res.json();
                     if (data.data && Array.isArray(data.data)) {
@@ -766,7 +770,7 @@
             const formData = new FormData();
             formData.append('profilePhoto', file);
             try {
-                const res = await fetch('http://localhost:5000/api/upload-profile-photo', {
+                const res = await fetch(API_URL + '/api/upload-profile-photo', {
                     method: 'POST',
                     body: formData
                 });
@@ -858,7 +862,7 @@
                 }
                 // Try to update on backend
                 try {
-                    const res = await fetch(`http://localhost:5000/api/employees/${encodeURIComponent(finalLoginId)}`, {
+                    const res = await fetch(`${API_URL}/api/employees/${encodeURIComponent(finalLoginId)}`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
@@ -887,7 +891,7 @@
                 db.push(newEmp);
                 // Try backend create
                 try {
-                    const res = await fetch('http://localhost:5000/api/employees', {
+                    const res = await fetch(API_URL + '/api/employees', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
@@ -1020,7 +1024,7 @@
             try { localStorage.setItem('roomhy_employees_cache', JSON.stringify(employeesCache)); } catch(e){ console.warn('Could not persist employees cache after deactivate:', e); }
             applyFilters();
             try {
-                const res = await fetch(`http://localhost:5000/api/employees/${encodeURIComponent(loginId)}/deactivate`, { method: 'POST' });
+                const res = await fetch(`${API_URL}/api/employees/${encodeURIComponent(loginId)}/deactivate`, { method: 'POST' });
                 if (res.ok) await syncEmployeesFromBackend();
             } catch (err) {
                 console.warn('Failed to notify backend about logout:', err.message);
@@ -1040,7 +1044,7 @@
             try { localStorage.setItem('roomhy_employees_cache', JSON.stringify(employeesCache)); } catch(e){ console.warn('Could not persist employees cache after reactivate:', e); }
             applyFilters();
             try {
-                const res = await fetch(`http://localhost:5000/api/employees/${encodeURIComponent(loginId)}/reactivate`, { method: 'POST' });
+                const res = await fetch(`${API_URL}/api/employees/${encodeURIComponent(loginId)}/reactivate`, { method: 'POST' });
                 if (res.ok) await syncEmployeesFromBackend();
             } catch (err) {
                 console.warn('Failed to notify backend about reactivate:', err.message);
@@ -1091,7 +1095,7 @@
             updateCounts();
             try {
                 // Use loginId for the DELETE request as expected by backend
-                const res = await fetch(`http://localhost:5000/api/employees/${encodeURIComponent(emp.loginId)}`, { method: 'DELETE' });
+                const res = await fetch(`${API_URL}/api/employees/${encodeURIComponent(emp.loginId)}`, { method: 'DELETE' });
                 if (res.ok) await syncEmployeesFromBackend();
             } catch (err) {
                 console.warn('Failed to delete employee on backend:', err.message);

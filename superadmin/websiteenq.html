@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy - Website Property Enquiries</title>
+    <script>
+        // API Configuration
+        const API_URL = 'https://roomhy-backend.onrender.com';
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
@@ -256,7 +260,7 @@
         // Load enquiries from MongoDB via API
         async function loadEnquiries() {
             try {
-                const response = await fetch('http://localhost:5000/api/website-enquiry/all');
+                const response = await fetch(API_URL + '/api/website-enquiry/all');
                 const result = await response.json();
 
                 if (result.success) {
@@ -566,7 +570,7 @@
                 enquiry.assigned_to = manager.name;
                 enquiry.assigned_area = manager.area;
 
-                fetch(`http://localhost:5000/api/website-enquiry/${enquiryId}`, {
+                fetch(`${API_URL}/api/website-enquiry/${enquiryId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'

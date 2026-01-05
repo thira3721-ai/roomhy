@@ -415,9 +415,7 @@
             };
 
             try {
-                const apiUrl = window.location.hostname === 'localhost' 
-                    ? 'http://localhost:5000' 
-                    : window.location.origin;
+                const apiUrl = API_URL;
 
                 const response = await fetch(`${apiUrl}/api/complaints`, {
                     method: 'POST',
