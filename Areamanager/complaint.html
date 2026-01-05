@@ -561,9 +561,7 @@
 
         async function loadAllComplaints() {
             try {
-                const apiUrl = window.location.hostname === 'localhost' 
-                    ? API_URL 
-                    : window.location.origin;
+                const apiUrl = API_URL;
 
                 const response = await fetch(`${apiUrl}/api/complaints`, {
                     method: 'GET',

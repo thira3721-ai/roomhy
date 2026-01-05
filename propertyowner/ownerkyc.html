@@ -125,7 +125,7 @@
             if (__ownerPollId) return; // already polling
             __ownerPollId = setInterval(async () => {
                 try {
-                    const res = await fetch(`/api/owners/${encodeURIComponent(user.loginId)}`);
+                    const res = await fetch(`${API_URL}/api/owners/${encodeURIComponent(user.loginId)}`);
                     if (res.ok) {
                         const fresh = await res.json();
                         const db = JSON.parse(localStorage.getItem('roomhy_owners_db') || '{}');
@@ -155,7 +155,7 @@
                     if (payload && payload.loginId === user.loginId) {
                         // refresh local owner record
                         try {
-                            const fres = await fetch(`/api/owners/${encodeURIComponent(user.loginId)}`);
+                            const fres = await fetch(`${API_URL}/api/owners/${encodeURIComponent(user.loginId)}`);
                             if (fres.ok) {
                                 const freshOwner = await fres.json();
                                 const db = JSON.parse(localStorage.getItem('roomhy_owners_db') || '{}');
@@ -232,7 +232,7 @@
             try {
                 if (user && user.loginId) {
                     try {
-                        const res = await fetch(`/api/owners/${encodeURIComponent(user.loginId)}`, {
+                        const res = await fetch(`${API_URL}/api/owners/${encodeURIComponent(user.loginId)}`, {
                             method: 'PATCH',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(kycPayload)
@@ -257,7 +257,7 @@
 
                             // Refresh owner data from API to ensure dashboard reads fresh state
                             try {
-                                const fresh = await fetch(`/api/owners/${encodeURIComponent(user.loginId)}`);
+                                const fresh = await fetch(`${API_URL}/api/owners/${encodeURIComponent(user.loginId)}`);
                                 if (fresh.ok) {
                                     const freshOwner = await fresh.json();
                                     const db2 = JSON.parse(localStorage.getItem('roomhy_owners_db') || '{}');
@@ -285,7 +285,7 @@
                                 if (createRes.ok || createRes.status === 201) {
                                     console.info('Owner created successfully, retrying PATCH...');
                                     // Retry PATCH once
-                                    const retryRes = await fetch(`/api/owners/${encodeURIComponent(user.loginId)}`, {
+                                    const retryRes = await fetch(`${API_URL}/api/owners/${encodeURIComponent(user.loginId)}`, {
                                         method: 'PATCH',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify(kycPayload)
@@ -307,7 +307,7 @@
                                         } catch (e) { console.warn('LocalStorage set failed', e && e.message); }
 
                                         try {
-                                            const fresh = await fetch(`/api/owners/${encodeURIComponent(user.loginId)}`);
+                                            const fresh = await fetch(`${API_URL}/api/owners/${encodeURIComponent(user.loginId)}`);
                                             if (fresh.ok) {
                                                 const freshOwner = await fresh.json();
                                                 const db2 = JSON.parse(localStorage.getItem('roomhy_owners_db') || '{}');

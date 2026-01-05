@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy - Area Properties</title>
+    <script>
+        const API_URL = 'https://roomhy-backend.onrender.com';
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="../website/js/area-manager-profile.js"></script>
@@ -193,7 +196,7 @@
                 // Try backend first (if available) to fetch properties for this area
                 try {
                     if (areaCode) {
-                        const res = await fetch(`/api/properties?locationCode=${encodeURIComponent(areaCode)}`);
+                        const res = await fetch(`${API_URL}/api/properties?locationCode=${encodeURIComponent(areaCode)}`);
                         if (res.ok) {
                             const json = await res.json();
                             const props = (json.properties || json || []).map(p => ({

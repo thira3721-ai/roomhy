@@ -373,7 +373,7 @@
             const newStatus = enquiry.status === 'completed' ? 'pending' : 'completed';
             
             // Send update to API
-            fetch(`/api/website-enquiry/${enquiry.enquiry_id}`, {
+            fetch(`${API_URL}/api/website-enquiry/${enquiry.enquiry_id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus })
@@ -403,7 +403,7 @@
             
             if(!confirm(`Are you sure you want to delete "${enquiry.property_name}" permanently? This action cannot be undone.`)) return;
             
-            fetch(`/api/website-enquiry/${enquiry.enquiry_id}`, {
+            fetch(`${API_URL}/api/website-enquiry/${enquiry.enquiry_id}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' }
             })

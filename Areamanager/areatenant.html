@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy - Tenant Management</title>
+    <script>
+        const API_URL = 'https://roomhy-backend.onrender.com';
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
@@ -522,7 +525,7 @@
                 let tenants = [];
                 if (areaCode) {
                     try {
-                        const res = await fetch(`/api/tenants?locationCode=${encodeURIComponent(areaCode)}`);
+                        const res = await fetch(`${API_URL}/api/tenants?locationCode=${encodeURIComponent(areaCode)}`);
                         if (res.ok) tenants = await res.json();
                     } catch (e) { console.warn('Tenants fetch failed', e.message); }
                 }

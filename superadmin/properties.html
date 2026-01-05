@@ -414,7 +414,7 @@
             // Try backend first: GET /api/owners/:ownerId/rooms
             let propRooms = [];
             try {
-                const roomsRes = await fetch(`/api/owners/${encodeURIComponent(ownerId)}/rooms`);
+                const roomsRes = await fetch(`${API_URL}/api/owners/${encodeURIComponent(ownerId)}/rooms`);
                 if (roomsRes.ok) {
                     const payload = await roomsRes.json();
                     propRooms = payload.rooms || [];
