@@ -1652,6 +1652,8 @@
                         const propertyType = property.property_type || property.propertyInfo?.property_type || 'PG';
                         const rentAmount = property.rent || 0;
 
+                        console.log('Submitting for property:', propertyName);
+
                         const response = await fetch(`${API_URL}/api/booking/create`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -1671,8 +1673,11 @@
                         });
 
                         if (response.ok) {
+                            console.log('Request successful for', propertyName);
                             successCount++;
                         } else {
+                            const errorData = await response.json().catch(() => ({ message: response.statusText }));
+                            console.error('Request failed for', propertyName, ':', response.status, errorData);
                             failureCount++;
                         }
                     } catch (err) {
@@ -1682,6 +1687,8 @@
                 }
 
                 // Show result
+                console.log('Final result - Success:', successCount, 'Failures:', failureCount);
+                
                 if (successCount > 0) {
                     alert(`Success! ${successCount} booking request(s) sent to property managers.${failureCount > 0 ? ' ' + failureCount + ' request(s) failed.' : ''}`);
                     closeRequestAllModal();
@@ -1693,11 +1700,12 @@
                     // Reset form
                     document.getElementById('request-all-form')?.reset();
                 } else {
-                    alert('Failed to submit requests. Please try again.');
+                    alert('Failed to submit requests. Please try again. Check browser console (F12) for details.');
+                    console.error('All requests failed. API_URL:', API_URL);
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('Error submitting requests. Please check your connection.');
+                console.error('Outer error:', error);
+                alert('Error submitting requests. Details: ' + error.message);
             } finally {
                 // Re-enable button and reset text
                 const submitBtn = document.getElementById('submit-request-all');
