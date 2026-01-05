@@ -257,9 +257,9 @@
                         </span>
                     </td>
                     <td class="px-4 py-3">
-                        <span class="px-3 py-1 rounded text-xs font-medium bg-green-100 text-green-700">
-                            ● APPROVED
-                        </span>
+                        <button onclick="togglePropertyStatus('${v._id}', '${v.enquiry_id || v._id}')" class="px-3 py-1 rounded text-xs font-medium transition-all ${v.is_live !== false ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
+                            ${v.is_live !== false ? '● ONLINE' : '● OFFLINE'}
+                        </button>
                     </td>
                     <td class="px-4 py-3 text-center">
                         <div class="flex items-center justify-center gap-2">
@@ -363,35 +363,43 @@
             document.getElementById('imageModal').classList.add('hidden'); 
         }
 
-        function toggleWebStatus(id) {
-            const enquiry = allEnquiries.find(v => v._id === id);
-            if(!enquiry) {
+        // Toggle property online/offline status
+        async function togglePropertyStatus(propertyId, enquiryId) {
+            const enquiry = allEnquiries.find(v => v._id === propertyId);
+            if (!enquiry) {
                 alert('Property not found');
                 return;
             }
             
-            const newStatus = enquiry.status === 'completed' ? 'pending' : 'completed';
+            const newStatus = enquiry.is_live === false ? 'online' : 'offline';
+            const confirmMsg = newStatus === 'online' ? 'Take this property ONLINE on the website?' : 'Take this property OFFLINE from the website?';
             
-            // Send update to API
-            fetch(`${API_URL}/api/website-enquiry/${enquiry.enquiry_id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: newStatus })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    const msg = newStatus === 'completed' ? "Property is now ONLINE." : "Property is now OFFLINE.";
+            if (!confirm(confirmMsg)) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/website-enquiry/${enquiryId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': sessionStorage.getItem('token') || localStorage.getItem('token') || ''
+                    },
+                    body: JSON.stringify({
+                        is_live: newStatus === 'online'
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success || response.ok) {
+                    const msg = newStatus === 'online' ? '✅ Property is now ONLINE on website!' : '✅ Property is now OFFLINE from website!';
                     alert(msg);
                     loadWebsite(); // Reload to show changes
                 } else {
-                    alert('Error updating property: ' + data.message);
+                    alert('Error updating property: ' + (data.message || 'Unknown error'));
                 }
-            })
-            .catch(err => {
+            } catch (err) {
                 console.error('Error:', err);
-                alert('Error updating property');
-            });
+                alert('Error updating property status. Please try again.');
+            }
         }
 
         function deleteProperty(id) {
@@ -420,18 +428,6 @@
                 console.error('Error:', err);
                 alert('Error deleting property');
             });
-        }
-
-        function takeOffline(id) {
-            if(!confirm("Are you sure you want to take this property offline?")) return;
-            const visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
-            const idx = visits.findIndex(v => v._id === id);
-            if(idx !== -1) {
-                visits[idx].isLiveOnWebsite = false;
-                if (window.safeStorage) { window.safeStorage.setVisits(visits); } else { localStorage.setItem('roomhy_visits', JSON.stringify(visits)); }
-                loadWebsite();
-                alert('Property taken offline.');
-            }
         }
 
         function exportToExcel() {

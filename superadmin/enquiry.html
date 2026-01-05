@@ -572,7 +572,7 @@
             document.getElementById('approveModal').classList.add('flex');
         }
 
-        function confirmApproval(shouldUpload) {
+        async function confirmApproval(shouldUpload) {
             if(!currentApprovingId) return;
             
             let visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
@@ -601,6 +601,30 @@
                 visits[idx].isLiveOnWebsite = shouldUpload;
                 visits[idx].generatedCredentials = { loginId, tempPassword: password };
                 if (window.safeStorage) { window.safeStorage.setVisits(visits); } else { localStorage.setItem('roomhy_visits', JSON.stringify(visits)); }
+                
+                // Sync with backend API if should upload
+                if (shouldUpload) {
+                    try {
+                        const response = await fetch(API_URL + '/api/visits/approve', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': sessionStorage.getItem('token') || localStorage.getItem('token') || ''
+                            },
+                            body: JSON.stringify({
+                                visitId: currentApprovingId,
+                                status: 'approved',
+                                isLiveOnWebsite: true,
+                                loginId: loginId,
+                                tempPassword: password
+                            })
+                        });
+                        const data = await response.json();
+                        console.log('✅ Visit approved and synced to backend:', data);
+                    } catch (err) {
+                        console.warn('⚠️ Backend sync failed (continuing with localStorage):', err);
+                    }
+                }
                 
                 document.getElementById('modalLoginId').innerText = loginId;
                 document.getElementById('modalPassword').innerText = password;
