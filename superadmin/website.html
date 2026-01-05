@@ -4,10 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy - Website Properties</title>
-    <script>
-        // API Configuration
-        const API_URL = 'https://roomhy-backend.onrender.com';
-    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
@@ -51,7 +47,7 @@
                 <a href="tenant.html" class="sidebar-link"><i data-lucide="users" class="w-5 h-5 mr-3"></i> Tenants</a>
                 <a href="new_signups.html" class="sidebar-link"><i data-lucide="file-badge" class="w-5 h-5 mr-3"></i> New Signups</a>
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Operations</div>
-                <a href="websiteenq.html" class="sidebar-link"><i data-lucide="folder-open" class="w-5 h-5 mr-3"></i> Web Enquiry</a>
+                <a href="tenant_rec.html" class="sidebar-link"><i data-lucide="folder-open" class="w-5 h-5 mr-3"></i> Tenant Records</a>
                 <a href="enquiry.html" class="sidebar-link"><i data-lucide="help-circle" class="w-5 h-5 mr-3"></i> Enquiries</a>
                 <a href="booking.html" class="sidebar-link"><i data-lucide="calendar-check" class="w-5 h-5 mr-3"></i> Bookings</a>
                 <a href="reviews.html" class="sidebar-link"><i data-lucide="star" class="w-5 h-5 mr-3"></i> Reviews</a>
@@ -181,7 +177,6 @@
         }
 
         let currentWebsiteFilter = 'online';
-        let allEnquiries = [];
 
         function setWebsiteFilter(f) {
             currentWebsiteFilter = f;
@@ -190,127 +185,106 @@
             document.getElementById('tabOnline').classList.toggle('bg-gray-100', f !== 'online');
             document.getElementById('tabOnline').classList.toggle('text-gray-700', f !== 'online');
 
-            // Hide offline tab since we only show approved properties
-            document.getElementById('tabOffline').classList.add('hidden');
+            document.getElementById('tabOffline').classList.toggle('bg-purple-600', f === 'offline');
+            document.getElementById('tabOffline').classList.toggle('text-white', f === 'offline');
+            document.getElementById('tabOffline').classList.toggle('bg-gray-100', f !== 'offline');
+            document.getElementById('tabOffline').classList.toggle('text-gray-700', f !== 'offline');
 
-            renderWebsiteTable();
+            loadWebsite();
         }
 
-        async function loadWebsite() {
+        function loadWebsite() {
             const tbody = document.getElementById('websiteBody');
-            tbody.innerHTML = '<tr><td colspan="12" class="px-6 py-12 text-center text-gray-400">Loading properties from database...</td></tr>';
             
-            try {
-                // Fetch from MongoDB via API - primary source
-                const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-                const response = await fetch(API_URL + '/api/website-enquiry/all', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': token ? `Bearer ${token}` : ''
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`API responded with ${response.status}`);
-                }
-                
-                const data = await response.json();
-                console.log('📡 API Response:', data);
-                
-                // Filter for approved/live properties (status = 'completed' or is_live = true)
-                let properties = (data.enquiries || data || []);
-                
-                if (Array.isArray(properties)) {
-                    properties = properties.filter(e => 
-                        e.status === 'completed' || e.is_live === true || e.isLiveOnWebsite === true
-                    );
-                    console.log('✅ Loaded', properties.length, 'properties from database');
-                } else {
-                    properties = [];
-                    console.warn('⚠️ API returned data in unexpected format');
-                }
-                
-                allEnquiries = properties;
-                renderWebsiteTable();
-                updateTabCounts();
-                
-                if (allEnquiries.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="12" class="px-6 py-12 text-center text-gray-400">No approved properties found in database.</td></tr>';
-                }
-            } catch (error) {
-                console.error('❌ Error loading from database:', error);
-                tbody.innerHTML = '<tr><td colspan="12" class="px-6 py-12 text-center text-red-400">Error loading properties from database. Please try again.</td></tr>';
+            // 📊 Load from both localStorage and sessionStorage
+            let visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+            let sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
+            
+            // 🔄 If sessionStorage has more data (localStorage quota exceeded), use that
+            if (sessionVisits.length > visits.length) {
+                visits = sessionVisits;
+            } else if (sessionVisits.length > 0) {
+                // Merge both sources to avoid data loss
+                const ids = new Set(visits.map(v => v._id));
+                visits = [...visits, ...sessionVisits.filter(v => !ids.has(v._id))];
             }
-        }
-
-        function renderWebsiteTable() {
-            const tbody = document.getElementById('websiteBody');
             
-            if (allEnquiries.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="12" class="px-6 py-12 text-center text-gray-400">No approved properties found.</td></tr>';
+            // 🔍 Filter for approved and online/offline based on current filter
+            visits = visits.filter(v => v.status === 'approved' && ((currentWebsiteFilter === 'online' && v.isLiveOnWebsite === true) || (currentWebsiteFilter === 'offline' && v.isLiveOnWebsite === false)));
+
+            if(visits.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" class="px-6 py-12 text-center text-gray-400">No live properties found.</td></tr>';
                 updateStats([]);
                 return;
             }
 
-            tbody.innerHTML = allEnquiries.map(v => {
-                // Handle both localStorage (from enquiry.html) and API data structures
-                const profPhotos = v.professionalPhotos || v.photos || [];
-                const propertyName = v.propertyInfo?.name || v.property_name || '-';
-                const propertyType = v.propertyInfo?.propertyType || v.property_type || '-';
-                const area = v.propertyInfo?.area || v.locality || '-';
-                const gender = v.propertyInfo?.gender || v.gender_suitability || '-';
-                const ownerName = v.propertyInfo?.ownerName || v.owner_name || '-';
-                const ownerPhone = v.propertyInfo?.contactPhone || v.owner_phone || '-';
-                const rent = v.propertyInfo?.monthlyRent || v.monthlyRent || v.rent || 0;
-                const createdDate = v.submittedAt || v.created_at ? new Date(v.submittedAt || v.created_at).toLocaleDateString() : '-';
-                const isLive = v.isLiveOnWebsite !== false && v.is_live !== false;
-                const enquiryId = v.enquiry_id || v._id;
+            tbody.innerHTML = visits.map(v => {
+                const prop = v.propertyInfo || {};
+                const profPhotos = v.professionalPhotos || [];
+                const fieldPhotos = v.photos || [];
+                const allPhotos = [...profPhotos, ...fieldPhotos];
 
                 return `
                 <tr class="hover:bg-gray-50 transition-colors">
                     <td class="px-4 py-3 font-mono text-xs text-gray-600">${v._id ? v._id.slice(-8).toUpperCase() : '-'}</td>
-                    <td class="px-4 py-3 text-sm text-gray-600">${createdDate}</td>
-                    <td class="px-4 py-3 font-semibold text-gray-800">${propertyName}</td>
-                    <td class="px-4 py-3">${propertyType}</td>
-                    <td class="px-4 py-3">${area}</td>
-                    <td class="px-4 py-3">${gender}</td>
-                    <td class="px-4 py-3">${ownerName}</td>
-                    <td class="px-4 py-3 text-sm">${ownerPhone}</td>
-                    <td class="px-4 py-3 font-bold">₹${rent}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600">${v.submittedAt ? new Date(v.submittedAt).toLocaleDateString() : '-'}</td>
+                    <td class="px-4 py-3 font-semibold text-gray-800">${prop.name || '-'}</td>
+                    <td class="px-4 py-3">${prop.propertyType || '-'}</td>
+                    <td class="px-4 py-3">${prop.area || '-'}</td>
+                    <td class="px-4 py-3">${v.gender || '-'}</td>
+                    <td class="px-4 py-3">${prop.ownerName || '-'}</td>
+                    <td class="px-4 py-3 text-sm">${prop.contactPhone || '-'}</td>
+                    <td class="px-4 py-3 font-bold">₹${v.monthlyRent || 0}</td>
                     <td class="px-4 py-3">
                         <span class="text-[10px] font-bold ${profPhotos.length ? 'text-green-600 bg-green-50' : 'text-orange-600 bg-orange-50'} px-2 py-1 rounded">
                             ${profPhotos.length ? 'Yes (' + profPhotos.length + ')' : 'Pending'}
                         </span>
                     </td>
                     <td class="px-4 py-3">
-                        <button onclick="togglePropertyStatus('${v._id}', '${enquiryId}')" class="px-3 py-1 rounded text-xs font-medium transition-all ${isLive ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
-                            ${isLive ? '● ONLINE' : '● OFFLINE'}
+                        <button onclick="toggleWebStatus('${v._id}')" class="px-3 py-1 rounded text-xs font-medium transition-all ${v.isLiveOnWebsite ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
+                            ${v.isLiveOnWebsite ? '● ONLINE' : '● OFFLINE'}
                         </button>
                     </td>
                     <td class="px-4 py-3 text-center">
                         <div class="flex items-center justify-center gap-2">
-                            ${profPhotos.length > 0 ? `<button onclick='viewGallery(${JSON.stringify(profPhotos)})' class="p-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition" title="View Photos"><i data-lucide="images" class="w-4 h-4"></i></button>` : ''}
+                            ${allPhotos.length > 0 ? `<button onclick='viewGallery(${JSON.stringify(allPhotos)})' class="p-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition" title="View Photos"><i data-lucide="images" class="w-4 h-4"></i></button>` : ''}
                             <button onclick="deleteProperty('${v._id}')" class="p-2 bg-red-50 text-red-600 rounded hover:bg-red-100 transition" title="Delete Property"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </div>
                     </td>
                 </tr>`;
             }).join('');
             lucide.createIcons();
-            updateStats(allEnquiries);
+            updateStats(visits);
+            updateTabCounts();
         }
 
         function updateStats(visits) {
             document.getElementById('totalCount').innerText = visits.length;
-            const withProf = visits.filter(v => v.photos && v.photos.length > 0).length;
+            const withProf = visits.filter(v => v.professionalPhotos && v.professionalPhotos.length > 0).length;
             document.getElementById('profCount').innerText = withProf;
             document.getElementById('noProfCount').innerText = visits.length - withProf;
         }
 
         function updateTabCounts() {
-            const total = allEnquiries.length;
+            // 📊 Load from both sources
+            let visitsAll = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+            let sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
+            
+            // 🔄 Merge if needed
+            if (sessionVisits.length > visitsAll.length) {
+                visitsAll = sessionVisits;
+            } else if (sessionVisits.length > 0) {
+                const ids = new Set(visitsAll.map(v => v._id));
+                visitsAll = [...visitsAll, ...sessionVisits.filter(v => !ids.has(v._id))];
+            }
+            
+            visitsAll = visitsAll.filter(v => v.status === 'approved');
+            const online = visitsAll.filter(v => v.isLiveOnWebsite === true).length;
+            const offline = visitsAll.filter(v => !v.isLiveOnWebsite).length;
             const onlineBtn = document.getElementById('tabOnline');
-            if (onlineBtn) onlineBtn.innerText = `Approved (${total})`;
+            const offlineBtn = document.getElementById('tabOffline');
+            if (onlineBtn) onlineBtn.innerText = `Online (${online})`;
+            if (offlineBtn) offlineBtn.innerText = `Offline (${offline})`;
         }
 
         // === WEBSITE PHOTO FUNCTIONS ===
@@ -390,104 +364,66 @@
             document.getElementById('imageModal').classList.add('hidden'); 
         }
 
-        // Toggle property online/offline status
-        async function togglePropertyStatus(propertyId, enquiryId) {
-            const enquiry = allEnquiries.find(v => v._id === propertyId);
-            if (!enquiry) {
-                alert('Property not found');
-                return;
-            }
-            
-            // Check current status
-            const isCurrentlyLive = enquiry.isLiveOnWebsite !== false && enquiry.is_live !== false;
-            const newStatus = isCurrentlyLive ? 'offline' : 'online';
-            const confirmMsg = newStatus === 'online' ? 'Take this property ONLINE on the website?' : 'Take this property OFFLINE from the website?';
-            
-            if (!confirm(confirmMsg)) return;
-            
-            try {
-                const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-                const response = await fetch(`${API_URL}/api/website-enquiry/${enquiryId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': token ? `Bearer ${token}` : ''
-                    },
-                    body: JSON.stringify({
-                        is_live: newStatus === 'online',
-                        status: newStatus === 'online' ? 'completed' : 'pending'
-                    })
-                });
-                
-                if (response.ok) {
-                    const msg = newStatus === 'online' ? '✅ Property is now ONLINE on website!' : '✅ Property is now OFFLINE from website!';
-                    alert(msg);
-                    loadWebsite(); // Reload from database to show changes
-                } else {
-                    const errorData = await response.json().catch(() => ({}));
-                    alert('Error updating property: ' + (errorData.message || response.statusText));
-                }
-            } catch (err) {
-                console.error('Error:', err);
-                alert('Error updating property status. Please try again.');
+        function toggleWebStatus(id) {
+            const visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+            const idx = visits.findIndex(v => v._id === id);
+            if(idx !== -1) {
+                visits[idx].isLiveOnWebsite = !visits[idx].isLiveOnWebsite;
+                if (window.safeStorage) { window.safeStorage.setVisits(visits); } else { localStorage.setItem('roomhy_visits', JSON.stringify(visits)); }
+                // reload current tab
+                loadWebsite();
+                const msg = visits[idx].isLiveOnWebsite ? "Property is now ONLINE." : "Property is now OFFLINE.";
+                alert(msg);
             }
         }
 
         function deleteProperty(id) {
-            const enquiry = allEnquiries.find(v => v._id === id);
-            if(!enquiry) {
-                alert('Property not found');
-                return;
+            if(!confirm("Are you sure you want to delete this property permanently? This action cannot be undone.")) return;
+            const visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+            const idx = visits.findIndex(v => v._id === id);
+            if(idx !== -1) {
+                const prop = visits[idx].propertyInfo || {};
+                visits.splice(idx, 1);
+                if (window.safeStorage) { window.safeStorage.setVisits(visits); } else { localStorage.setItem('roomhy_visits', JSON.stringify(visits)); }
+                loadWebsite();
+                alert(`Property "${prop.name}" has been deleted.`);
             }
-            
-            const propertyName = enquiry.propertyInfo?.name || enquiry.property_name || 'Property';
-            if(!confirm(`Are you sure you want to delete "${propertyName}" permanently from database? This action cannot be undone.`)) return;
-            
-            const enquiryId = enquiry.enquiry_id || enquiry._id;
-            const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-            
-            fetch(`${API_URL}/api/website-enquiry/${enquiryId}`, {
-                method: 'DELETE',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': token ? `Bearer ${token}` : ''
-                }
-            })
-            .then(res => {
-                if (res.ok) {
-                    alert(`Property "${propertyName}" has been deleted from database.`);
-                    loadWebsite(); // Reload to show changes
-                } else {
-                    return res.json().then(data => {
-                        alert('Error deleting property: ' + (data.message || res.statusText));
-                    }).catch(() => {
-                        alert('Error deleting property');
-                    });
-                }
-            })
-            .catch(err => {
-                console.error('Error:', err);
-                alert('Error deleting property. Please try again.');
-            });
+        }
+
+        function takeOffline(id) {
+            if(!confirm("Are you sure you want to take this property offline?")) return;
+            const visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+            const idx = visits.findIndex(v => v._id === id);
+            if(idx !== -1) {
+                visits[idx].isLiveOnWebsite = false;
+                if (window.safeStorage) { window.safeStorage.setVisits(visits); } else { localStorage.setItem('roomhy_visits', JSON.stringify(visits)); }
+                loadWebsite();
+                alert('Property taken offline.');
+            }
         }
 
         function exportToExcel() {
-            if (!allEnquiries.length) return alert('No data to export');
+            // 📊 Load from both sources
+            let visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+            let sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
             
-            let csv = 'ID,Date,Property Name,Type,Location,Owner,Contact,Rent,Photos,Status\n';
-            allEnquiries.forEach(v => {
-                const propertyName = v.propertyInfo?.name || v.property_name || '-';
-                const propertyType = v.propertyInfo?.propertyType || v.property_type || '-';
-                const locality = v.propertyInfo?.area || v.locality || '-';
-                const ownerName = v.propertyInfo?.ownerName || v.owner_name || '-';
-                const ownerPhone = v.propertyInfo?.contactPhone || v.owner_phone || '-';
-                const rent = v.propertyInfo?.monthlyRent || v.rent || 0;
-                const photos = (v.professionalPhotos || v.photos || []).length;
-                const isLive = v.isLiveOnWebsite !== false && v.is_live !== false;
-                const status = isLive ? 'ONLINE' : 'OFFLINE';
-                const createdDate = v.submittedAt || v.created_at || '-';
-                
-                csv += `"${v._id}","${createdDate}","${propertyName}","${propertyType}","${locality}","${ownerName}","${ownerPhone}","${rent}","${photos}","${status}"\n`;
+            // 🔄 Merge if needed
+            if (sessionVisits.length > visits.length) {
+                visits = sessionVisits;
+            } else if (sessionVisits.length > 0) {
+                const ids = new Set(visits.map(v => v._id));
+                visits = [...visits, ...sessionVisits.filter(v => !ids.has(v._id))];
+            }
+            
+            visits = visits.filter(v => v.status === 'approved' && ((currentWebsiteFilter === 'online' && v.isLiveOnWebsite === true) || (currentWebsiteFilter === 'offline' && v.isLiveOnWebsite === false)));
+            
+            if(!visits.length) return alert('No data to export');
+            
+            let csv = 'Visit ID,Date,Property Name,Type,Area,Owner,Contact,Rent,Prof Photos,Status\n';
+            visits.forEach(v => {
+                const prop = v.propertyInfo || {};
+                const profPhotos = (v.professionalPhotos || []).length;
+                csv += `"${v._id}","${v.submittedAt}","${prop.name}","${prop.propertyType}","${prop.area}","${prop.ownerName}","${prop.contactPhone}","${v.monthlyRent}","${profPhotos}","ONLINE"\n`;
             });
             
             const blob = new Blob([csv], { type: 'text/csv' });
