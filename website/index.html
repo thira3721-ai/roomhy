@@ -13,6 +13,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <script>
+        // API Configuration
+        const API_URL = 'https://roomhy-backend.onrender.com';
+
         tailwind.config = {
             theme: {
             extend: {
@@ -2053,7 +2056,7 @@
             }
 
             // Fetch trending enquiries from MongoDB API
-            fetch('http://localhost:5000/api/website-enquiry/all')
+            fetch(API_URL + '/api/website-enquiry/all')
                 .then(response => {
                     if (!response.ok) throw new Error('Failed to fetch properties');
                     return response.json();
@@ -2191,7 +2194,7 @@
             
             // Find the city with the most properties
             const promises = customCities.map(city => 
-                fetch(`http://localhost:5000/api/website-enquiry/city/${encodeURIComponent(city)}`)
+                fetch(`${API_URL}/api/website-enquiry/city/${encodeURIComponent(city)}`)
                     .then(res => res.json())
                     .then(data => ({
                         city: city,
@@ -2290,7 +2293,7 @@
             if (!slider) return;
             
             // Fetch properties from MongoDB API for this specific city
-            fetch(`http://localhost:5000/api/website-enquiry/city/${encodeURIComponent(city)}`)
+            fetch(`${API_URL}/api/website-enquiry/city/${encodeURIComponent(city)}`)
                 .then(response => {
                     if (!response.ok) throw new Error('Failed to fetch properties');
                     return response.json();

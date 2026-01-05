@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RoomHy - Area Manager Chat</title>
+    <script>
+        // API Configuration
+        const API_URL = 'https://roomhy-backend.onrender.com';
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -1361,7 +1365,7 @@
             // backend notification for Super Admin
             try {
                 const token = localStorage.getItem('token') || '';
-                await fetch((window.location.hostname.includes('localhost') ? 'http://localhost:5000' : '') + '/api/admin/notifications', {
+                await fetch(API_URL + '/api/admin/notifications', {
                     method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: JSON.stringify({ toRole: 'superadmin', from: managerId, type: 'call', meta: { channel, target: activeChatId } })
                 });
@@ -1378,7 +1382,7 @@
             } catch (e) { console.error('startVideo send failed', e.message || e); }
             try {
                 const token = localStorage.getItem('token') || '';
-                await fetch((window.location.hostname.includes('localhost') ? 'http://localhost:5000' : '') + '/api/admin/notifications', {
+                await fetch(API_URL + '/api/admin/notifications', {
                     method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: JSON.stringify({ toRole: 'superadmin', from: managerId, type: 'video', meta: { channel, target: activeChatId } })
                 });

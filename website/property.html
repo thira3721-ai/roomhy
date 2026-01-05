@@ -5,6 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Athena House, Hinjawadi - Roomhy</title>
+    <script>
+        // API Configuration
+        const API_URL = 'https://roomhy-backend.onrender.com';
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1634,9 +1638,7 @@
                         const rentAmount = document.querySelector('[data-field="rent-amount"]')?.textContent?.replace(/₹|,/g, '') || 0;
 
                         try {
-                            const apiUrl = window.location.hostname === 'localhost' 
-                                ? 'http://localhost:5000' 
-                                : window.location.origin;
+                            const apiUrl = API_URL;
 
                             const response = await fetch(`${apiUrl}/api/booking/create`, {
                                 method: 'POST',
@@ -1710,9 +1712,7 @@
                         const rentAmount = document.querySelector('[data-field="rent-amount"]')?.textContent?.replace(/₹|,/g, '') || 0;
 
                         try {
-                            const apiUrl = window.location.hostname === 'localhost' 
-                                ? 'http://localhost:5000' 
-                                : window.location.origin;
+                            const apiUrl = API_URL;
 
                             // Create booking bid
                             const response = await fetch(`${apiUrl}/api/booking/create`, {

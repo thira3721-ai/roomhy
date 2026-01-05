@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy - Visit Reports</title>
+    <script>
+        // API Configuration
+        const API_URL = 'https://roomhy-backend.onrender.com';
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="../website/js/backend-sync.js"></script>
@@ -633,7 +637,7 @@
             try {
                 console.log('🔄 Syncing visits from backend for staff:', staffId);
                 
-                const response = await fetch(`http://localhost:5000/api/visits?staffId=${encodeURIComponent(staffId)}`, {
+                const response = await fetch(`${API_URL}/api/visits?staffId=${encodeURIComponent(staffId)}`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' }
                 });
@@ -1595,7 +1599,7 @@
                     // Also save to backend database as backup
                     console.log('💾 Attempting to save visit to backend...');
                     try {
-                        const backendRes = await fetch('http://localhost:5000/api/visits', {
+                        const backendRes = await fetch(API_URL + '/api/visits', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(mode === 'create' ? newVisit : visits[idx])

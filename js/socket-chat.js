@@ -1,6 +1,8 @@
 // Common Socket.IO Chat Client for all RoomHy chat interfaces
 // This file provides a unified interface for real-time messaging across all chat panels
 
+const API_URL = 'https://roomhy-backend.onrender.com';
+
 class RoomHyChatSocket {
     constructor() {
         this.socket = null;
@@ -29,8 +31,8 @@ class RoomHyChatSocket {
         }
 
         this.userId = userId;
-        // Always connect to localhost:5000
-        const serverUrl = 'http://localhost:5000';
+        // Always connect to production server
+        const serverUrl = API_URL;
 
         try {
             if (typeof io === 'undefined') {

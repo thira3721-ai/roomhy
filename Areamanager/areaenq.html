@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy - Enquiries & Visits</title>
+    <script>
+        // API Configuration
+        const API_URL = 'https://roomhy-backend.onrender.com';
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
@@ -487,7 +491,7 @@
         lucide.createIcons();
         let myLoginId = '';
         let assignedEnquiries = [];
-        const API_BASE_URL = 'http://localhost:5000/api/website-enquiry';
+        const API_BASE_URL = API_URL + '/api/website-enquiry';
 
         // Get employee login ID from localStorage
         function getEmployeeLoginId() {

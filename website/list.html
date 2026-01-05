@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy - List Your Property</title>
+    <script>
+        // API Configuration
+        const API_URL = 'https://roomhy-backend.onrender.com';
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -758,7 +762,7 @@
                         };
 
                         // Submit to MongoDB via API
-                        const response = await fetch('http://localhost:5000/api/website-enquiry/submit', {
+                        const response = await fetch(API_URL + '/api/website-enquiry/submit', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'

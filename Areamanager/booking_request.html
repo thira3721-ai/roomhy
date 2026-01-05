@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy - Booking Requests</title>
+    <script>
+        // API Configuration
+        const API_URL = 'https://roomhy-backend.onrender.com';
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="../website/js/area-manager-profile.js"></script>
@@ -199,9 +203,7 @@
                 const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}');
                 const areaManagerId = user.area_manager_id || localStorage.getItem('area_manager_id') || 'AM001';
 
-                const apiUrl = window.location.hostname === 'localhost' 
-                    ? 'http://localhost:5000' 
-                    : window.location.origin;
+                const apiUrl = API_URL;
 
                 // Fetch from API with area_manager_id filter
                 const response = await fetch(
@@ -430,9 +432,7 @@
             if (!confirm('Are you sure you want to approve this booking?')) return;
 
             try {
-                const apiUrl = window.location.hostname === 'localhost' 
-                    ? 'http://localhost:5000' 
-                    : window.location.origin;
+                const apiUrl = API_URL;
 
                 const response = await fetch(`${apiUrl}/api/booking/requests/${bookingId}/approve`, {
                     method: 'PUT',
@@ -458,9 +458,7 @@
             if (!reason) return;
 
             try {
-                const apiUrl = window.location.hostname === 'localhost' 
-                    ? 'http://localhost:5000' 
-                    : window.location.origin;
+                const apiUrl = API_URL;
 
                 const response = await fetch(`${apiUrl}/api/booking/requests/${bookingId}/reject`, {
                     method: 'PUT',
@@ -497,9 +495,7 @@
         // Schedule visit API call
         async function scheduleVisit(bookingId, visitType, visitDate, timeSlot) {
             try {
-                const apiUrl = window.location.hostname === 'localhost' 
-                    ? 'http://localhost:5000' 
-                    : window.location.origin;
+                const apiUrl = API_URL;
 
                 const response = await fetch(`${apiUrl}/api/booking/requests/${bookingId}/schedule-visit`, {
                     method: 'POST',
