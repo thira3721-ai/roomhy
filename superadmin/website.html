@@ -198,58 +198,49 @@
 
         async function loadWebsite() {
             const tbody = document.getElementById('websiteBody');
-            tbody.innerHTML = '<tr><td colspan="12" class="px-6 py-12 text-center text-gray-400">Loading properties...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="12" class="px-6 py-12 text-center text-gray-400">Loading properties from database...</td></tr>';
             
-            let properties = [];
-            
-            // First, try to load from localStorage (from enquiry.html)
             try {
-                const localVisits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
-                const sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
-                
-                let allVisits = [...localVisits];
-                sessionVisits.forEach(sv => {
-                    if (!allVisits.find(v => v._id === sv._id)) {
-                        allVisits.push(sv);
+                // Fetch from MongoDB via API - primary source
+                const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+                const response = await fetch(API_URL + '/api/website-enquiry/all', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token ? `Bearer ${token}` : ''
                     }
                 });
                 
-                // Filter for approved and marked as live on website
-                const liveProperties = allVisits.filter(v => 
-                    v.status === 'approved' && v.isLiveOnWebsite === true
-                );
+                if (!response.ok) {
+                    throw new Error(`API responded with ${response.status}`);
+                }
                 
-                if (liveProperties.length > 0) {
-                    properties = liveProperties;
-                    console.log('✅ Loaded', properties.length, 'properties from localStorage');
+                const data = await response.json();
+                console.log('📡 API Response:', data);
+                
+                // Filter for approved/live properties (status = 'completed' or is_live = true)
+                let properties = (data.enquiries || data || []);
+                
+                if (Array.isArray(properties)) {
+                    properties = properties.filter(e => 
+                        e.status === 'completed' || e.is_live === true || e.isLiveOnWebsite === true
+                    );
+                    console.log('✅ Loaded', properties.length, 'properties from database');
+                } else {
+                    properties = [];
+                    console.warn('⚠️ API returned data in unexpected format');
                 }
-            } catch (err) {
-                console.warn('⚠️ Error loading from localStorage:', err);
-            }
-            
-            // If no properties from localStorage, try API
-            if (properties.length === 0) {
-                try {
-                    const response = await fetch(API_URL + '/api/website-enquiry/all');
-                    if (response.ok) {
-                        const data = await response.json();
-                        // Show properties with status 'completed' or is_live === true
-                        properties = (data.enquiries || []).filter(e => 
-                            e.status === 'completed' || e.is_live === true
-                        );
-                        console.log('✅ Loaded', properties.length, 'properties from API');
-                    }
-                } catch (error) {
-                    console.warn('⚠️ API fetch failed:', error);
+                
+                allEnquiries = properties;
+                renderWebsiteTable();
+                updateTabCounts();
+                
+                if (allEnquiries.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="12" class="px-6 py-12 text-center text-gray-400">No approved properties found in database.</td></tr>';
                 }
-            }
-            
-            allEnquiries = properties;
-            renderWebsiteTable();
-            updateTabCounts();
-            
-            if (allEnquiries.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="12" class="px-6 py-12 text-center text-gray-400">No approved properties found. Upload properties from Enquiry panel.</td></tr>';
+            } catch (error) {
+                console.error('❌ Error loading from database:', error);
+                tbody.innerHTML = '<tr><td colspan="12" class="px-6 py-12 text-center text-red-400">Error loading properties from database. Please try again.</td></tr>';
             }
         }
 
@@ -407,7 +398,7 @@
                 return;
             }
             
-            // Check if it's from localStorage (has isLiveOnWebsite) or API (has is_live)
+            // Check current status
             const isCurrentlyLive = enquiry.isLiveOnWebsite !== false && enquiry.is_live !== false;
             const newStatus = isCurrentlyLive ? 'offline' : 'online';
             const confirmMsg = newStatus === 'online' ? 'Take this property ONLINE on the website?' : 'Take this property OFFLINE from the website?';
@@ -415,45 +406,30 @@
             if (!confirm(confirmMsg)) return;
             
             try {
-                // Try API first
+                const token = sessionStorage.getItem('token') || localStorage.getItem('token');
                 const response = await fetch(`${API_URL}/api/website-enquiry/${enquiryId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': sessionStorage.getItem('token') || localStorage.getItem('token') || ''
+                        'Authorization': token ? `Bearer ${token}` : ''
                     },
                     body: JSON.stringify({
-                        is_live: newStatus === 'online'
+                        is_live: newStatus === 'online',
+                        status: newStatus === 'online' ? 'completed' : 'pending'
                     })
                 });
                 
                 if (response.ok) {
                     const msg = newStatus === 'online' ? '✅ Property is now ONLINE on website!' : '✅ Property is now OFFLINE from website!';
                     alert(msg);
-                    loadWebsite(); // Reload to show changes
+                    loadWebsite(); // Reload from database to show changes
                 } else {
-                    throw new Error('API error');
+                    const errorData = await response.json().catch(() => ({}));
+                    alert('Error updating property: ' + (errorData.message || response.statusText));
                 }
             } catch (err) {
-                console.warn('⚠️ API update failed, trying localStorage:', err);
-                
-                // Fallback: update localStorage if from enquiry.html
-                try {
-                    let visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
-                    const idx = visits.findIndex(v => v._id === propertyId);
-                    if (idx !== -1) {
-                        visits[idx].isLiveOnWebsite = newStatus === 'online';
-                        localStorage.setItem('roomhy_visits', JSON.stringify(visits));
-                        const msg = newStatus === 'online' ? '✅ Property is now ONLINE on website!' : '✅ Property is now OFFLINE from website!';
-                        alert(msg);
-                        loadWebsite();
-                    } else {
-                        alert('Error: Property not found in storage');
-                    }
-                } catch (storageErr) {
-                    alert('Error updating property status. Please try again.');
-                    console.error('Error:', storageErr);
-                }
+                console.error('Error:', err);
+                alert('Error updating property status. Please try again.');
             }
         }
 
@@ -465,32 +441,33 @@
             }
             
             const propertyName = enquiry.propertyInfo?.name || enquiry.property_name || 'Property';
-            if(!confirm(`Are you sure you want to delete "${propertyName}" permanently? This action cannot be undone.`)) return;
+            if(!confirm(`Are you sure you want to delete "${propertyName}" permanently from database? This action cannot be undone.`)) return;
             
-            // Try API delete first
             const enquiryId = enquiry.enquiry_id || enquiry._id;
+            const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+            
             fetch(`${API_URL}/api/website-enquiry/${enquiryId}`, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ''
+                }
             })
-            .then(res => res.ok ? res.json() : Promise.reject('API error'))
-            .then(data => {
-                alert(`Property "${propertyName}" has been deleted.`);
-                loadWebsite(); // Reload to show changes
+            .then(res => {
+                if (res.ok) {
+                    alert(`Property "${propertyName}" has been deleted from database.`);
+                    loadWebsite(); // Reload to show changes
+                } else {
+                    return res.json().then(data => {
+                        alert('Error deleting property: ' + (data.message || res.statusText));
+                    }).catch(() => {
+                        alert('Error deleting property');
+                    });
+                }
             })
             .catch(err => {
-                console.warn('⚠️ API delete failed, trying localStorage:', err);
-                // Fallback: remove from localStorage
-                try {
-                    let visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
-                    visits = visits.filter(v => v._id !== id);
-                    localStorage.setItem('roomhy_visits', JSON.stringify(visits));
-                    alert(`Property "${propertyName}" has been deleted.`);
-                    loadWebsite();
-                } catch (storageErr) {
-                    alert('Error deleting property');
-                    console.error('Error:', storageErr);
-                }
+                console.error('Error:', err);
+                alert('Error deleting property. Please try again.');
             });
         }
 
