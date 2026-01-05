@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy - Manager Communication</title>
+    <script>
+        const API_URL = 'https://roomhy-backend.onrender.com';
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -124,7 +127,7 @@
 
         async function getMsgs(fromId, toId) {
             try {
-                const resp = await fetch('http://localhost:5002/api/chat/messages?from=' + encodeURIComponent(fromId) + '&to=' + encodeURIComponent(toId) + '&limit=500');
+                const resp = await fetch(API_URL + '/api/chat/messages?from=' + encodeURIComponent(fromId) + '&to=' + encodeURIComponent(toId) + '&limit=500');
                 if (!resp.ok) return [];
                 const json = await resp.json();
                 return json.data || [];
@@ -395,7 +398,7 @@
                 const target = currentChatId || 'superadmin';
                 // if not currently viewing support, target manager as recipient of superadmin reply
                 const to = (target === 'superadmin') ? managerId : managerId;
-                const resp = await fetch('http://localhost:5002/api/chat/test-reply', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ to, message: 'Hello from superadmin (test)' }) });
+                const resp = await fetch(API_URL + '/api/chat/test-reply', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ to, message: 'Hello from superadmin (test)' }) });
                 const j = await resp.json();
                 if (resp.ok) {
                     // refresh messages for support thread if open

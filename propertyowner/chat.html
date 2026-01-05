@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RoomHy - Property Owner Chat</title>
+    <script>
+        const API_URL = 'https://roomhy-backend.onrender.com';
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -86,9 +89,7 @@
         let currentChat = null;
         let currentChatId = null;
         let allChats = [];
-        const apiUrl = window.location.hostname === 'localhost' 
-            ? 'http://localhost:5002' 
-            : window.location.origin;
+        const apiUrl = API_URL;
 
         // ============ INITIALIZATION ============
         document.addEventListener('DOMContentLoaded', () => {

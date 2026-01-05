@@ -363,10 +363,11 @@
     </div>
 
     <script>
+        const API_URL = 'https://roomhy-backend.onrender.com';
         window.addEventListener('load', () => { if(typeof lucide!=='undefined') lucide.createIcons(); });
 
-        // Backend base for dev (Live Server / different origin). Adjust if your backend runs elsewhere.
-        const backendBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:5000' : '';
+        // Backend base - now using production Render URL
+        const backendBase = API_URL;
         let backendRoomsCache = null; // store rooms fetched from backend for this owner
 
         // 1. Session & Property Init

@@ -216,8 +216,7 @@
         let filteredChats = [];
         let selectedChat = null;
         let autoRefreshInterval = null;
-        const apiUrl = window.location.hostname === 'localhost' 
-            ? 'http://localhost:5002'
+        const apiUrl = API_URL;
 
         // ============ INITIALIZATION ============
         document.addEventListener('DOMContentLoaded', () => {
@@ -1071,7 +1070,7 @@
         async function getChats(fromId, toId) {
             try {
                 console.log('ChatAdmin: getChats called with from:', fromId, 'to:', toId);
-                const url = `http://localhost:5002/api/chat/messages?from=${encodeURIComponent(fromId)}&to=${encodeURIComponent(toId)}&limit=500`;
+                const url = `${API_URL}/api/chat/messages?from=${encodeURIComponent(fromId)}&to=${encodeURIComponent(toId)}&limit=500`;
                 console.log('ChatAdmin: Fetching from URL:', url);
                 const resp = await fetch(url);
                 console.log('ChatAdmin: Fetch response status:', resp.status);
@@ -1178,7 +1177,7 @@
                 // If no local cache, attempt to fetch recent conversations via backend
                 if (!allMsgs || allMsgs.length === 0) {
                     try {
-                        const resp = await fetch(`http://localhost:5002/api/chat/user/${encodeURIComponent(superadminId)}`);
+                        const resp = await fetch(`${API_URL}/api/chat/user/${encodeURIComponent(superadminId)}`);
                         if (resp.ok) {
                             const json = await resp.json();
                             // json.data contains conversation summaries; convert to minimal messages array

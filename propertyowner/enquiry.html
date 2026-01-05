@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Owner Enquiries - Roomhy</title>
+    <script>
+        // API Configuration
+        const API_URL = 'https://roomhy-backend.onrender.com';
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -102,7 +106,7 @@
                 return;
             }
             try {
-                const res = await fetch(`http://localhost:5002/api/owners/${encodeURIComponent(user.loginId)}/enquiries`);
+                const res = await fetch(`${API_URL}/api/owners/${encodeURIComponent(user.loginId)}/enquiries`);
                 const list = res.ok ? await res.json() : [];
                 const container = document.getElementById('enquiry-list');
                 if (!list.length) {

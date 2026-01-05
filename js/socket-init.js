@@ -2,7 +2,7 @@
 // Usage: include this script in all HTML panels that need chat
 
 // Set your backend URL here if not same origin
-const SOCKET_IO_URL = window.SOCKET_IO_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5002' : window.location.origin.replace(/^http/, 'ws'));
+const SOCKET_IO_URL = 'https://roomhy-backend.onrender.com';
 
 window.io = window.io || undefined;
 (function loadSocketIo() {

@@ -108,9 +108,7 @@
         let currentChatId = null;
         let currentChatType = '';
         let allChats = [];
-        const apiUrl = window.location.hostname === 'localhost' 
-            ? 'http://localhost:5002' 
-            : window.location.origin;
+        const apiUrl = API_URL;
 
         // ============ INITIALIZATION ============
         document.addEventListener('DOMContentLoaded', () => {
@@ -819,7 +817,7 @@
         async function getMsgs(fromId, toId) {
             try {
                 console.log('Areachat: getMsgs called with from:', fromId, 'to:', toId);
-                const url = `http://localhost:5002/api/chat/messages?from=${encodeURIComponent(fromId)}&to=${encodeURIComponent(toId)}&limit=500`;
+                const url = `${API_URL}/api/chat/messages?from=${encodeURIComponent(fromId)}&to=${encodeURIComponent(toId)}&limit=500`;
                 console.log('Areachat: Fetching from:', url);
                 const resp = await fetch(url);
                 console.log('Areachat: Fetch response status:', resp.status, resp.ok);
@@ -852,7 +850,7 @@
             };
 
             try {
-                const resp = await fetch('http://localhost:5002/api/chat/send', {
+                const resp = await fetch(API_URL + '/api/chat/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(doc)
