@@ -375,7 +375,7 @@
                         <button class='w-full border border-backgroundColor text-backgroundColor hover:bg-blue-50 bg-transparent font-bold py-3 rounded-xl transition-colors shadow-sm glow-button'>
                             Clear Filters
                         </button>
-                        <button class='w-full border-2 border-green-600 text-green-600 hover:bg-green-50 bg-transparent font-bold py-3 rounded-xl transition-colors shadow-md glow-button'>
+                        <button id="mobile-request-all" class='w-full border-2 border-green-600 text-green-600 hover:bg-green-50 bg-transparent font-bold py-3 rounded-xl transition-colors shadow-md glow-button'>
                             Request on all
                         </button>
                     </div>
@@ -480,7 +480,7 @@
                         <button class='w-full border border-backgroundColor text-backgroundColor hover:bg-blue-50 bg-transparent font-bold py-3 rounded-xl transition-colors shadow-sm glow-button'>
                             Clear Filters
                         </button>
-                        <button class='w-full border-2 border-green-600 text-green-600 hover:bg-green-50 bg-transparent font-bold py-3 rounded-xl transition-colors shadow-md glow-button'>
+                        <button id="desktop-request-all" class='w-full border-2 border-green-600 text-green-600 hover:bg-green-50 bg-transparent font-bold py-3 rounded-xl transition-colors shadow-md glow-button'>
                             Request on all
                         </button>
                     </div>
@@ -1483,7 +1483,278 @@
             }
         }
 
+        // ======================================================
+        // REQUEST ON ALL FUNCTIONALITY
+        // ======================================================
+        
+        let currentFilteredProperties = [];
+
+        // Store filtered properties whenever loadWebsiteListing is called
+        const originalLoadWebsiteListing = window.loadWebsiteListing;
+        window.loadWebsiteListing = function() {
+            // Call original function but intercept to store properties
+            const typeParam = getUrlParam('type') || '';
+            const cityParam = getUrlParam('city') || '';
+            
+            let desktopCity = document.getElementById('desktop-select-city')?.value || '';
+            let mobileCity = document.getElementById('mobile-select-city')?.value || '';
+            
+            if (cityParam && !desktopCity && !mobileCity) {
+                desktopCity = cityParam;
+                const desktopSelect = document.getElementById('desktop-select-city');
+                const mobileSelect = document.getElementById('mobile-select-city');
+                if (desktopSelect) desktopSelect.value = cityParam;
+                if (mobileSelect) mobileSelect.value = cityParam;
+            }
+            
+            const cityValue = (desktopCity || mobileCity || '').toString().toLowerCase();
+            
+            const desktopArea = document.getElementById('desktop-select-area')?.value || '';
+            const mobileArea = document.getElementById('mobile-select-area')?.value || '';
+            const areaValue = (desktopArea || mobileArea).toString();
+            
+            const desktopMinPrice = document.getElementById('desktop-min-price')?.value || '';
+            const mobileMinPrice = document.getElementById('mobile-min-price')?.value || '';
+            const minPrice = desktopMinPrice || mobileMinPrice || '';
+            
+            const desktopMaxPrice = document.getElementById('desktop-max-price')?.value || '';
+            const mobileMaxPrice = document.getElementById('mobile-max-price')?.value || '';
+            const maxPrice = desktopMaxPrice || mobileMaxPrice || '';
+            
+            const desktopGender = document.getElementById('desktop-gender')?.value || '';
+            const mobileGender = document.getElementById('mobile-gender')?.value || '';
+            const genderValue = desktopGender || mobileGender || '';
+            
+            const desktopPropertyType = document.getElementById('desktop-property-type')?.value || '';
+            const mobilePropertyType = document.getElementById('mobile-property-type')?.value || '';
+            const propertyTypeValue = (desktopPropertyType || mobilePropertyType || typeParam || '').toString().toLowerCase();
+            
+            const desktopOccupancy = document.getElementById('desktop-occupancy')?.value || '';
+            const mobileOccupancy = document.getElementById('mobile-occupancy')?.value || '';
+            const occupancyValue = desktopOccupancy || mobileOccupancy || '';
+
+            const filters = {};
+            if (cityValue) filters.city = cityValue;
+            if (areaValue) filters.area = areaValue;
+            if (genderValue) filters.gender = genderValue;
+            if (propertyTypeValue) filters.propertyType = propertyTypeValue;
+            if (minPrice) filters.minPrice = minPrice;
+            if (maxPrice && maxPrice !== '50000_plus') filters.maxPrice = maxPrice;
+            if (occupancyValue) filters.occupancy = occupancyValue;
+
+            fetchPropertiesFromAPI(filters).then(visits => {
+                let filtered = visits;
+                filtered = filtered.filter(v => v.professionalPhotos && v.professionalPhotos.length > 0);
+
+                if (genderValue) {
+                    filtered = filtered.filter(v => {
+                        const gender = (v.propertyInfo && v.propertyInfo.gender || '').toString().toLowerCase();
+                        return gender === genderValue.toLowerCase() || gender === 'co-ed' || genderValue.toLowerCase() === 'co-ed';
+                    });
+                }
+
+                // Store filtered properties for "Request on all" feature
+                currentFilteredProperties = filtered;
+
+                const grid = document.getElementById('propertiesGrid');
+                if (!grid) return;
+                
+                if (!filtered.length) {
+                    grid.innerHTML = '<p class="text-gray-500 px-4">No properties found for selected filters.</p>';
+                    document.getElementById('showingTotal').innerText = '0';
+                    return;
+                }
+
+                grid.innerHTML = filtered.map(v => renderPropertyCard(v)).join('');
+                lucide.createIcons();
+                document.getElementById('showingTotal').innerText = filtered.length;
+                document.getElementById('showingFrom').innerText = filtered.length ? '1' : '0';
+                document.getElementById('showingTo').innerText = filtered.length;
+            }).catch(err => {
+                console.error('Error loading properties:', err);
+                const grid = document.getElementById('propertiesGrid');
+                if (grid) {
+                    grid.innerHTML = '<p class="text-red-500 px-4">Error loading properties. Please try again.</p>';
+                }
+            });
+        };
+
+        // Request on all button handlers
+        function showRequestAllModal() {
+            if (currentFilteredProperties.length === 0) {
+                alert('No properties to request. Please apply filters and try again.');
+                return;
+            }
+            
+            const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
+            if (!user || !user.loginId) {
+                alert('Please login to submit requests');
+                window.location.href = '../index.html';
+                return;
+            }
+
+            // Update property count and show modal
+            document.getElementById('property-count').innerText = currentFilteredProperties.length;
+            const modal = document.getElementById('request-all-modal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeRequestAllModal() {
+            const modal = document.getElementById('request-all-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function submitRequestAll() {
+            const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
+            
+            if (!user || !user.loginId) {
+                alert('Please login to submit requests');
+                return;
+            }
+
+            const name = document.getElementById('request-all-name')?.value || '';
+            const phone = document.getElementById('request-all-phone')?.value || '';
+            const message = document.getElementById('request-all-message')?.value || '';
+
+            if (!name || !phone) {
+                alert('Please fill in name and phone number');
+                return;
+            }
+
+            const phoneRegex = /^\d{10}$/;
+            if (!phoneRegex.test(phone.replace(/\D/g, ''))) {
+                alert('Please enter a valid 10-digit phone number');
+                return;
+            }
+
+            try {
+                let successCount = 0;
+                let failureCount = 0;
+
+                // Submit request for each property
+                for (const property of currentFilteredProperties) {
+                    try {
+                        const propertyName = property.property_name || 'Property';
+                        const area = property.locality || property.propertyInfo?.area || 'Unknown';
+                        const propertyType = property.property_type || property.propertyInfo?.property_type || 'PG';
+                        const rentAmount = property.rent || 0;
+
+                        const response = await fetch(`${API_URL}/api/booking/create`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                property_id: property._id || property.enquiry_id,
+                                property_name: propertyName,
+                                area: area,
+                                property_type: propertyType,
+                                rent_amount: parseInt(rentAmount),
+                                user_id: user.loginId,
+                                name: name,
+                                email: user.email || user.loginId,
+                                phone: phone,
+                                request_type: 'bulk_request',
+                                message: message || ''
+                            })
+                        });
+
+                        if (response.ok) {
+                            successCount++;
+                        } else {
+                            failureCount++;
+                        }
+                    } catch (err) {
+                        console.error('Error submitting request for property:', err);
+                        failureCount++;
+                    }
+                }
+
+                // Show result
+                if (successCount > 0) {
+                    alert(`Success! ${successCount} booking request(s) sent to property managers.${failureCount > 0 ? ' ' + failureCount + ' request(s) failed.' : ''}`);
+                    closeRequestAllModal();
+                    
+                    // Close mobile drawer if open
+                    document.getElementById('mobile-filter-drawer')?.classList.add('translate-x-full');
+                    document.getElementById('filter-overlay')?.classList.add('hidden');
+                    
+                    // Reset form
+                    document.getElementById('request-all-form')?.reset();
+                } else {
+                    alert('Failed to submit requests. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error submitting requests. Please check your connection.');
+            }
+        }
+
+        // Wire up button handlers
+        document.getElementById('mobile-request-all')?.addEventListener('click', showRequestAllModal);
+        document.getElementById('desktop-request-all')?.addEventListener('click', showRequestAllModal);
+        document.getElementById('close-request-all-modal')?.addEventListener('click', closeRequestAllModal);
+        document.getElementById('close-request-all-modal-btn')?.addEventListener('click', closeRequestAllModal);
+        document.getElementById('submit-request-all')?.addEventListener('click', submitRequestAll);
+        
+        // Close modal when clicking outside
+        document.getElementById('request-all-modal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'request-all-modal') {
+                closeRequestAllModal();
+            }
+        });
+
     </script>
+
+    <!-- REQUEST ALL MODAL -->
+    <div id="request-all-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 md:p-8 animate-fade-in">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Request on All Properties</h2>
+                <button id="close-request-all-modal" class="text-gray-500 hover:text-gray-700">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <p class="text-gray-600 mb-6">Your request will be sent to <span id="property-count" class="font-semibold">0</span> property managers. They will contact you soon.</p>
+
+            <form id="request-all-form" class="space-y-4">
+                <div>
+                    <label for="request-all-name" class="block text-sm font-semibold text-gray-700 mb-2">Full Name *</label>
+                    <input type="text" id="request-all-name" placeholder="Enter your name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                </div>
+
+                <div>
+                    <label for="request-all-phone" class="block text-sm font-semibold text-gray-700 mb-2">Phone Number *</label>
+                    <input type="tel" id="request-all-phone" placeholder="10-digit phone number" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" pattern="[0-9]{10}" required>
+                </div>
+
+                <div>
+                    <label for="request-all-message" class="block text-sm font-semibold text-gray-700 mb-2">Message (Optional)</label>
+                    <textarea id="request-all-message" placeholder="Any specific requirements or preferences..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-24 resize-none"></textarea>
+                </div>
+
+                <p class="text-xs text-gray-500 bg-blue-50 p-3 rounded-lg">Property managers will use this information to contact you with suitable options.</p>
+
+                <div class="flex gap-3 mt-6">
+                    <button type="button" id="close-request-all-modal-btn" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="button" id="submit-request-all" class="flex-1 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-lg transition-all shadow-md hover:shadow-lg">
+                        Send Requests
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        @keyframes fade-in {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fade-in {
+            animation: fade-in 0.3s ease-out;
+        }
+    </style>
 </body>
 
 </html>
