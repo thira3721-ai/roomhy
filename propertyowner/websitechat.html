@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Property Owner - Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .message-own { @apply bg-cyan-100 border-l-4 border-cyan-500 ml-auto mr-0 max-w-xs; }
+        .message-other { @apply bg-gray-100 border-l-4 border-gray-400 ml-0 mr-auto max-w-xs; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white border-r border-gray-200 flex flex-col">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-xl font-bold text-cyan-600">💌 Contact Owner</h1>
+            </div>
+
+            <!-- Property Info -->
+            <div id="propertyInfo" class="p-4 bg-cyan-50 border-b border-gray-200">
+                <p id="propertyName" class="font-semibold text-sm text-gray-800">Property Name</p>
+                <p id="ownerName" class="text-xs text-gray-600 mt-2">Owner: Unknown</p>
+                <p id="inquiryTitle" class="text-xs text-gray-600 mt-1">Inquiry: General</p>
+            </div>
+
+            <!-- Info Box -->
+            <div class="flex-1 overflow-y-auto p-4">
+                <div class="p-4 bg-cyan-50 rounded-lg text-sm text-gray-700 space-y-3">
+                    <div>
+                        <p class="font-semibold text-gray-800">About this chat:</p>
+                        <p class="text-xs text-gray-600 mt-2">This is a direct messaging channel with the property owner. Messages are stored securely and you can resume conversations anytime.</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-800">Response Time:</p>
+                        <p class="text-xs text-gray-600 mt-2">Most owners respond within 2-24 hours during business hours.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logout -->
+            <div class="p-4 border-t border-gray-200">
+                <button onclick="logout()" class="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm font-medium">
+                    Exit Chat
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="flex-1 flex flex-col bg-white">
+            <!-- Header -->
+            <div id="chatHeader" class="h-16 bg-cyan-50 border-b border-gray-200 flex items-center justify-between px-6">
+                <div>
+                    <h2 id="chatTitle" class="font-bold text-gray-800">Loading...</h2>
+                    <p id="chatSubtitle" class="text-xs text-gray-500 mt-1">Connecting...</p>
+                    <p id="chatId" class="text-xs text-cyan-600 font-mono mt-0.5"></p>
+                </div>
+                <div id="connectionStatus" class="flex items-center gap-2">
+                    <span id="statusDot" class="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                    <p class="text-xs text-gray-600">Connecting</p>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div id="messagesArea" class="flex-1 overflow-y-auto p-6 space-y-4">
+                <div class="text-center text-gray-400 mt-20">
+                    <i data-lucide="mail" class="w-16 h-16 mx-auto mb-4 opacity-30"></i>
+                    <p>Loading conversation...</p>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="border-t border-gray-200 bg-gray-50 p-6">
+                <div class="flex gap-3">
+                    <input type="text" id="messageInput" placeholder="Type your message to the owner..."
+                        class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        onkeypress="handleKeyPress(event)">
+                    <button onclick="sendMessage()" class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 font-medium">
+                        Send
+                    </button>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">Your message will be sent to the property owner</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://roomhy-backend.onrender.com';
+        let socket = null;
+        let webUserLoginId = null;
+        let ownerLoginId = null;
+        let propertyInfo = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Get property info from URL params or session storage
+            const params = new URLSearchParams(window.location.search);
+            const propertyId = params.get('propertyId');
+            const inquiryType = params.get('type') || 'General';
+
+            propertyInfo = JSON.parse(sessionStorage.getItem('current_property') || 'null');
+            
+            if (!propertyInfo) {
+                alert('Please select a property first');
+                window.history.back();
+                return;
+            }
+
+            // Get owner login ID from property
+            ownerLoginId = propertyInfo.owner_login_id;
+            if (!ownerLoginId) {
+                alert('Property owner information not found');
+                window.history.back();
+                return;
+            }
+
+            // Generate web user login ID from email
+            const visitorEmail = sessionStorage.getItem('visitor_email') || 'guest@website.com';
+            webUserLoginId = 'web_user_' + visitorEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '_');
+
+            console.log('✓ Web user:', webUserLoginId);
+            console.log('✓ Connecting to:', ownerLoginId);
+
+            // Update UI
+            document.getElementById('propertyName').textContent = propertyInfo.name || 'Property';
+            document.getElementById('ownerName').textContent = `Owner: ${propertyInfo.owner_name || 'Unknown'}`;
+            document.getElementById('inquiryTitle').textContent = `Inquiry: ${inquiryType}`;
+            document.getElementById('chatTitle').textContent = propertyInfo.owner_name || 'Property Owner';
+            document.getElementById('chatSubtitle').textContent = propertyInfo.name || 'Property';
+            document.getElementById('chatId').textContent = 'Owner ID: ' + ownerLoginId;
+
+            initSocket();
+            loadMessages();
+            lucide.createIcons();
+        });
+
+        // Initialize Socket.IO
+        function initSocket() {
+            socket = io(API_URL);
+
+            socket.on('connect', () => {
+                console.log('✓ Connected to chat');
+                updateStatus('Connected', 'green');
+                
+                socket.emit('join_room', {
+                    login_id: webUserLoginId,
+                    role: 'website_user',
+                    name: 'Website Visitor'
+                });
+            });
+
+            socket.on('receive_message', (msg) => {
+                if (msg.sender_login_id === ownerLoginId) {
+                    displayMessage(msg, false);
+                }
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Disconnected from chat');
+                updateStatus('Disconnected', 'red');
+            });
+
+            socket.on('error', (data) => {
+                console.error('Socket error:', data);
+                updateStatus('Error', 'red');
+            });
+        }
+
+        // Load message history
+        async function loadMessages() {
+            try {
+                const response = await fetch(`${API_URL}/api/chat/messages/${webUserLoginId}`);
+                const messages = response.ok ? await response.json() : [];
+
+                document.getElementById('messagesArea').innerHTML = '';
+
+                if (messages.length === 0) {
+                    document.getElementById('messagesArea').innerHTML = `
+                        <div class="text-center text-gray-400 mt-20">
+                            <i data-lucide="mail-open" class="w-16 h-16 mx-auto mb-4 opacity-30"></i>
+                            <p>Start a conversation with the property owner</p>
+                        </div>
+                    `;
+                } else {
+                    messages.forEach(msg => displayMessage(msg, msg.sender_login_id === webUserLoginId));
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
+        }
+
+        // Send message
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message) {
+                alert('Please enter a message');
+                return;
+            }
+
+            socket.emit('send_message', {
+                to_login_id: ownerLoginId,
+                message: message
+            });
+
+            input.value = '';
+            input.focus();
+        }
+
+        // Display message
+        function displayMessage(msg, isOwn) {
+            const area = document.getElementById('messagesArea');
+            
+            // Clear placeholder if it exists
+            const placeholder = area.querySelector('[data-lucide="mail-open"]');
+            if (placeholder) {
+                area.innerHTML = '';
+            }
+
+            const div = document.createElement('div');
+            div.className = `flex ${isOwn ? 'justify-end' : 'justify-start'} mb-3`;
+            div.innerHTML = `
+                <div class="message-item ${isOwn ? 'message-own' : 'message-other'} p-4 rounded-lg">
+                    <p class="text-xs font-semibold text-gray-600 mb-1">${msg.sender_name}</p>
+                    <p class="text-gray-800 text-sm break-words">${escapeHtml(msg.message)}</p>
+                    <p class="text-xs text-gray-500 mt-2">${new Date(msg.created_at).toLocaleTimeString()}</p>
+                </div>
+            `;
+
+            area.appendChild(div);
+            area.scrollTop = area.scrollHeight;
+        }
+
+        // Utilities
+        function updateStatus(text, color) {
+            const colorClass = {
+                green: 'bg-green-500',
+                yellow: 'bg-yellow-500',
+                red: 'bg-red-500'
+            };
+            
+            document.getElementById('statusDot').className = `w-2 h-2 rounded-full ${colorClass[color]}`;
+            document.getElementById('connectionStatus').querySelector('p').textContent = text;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('current_property');
+            window.location.href = '/propertyowner/property.html';
+        }
+    </script>
+</body>
+</html>

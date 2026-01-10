@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -158,7 +158,6 @@
                     </div>
                 </div>
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">System</div>
-                 <a href="chatadmin.html" class="sidebar-link"><i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Chats</a>
                  <a href="location.html" class="sidebar-link"><i data-lucide="globe" class="w-5 h-5 mr-3"></i> Locations</a>
             </nav>
         </aside>
@@ -179,7 +178,7 @@
                     <button class="text-slate-400 hover:text-slate-600"><i data-lucide="bell" class="w-5 h-5"></i></button>
                     <div class="relative group">
                         <button class="flex items-center gap-3 hover:bg-gray-50 p-1.5 rounded-full transition-colors">
-                            <img src="https://i.pravatar.cc/150?u=superadmin" alt="Admin" class="w-8 h-8 rounded-full border border-slate-200">
+                            <div class="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-semibold text-xs">SP</div>
                         </button>
                     </div>
                 </div>
@@ -213,6 +212,26 @@
 
                     <!-- Cities Section -->
                     <div id="cities-content" class="tab-content active">
+                        <!-- Top Cities Carousel -->
+                        <div class="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                            <div class="p-6">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Featured Cities</h3>
+                                <div class="relative overflow-hidden rounded-lg bg-gray-100 h-64">
+                                    <div id="citiesCarousel" class="flex transition-transform duration-500 ease-in-out h-full">
+                                        <!-- Carousel items populated by JS -->
+                                    </div>
+                                    <!-- Carousel Controls -->
+                                    <button onclick="prevCity()" class="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md z-10">
+                                        <i data-lucide="chevron-left" class="w-5 h-5 text-gray-700"></i>
+                                    </button>
+                                    <button onclick="nextCity()" class="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md z-10">
+                                        <i data-lucide="chevron-right" class="w-5 h-5 text-gray-700"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cities Table -->
                         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                             <div class="overflow-x-auto">
                                 <table class="w-full data-table">
@@ -220,6 +239,7 @@
                                         <tr>
                                             <th>City Name</th>
                                             <th>State</th>
+                                            <th>Featured Image</th>
                                             <th>Status</th>
                                             <th class="text-right">Actions</th>
                                         </tr>
@@ -241,7 +261,7 @@
                                         <tr>
                                             <th>Area Name</th>
                                             <th>Parent City</th>
-                                            <th>Pincode</th>
+                                            <th>Photo</th>
                                             <th>Status</th>
                                             <th class="text-right">Actions</th>
                                         </tr>
@@ -291,8 +311,11 @@
                         </div>
 
                         <div id="pincodeField" class="hidden mb-4">
-                             <label class="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
-                            <input type="text" id="locationPincode" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="e.g. 600001">
+                             <label class="block text-sm font-medium text-gray-700 mb-1">Upload Area Photo</label>
+                            <input type="file" id="locationPhoto" accept="image/*" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                            <div id="photoPreview" class="mt-2 hidden">
+                                <img id="previewImage" src="" alt="Preview" class="h-32 rounded-md object-cover">
+                            </div>
                         </div>
                         
                         <div class="flex justify-end pt-4 border-t">
@@ -322,20 +345,20 @@
         function seedData() {
             if (!localStorage.getItem('roomhy_cities')) {
                 const cities = [
-                    { id: 'ct_1', name: 'Bangalore', state: 'Karnataka', status: 'Active' },
-                    { id: 'ct_2', name: 'Chennai', state: 'Tamil Nadu', status: 'Active' },
-                    { id: 'ct_3', name: 'Coimbatore', state: 'Tamil Nadu', status: 'Active' }
+                    { id: 'ct_1', name: 'Bangalore', state: 'Karnataka', status: 'Active', image: null },
+                    { id: 'ct_2', name: 'Chennai', state: 'Tamil Nadu', status: 'Active', image: null },
+                    { id: 'ct_3', name: 'Coimbatore', state: 'Tamil Nadu', status: 'Active', image: null }
                 ];
                 localStorage.setItem('roomhy_cities', JSON.stringify(cities));
             }
 
             if (!localStorage.getItem('roomhy_areas')) {
                 const areas = [
-                    { id: 'ar_1', name: 'Koramangala', city: 'Bangalore', pincode: '560034', status: 'Active' },
-                    { id: 'ar_2', name: 'Indiranagar', city: 'Bangalore', pincode: '560038', status: 'Active' },
-                    { id: 'ar_3', name: 'Anna Nagar', city: 'Chennai', pincode: '600040', status: 'Active' },
-                    { id: 'ar_4', name: 'T Nagar', city: 'Chennai', pincode: '600017', status: 'Active' },
-                    { id: 'ar_5', name: 'Gandhipuram', city: 'Coimbatore', pincode: '641012', status: 'Active' }
+                    { id: 'ar_1', name: 'Koramangala', city: 'Bangalore', photo: null, status: 'Active' },
+                    { id: 'ar_2', name: 'Indiranagar', city: 'Bangalore', photo: null, status: 'Active' },
+                    { id: 'ar_3', name: 'Anna Nagar', city: 'Chennai', photo: null, status: 'Active' },
+                    { id: 'ar_4', name: 'T Nagar', city: 'Chennai', photo: null, status: 'Active' },
+                    { id: 'ar_5', name: 'Gandhipuram', city: 'Coimbatore', photo: null, status: 'Active' }
                 ];
                 localStorage.setItem('roomhy_areas', JSON.stringify(areas));
             }
@@ -349,12 +372,17 @@
                 <tr class="hover:bg-gray-50">
                     <td><span class="font-medium text-gray-900">${c.name}</span></td>
                     <td>${c.state}</td>
+                    <td>
+                        ${c.image ? `<img src="${c.image}" alt="${c.name}" class="h-10 w-16 rounded object-cover">` : '<span class="text-gray-400 text-sm">No image</span>'}
+                    </td>
                     <td><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">${c.status}</span></td>
                     <td class="text-right">
+                        <button class="text-blue-400 hover:text-blue-600 mx-1" onclick="editCityImage('${c.id}')"><i data-lucide="image" class="w-4 h-4"></i></button>
                         <button class="text-gray-400 hover:text-red-600 mx-1" onclick="deleteCity('${c.id}')"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </td>
                 </tr>
             `).join('');
+            loadCarousel();
             lucide.createIcons();
         }
 
@@ -365,7 +393,9 @@
                 <tr class="hover:bg-gray-50">
                     <td><span class="font-medium text-gray-900">${a.name}</span></td>
                     <td>${a.city}</td>
-                    <td>${a.pincode}</td>
+                    <td>
+                        ${a.photo ? `<img src="${a.photo}" alt="${a.name}" class="h-10 w-16 rounded object-cover">` : '<span class="text-gray-400 text-sm">No photo</span>'}
+                    </td>
                     <td><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">${a.status}</span></td>
                     <td class="text-right">
                         <button class="text-gray-400 hover:text-red-600 mx-1" onclick="deleteArea('${a.id}')"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
@@ -380,30 +410,29 @@
             document.getElementById('locationTypeInput').value = type;
             const form = document.getElementById('locationForm');
             form.reset();
+            document.getElementById('photoPreview').classList.add('hidden');
 
             const title = document.getElementById('modalTitle');
             const nameLabel = document.getElementById('nameLabel');
             const parentField = document.getElementById('parentCityField');
             const stateField = document.getElementById('stateField');
-            const pincodeField = document.getElementById('pincodeField');
+            const photoField = document.getElementById('pincodeField');
             const parentSelect = document.getElementById('parentCitySelect');
 
             if (type === 'city') {
                 title.innerText = 'Add New City';
                 nameLabel.innerText = 'City Name';
                 parentField.classList.add('hidden');
-                pincodeField.classList.add('hidden');
+                photoField.classList.add('hidden');
                 stateField.classList.remove('hidden');
                 document.getElementById('locationState').required = true;
-                document.getElementById('locationPincode').required = false;
             } else {
                 title.innerText = 'Add New Area';
                 nameLabel.innerText = 'Area Name';
                 parentField.classList.remove('hidden');
-                pincodeField.classList.remove('hidden');
+                photoField.classList.remove('hidden');
                 stateField.classList.add('hidden');
                 document.getElementById('locationState').required = false;
-                document.getElementById('locationPincode').required = true;
 
                 // Populate Parent Cities Dropdown
                 const cities = JSON.parse(localStorage.getItem('roomhy_cities') || '[]');
@@ -416,6 +445,19 @@
             toggleModal('addLocationModal');
         }
 
+        // Handle photo upload preview
+        document.getElementById('locationPhoto')?.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    document.getElementById('previewImage').src = event.target.result;
+                    document.getElementById('photoPreview').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
         function saveLocation() {
             const type = document.getElementById('locationTypeInput').value;
             const name = document.getElementById('locationName').value.trim();
@@ -425,21 +467,38 @@
                 if(!name || !state) return alert("Please fill all fields");
 
                 const cities = JSON.parse(localStorage.getItem('roomhy_cities') || '[]');
-                cities.push({ id: 'ct_' + Date.now(), name, state, status: 'Active' });
+                cities.push({ id: 'ct_' + Date.now(), name, state, status: 'Active', image: null });
                 localStorage.setItem('roomhy_cities', JSON.stringify(cities));
                 loadCities();
                 notifyLocationChange();
 
             } else {
                 const city = document.getElementById('parentCitySelect').value;
-                const pincode = document.getElementById('locationPincode').value.trim();
-                if(!name || !city || !pincode) return alert("Please fill all fields");
+                const photoFile = document.getElementById('locationPhoto').files[0];
+                if(!name || !city) return alert("Please fill all fields");
 
-                const areas = JSON.parse(localStorage.getItem('roomhy_areas') || '[]');
-                areas.push({ id: 'ar_' + Date.now(), name, city, pincode, status: 'Active' });
-                localStorage.setItem('roomhy_areas', JSON.stringify(areas));
-                loadAreas();
-                notifyLocationChange();
+                let photo = null;
+                if (photoFile) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photo = event.target.result;
+                        const areas = JSON.parse(localStorage.getItem('roomhy_areas') || '[]');
+                        areas.push({ id: 'ar_' + Date.now(), name, city, photo, status: 'Active' });
+                        localStorage.setItem('roomhy_areas', JSON.stringify(areas));
+                        loadAreas();
+                        notifyLocationChange();
+                        toggleModal('addLocationModal');
+                        alert('Area Added Successfully!');
+                    };
+                    reader.readAsDataURL(photoFile);
+                    return; // Wait for file reading
+                } else {
+                    const areas = JSON.parse(localStorage.getItem('roomhy_areas') || '[]');
+                    areas.push({ id: 'ar_' + Date.now(), name, city, photo: null, status: 'Active' });
+                    localStorage.setItem('roomhy_areas', JSON.stringify(areas));
+                    loadAreas();
+                    notifyLocationChange();
+                }
             }
 
             toggleModal('addLocationModal');
@@ -465,6 +524,7 @@
             cities = cities.filter(c => c.id !== id);
             localStorage.setItem('roomhy_cities', JSON.stringify(cities));
             loadCities();
+            notifyLocationChange();
         }
 
         function deleteArea(id) {
@@ -473,6 +533,87 @@
             areas = areas.filter(a => a.id !== id);
             localStorage.setItem('roomhy_areas', JSON.stringify(areas));
             loadAreas();
+            notifyLocationChange();
+        }
+
+        // Edit City Image
+        function editCityImage(cityId) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        let cities = JSON.parse(localStorage.getItem('roomhy_cities') || '[]');
+                        const city = cities.find(c => c.id === cityId);
+                        if (city) {
+                            city.image = event.target.result;
+                            localStorage.setItem('roomhy_cities', JSON.stringify(cities));
+                            loadCities();
+                            notifyLocationChange();
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            input.click();
+        }
+
+        // Carousel Functions
+        let currentCityIndex = 0;
+
+        function loadCarousel() {
+            const cities = JSON.parse(localStorage.getItem('roomhy_cities') || '[]').filter(c => c.image);
+            const carousel = document.getElementById('citiesCarousel');
+            
+            if (cities.length === 0) {
+                carousel.innerHTML = '<div class="w-full flex items-center justify-center text-gray-400"><span>No city images added yet</span></div>';
+                return;
+            }
+
+            carousel.innerHTML = cities.map((city, index) => `
+                <div class="min-w-full h-full relative flex-shrink-0 cursor-pointer hover:opacity-90 transition-opacity" onclick="viewCityProperties('${city.name}')">
+                    <img src="${city.image}" alt="${city.name}" class="w-full h-full object-cover">
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-6">
+                        <h4 class="text-white text-xl font-bold">${city.name}</h4>
+                        <p class="text-gray-300 text-sm">${city.state}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            currentCityIndex = 0;
+            updateCarouselPosition();
+        }
+
+        function viewCityProperties(cityName) {
+            sessionStorage.setItem('filterByCity', cityName);
+            window.location.href = 'properties.html';
+        }
+
+        function updateCarouselPosition() {
+            const carousel = document.getElementById('citiesCarousel');
+            const cities = JSON.parse(localStorage.getItem('roomhy_cities') || '[]').filter(c => c.image);
+            if (cities.length > 0) {
+                carousel.style.transform = `translateX(-${currentCityIndex * 100}%)`;
+            }
+        }
+
+        function nextCity() {
+            const cities = JSON.parse(localStorage.getItem('roomhy_cities') || '[]').filter(c => c.image);
+            if (cities.length > 0) {
+                currentCityIndex = (currentCityIndex + 1) % cities.length;
+                updateCarouselPosition();
+            }
+        }
+
+        function prevCity() {
+            const cities = JSON.parse(localStorage.getItem('roomhy_cities') || '[]').filter(c => c.image);
+            if (cities.length > 0) {
+                currentCityIndex = (currentCityIndex - 1 + cities.length) % cities.length;
+                updateCarouselPosition();
+            }
         }
 
         // --- UI Helpers ---

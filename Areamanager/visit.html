@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -56,16 +56,13 @@
                 <a href="visit.html" class="sidebar-link active"><i data-lucide="clipboard-list" class="w-5 h-5 mr-3"></i> Visit Reports</a>
                 <a href="areatenant.html" class="sidebar-link"><i data-lucide="users" class="w-5 h-5 mr-3"></i> Tenants</a>
                 <a href="areaowner.html" class="sidebar-link"><i data-lucide="briefcase" class="w-5 h-5 mr-3"></i> Owners</a>
-                <a href="booking_request.html" class="sidebar-link"><i data-lucide="calendar-check" class="w-5 h-5 mr-3"></i> Booking Requests</a>
+                
 
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Operations</div>
                 <a href="areapayment.html" class="sidebar-link"><i data-lucide="wallet" class="w-5 h-5 mr-3"></i> Payments</a>
                 <a href="complaint.html" class="sidebar-link"><i data-lucide="alert-circle" class="w-5 h-5 mr-3"></i> Complaints & Maint.</a>
                 <a href="areakyc.html" class="sidebar-link"><i data-lucide="file-check" class="w-5 h-5 mr-3"></i> KYC Verification</a>
                  <a href="areaenq.html" class="sidebar-link"><i data-lucide="help-circle" class="w-5 h-5 mr-3"></i> Enquiries</a>
-
-                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Communication</div>
-                <a href="areachat.html" class="sidebar-link"><i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Chat</a>
 
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">System</div>
                  <a href="arealoc.html" class="sidebar-link"><i data-lucide="map-pin" class="w-5 h-5 mr-3"></i> RoomHy Location</a>
@@ -280,11 +277,11 @@
                         <div>
                             <label class="text-xs font-medium text-gray-600 block mb-2">Cleanliness Rating</label>
                             <div id="cleanlinessStars" class="flex gap-1 text-2xl cursor-pointer" onclick="handleStarClick(event, 'cleanlinessRating')">
-                                <span class="star text-gray-300" data-value="1">★</span>
-                                <span class="star text-gray-300" data-value="2">★</span>
-                                <span class="star text-gray-300" data-value="3">★</span>
-                                <span class="star text-gray-300" data-value="4">★</span>
-                                <span class="star text-gray-300" data-value="5">★</span>
+                                <span class="star text-gray-300" data-value="1">☆</span>
+                                <span class="star text-gray-300" data-value="2">☆</span>
+                                <span class="star text-gray-300" data-value="3">☆</span>
+                                <span class="star text-gray-300" data-value="4">☆</span>
+                                <span class="star text-gray-300" data-value="5">☆</span>
                             </div>
                             <input type="hidden" id="cleanlinessRating" name="cleanlinessRating" value="">
                             <p class="text-xs text-gray-500 mt-1" id="cleanlinessLabel">Click to rate</p>
@@ -292,9 +289,9 @@
                         <div>
                             <label class="text-xs font-medium text-gray-600 block mb-2">Owner Behaviour</label>
                             <div class="flex gap-2 flex-wrap">
-                                <button type="button" onclick="setOwnerBehaviour('Good', this)" class="px-3 py-2 rounded text-xs font-medium border-2 border-gray-300 text-gray-600 hover:border-green-500">👍 Good</button>
+                                <button type="button" onclick="setOwnerBehaviour('Good', this)" class="px-3 py-2 rounded text-xs font-medium border-2 border-gray-300 text-gray-600 hover:border-green-500">ðŸ‘ Good</button>
                                 <button type="button" onclick="setOwnerBehaviour('Average', this)" class="px-3 py-2 rounded text-xs font-medium border-2 border-gray-300 text-gray-600 hover:border-yellow-500">➖ Average</button>
-                                <button type="button" onclick="setOwnerBehaviour('Poor', this)" class="px-3 py-2 rounded text-xs font-medium border-2 border-gray-300 text-gray-600 hover:border-red-500">👎 Poor</button>
+                                <button type="button" onclick="setOwnerBehaviour('Poor', this)" class="px-3 py-2 rounded text-xs font-medium border-2 border-gray-300 text-gray-600 hover:border-red-500">ðŸ‘Ž Poor</button>
                             </div>
                             <input type="hidden" id="ownerBehaviourPublic" name="ownerBehaviourPublic" value="">
                             <p class="text-xs text-gray-500 mt-1" id="behaviourLabel">Select behaviour</p>
@@ -304,11 +301,11 @@
                         <div>
                             <label class="text-xs font-medium text-gray-600 block mb-2">Student Reviews Rating (★)</label>
                             <div id="studentReviewsStars" class="flex gap-1 text-2xl cursor-pointer" onclick="handleStarClick(event, 'studentReviewsRating')">
-                                <span class="star text-gray-300" data-value="1">★</span>
-                                <span class="star text-gray-300" data-value="2">★</span>
-                                <span class="star text-gray-300" data-value="3">★</span>
-                                <span class="star text-gray-300" data-value="4">★</span>
-                                <span class="star text-gray-300" data-value="5">★</span>
+                                <span class="star text-gray-300" data-value="1">☆</span>
+                                <span class="star text-gray-300" data-value="2">☆</span>
+                                <span class="star text-gray-300" data-value="3">☆</span>
+                                <span class="star text-gray-300" data-value="4">☆</span>
+                                <span class="star text-gray-300" data-value="5">☆</span>
                             </div>
                             <input type="hidden" id="studentReviewsRating" name="studentReviewsRating" value="">
                             <p class="text-xs text-gray-500 mt-1" id="studentReviewsLabel">Click to rate</p>
@@ -316,11 +313,11 @@
                         <div>
                             <label class="text-xs font-medium text-gray-600 block mb-2">Employee Rating (★)</label>
                             <div id="employeeRatingStars" class="flex gap-1 text-2xl cursor-pointer" onclick="handleStarClick(event, 'employeeRating')">
-                                <span class="star text-gray-300" data-value="1">★</span>
-                                <span class="star text-gray-300" data-value="2">★</span>
-                                <span class="star text-gray-300" data-value="3">★</span>
-                                <span class="star text-gray-300" data-value="4">★</span>
-                                <span class="star text-gray-300" data-value="5">★</span>
+                                <span class="star text-gray-300" data-value="1">☆</span>
+                                <span class="star text-gray-300" data-value="2">☆</span>
+                                <span class="star text-gray-300" data-value="3">☆</span>
+                                <span class="star text-gray-300" data-value="4">☆</span>
+                                <span class="star text-gray-300" data-value="5">☆</span>
                             </div>
                             <input type="hidden" id="employeeRating" name="employeeRating" value="">
                             <p class="text-xs text-gray-500 mt-1" id="employeeRatingLabel">Click to rate</p>
@@ -469,7 +466,7 @@
             <div class="flex justify-between items-center mb-2">
                 <h3 class="font-bold">Capture Photo</h3>
                 <div class="flex items-center gap-2">
-                    <button type="button" onclick="toggleCamera()" class="text-xs px-2 py-1 bg-gray-200 rounded">🔄 Switch Camera</button>
+                    <button type="button" onclick="toggleCamera()" class="text-xs px-2 py-1 bg-gray-200 rounded">ðŸ”„ Switch Camera</button>
                     <button onclick="closeCamera()" class="text-gray-600 px-2 py-1">Close</button>
                 </div>
             </div>
@@ -500,6 +497,7 @@
         lucide.createIcons();
         let myArea = ''; // Store logged in area
         let isAreaManager = false; // Track role
+        let currentUserId = ''; // Store current logged-in user's ID
         let originalPhotosMap = {}; // store existing photos for edits keyed by visit id
         let editingStaffPhotoId = null; // currently editing visit id for staff photo
         let staffPhotoDataURL = null; // preview / selected dataURL for staff professional photo
@@ -540,7 +538,7 @@
                 // Update label if it exists
                 const labelId = fieldId + 'Label';
                 const label = document.getElementById(labelId);
-                if (label) label.innerText = `Rating: ${value}/5 ⭐`;
+                if (label) label.innerText = `Rating: ${value}/5 ★`;
             }
         }
 
@@ -635,7 +633,7 @@
         // ======================================================
         async function syncVisitsFromBackend(staffId) {
             try {
-                console.log('🔄 Syncing visits from backend for staff:', staffId);
+                console.log('ðŸ”„ Syncing visits from backend for staff:', staffId);
                 
                 const response = await fetch(`${API_URL}/api/visits?staffId=${encodeURIComponent(staffId)}`, {
                     method: 'GET',
@@ -643,7 +641,7 @@
                 });
 
                 if (!response.ok) {
-                    console.warn('⚠️ Backend sync failed:', response.status);
+                    console.warn('âš ï¸ Backend sync failed:', response.status);
                     return false;
                 }
 
@@ -656,18 +654,18 @@
                     // Save to localStorage to persist across refreshes
                     try {
                         localStorage.setItem('roomhy_visits', JSON.stringify(visits));
-                        console.log('💾 Saved synced visits to localStorage');
+                        console.log('ðŸ’¾ Saved synced visits to localStorage');
                     } catch (e) {
-                        console.warn('⚠️ Failed to save to localStorage:', e.message);
+                        console.warn('âš ï¸ Failed to save to localStorage:', e.message);
                     }
                     
                     return true;
                 } else {
-                    console.log('ℹ️ No visits found on backend');
+                    console.log('ℹ️ No visits found on backend');
                     return false;
                 }
             } catch (err) {
-                console.error('❌ Backend sync error:', err);
+                console.error('âŒ Backend sync error:', err);
                 return false;
             }
         }
@@ -676,8 +674,13 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const user = JSON.parse(sessionStorage.getItem('manager_user') || sessionStorage.getItem('user') || localStorage.getItem('manager_user') || localStorage.getItem('user') || 'null');
             if (!user) return;
+            
+            // Save current user ID for filtering
+            currentUserId = user._id || user.id || user.loginId || user.login || '';
+            console.log('Current User ID:', currentUserId);
+            
             document.getElementById('headerName').innerText = user.name || '';
-            const staffId = user._id || user.id || user.loginId || user.login || '';
+            const staffId = currentUserId;
             document.getElementById('staffName').value = user.name || '';
             document.getElementById('staffId').value = staffId;
 
@@ -686,14 +689,17 @@
                 const displayArea = user.areaName || user.area || user.city || 'Area';
                 document.getElementById('headerRole').innerText = `${displayArea} Manager`;
                 myArea = '';
+                console.log('Area Manager set - Will show ALL visits');
             } else if (user.role === 'employee') {
                 isAreaManager = false;
                 myArea = user.location || user.areaName || user.area || user.team || '';
                 const displayArea = user.location || user.areaName || user.area || user.team || 'Team';
                 document.getElementById('headerRole').innerText = `${displayArea} Team Member`;
                 document.getElementById('areaLocality').value = myArea;
+                console.log('Employee - Assigned Area:', myArea);
             } else {
                 myArea = '';
+                console.log('⚠️ Unknown role:', user.role);
             }
 
             // prefill hidden location code if available
@@ -703,7 +709,7 @@
             }
 
             // Sync visits from backend to ensure data persists across refreshes
-            console.log('🔄 Attempting to sync visits from backend...');
+            console.log('ðŸ”„ Attempting to sync visits from backend...');
             await syncVisitsFromBackend(staffId);
 
             // Load and display visits (from localStorage or synced data)
@@ -755,7 +761,7 @@
                 const sizeInMB = (size / 1024 / 1024).toFixed(2);
                 
                 if (size > 4 * 1024 * 1024) { // If > 4MB
-                    console.warn('⚠️ Storage nearly full:', sizeInMB, 'MB. Cleaning up old data...');
+                    console.warn('âš ï¸ Storage nearly full:', sizeInMB, 'MB. Cleaning up old data...');
                     
                     // Keep only recent 10 visits, remove photos from older ones
                     const cleaned = visits.map((v, idx) => {
@@ -773,7 +779,7 @@
                     localStorage.setItem('roomhy_visits', JSON.stringify(cleaned));
                     console.log('✅ Cleanup done. Removed photos from old visits.');
                     const newSize = JSON.stringify(cleaned).length;
-                    console.log('📊 Size reduced from', sizeInMB, 'MB to', (newSize / 1024 / 1024).toFixed(2), 'MB');
+                    console.log('ðŸ“Š Size reduced from', sizeInMB, 'MB to', (newSize / 1024 / 1024).toFixed(2), 'MB');
                 }
             } catch (err) {
                 console.error('Cleanup error:', err);
@@ -782,7 +788,7 @@
 
         // Load visits and render table (no delete, add edit)
         function loadVisits() {
-            console.log('🔄 loadVisits() called - Starting to load visits from storage');
+            console.log('ðŸ”„ loadVisits() called - Starting to load visits from storage');
             cleanupStorage(); // Run cleanup before loading
             // Defensive storage reads (Tracking Prevention or other browsers may block storage access)
             let visits = [];
@@ -791,40 +797,40 @@
                 visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
                 console.log('✅ Loaded from localStorage:', visits.length, 'visits');
                 if (visits.length > 0) {
-                    console.log('📦 First visit ID:', visits[0]._id, 'Status:', visits[0].status);
+                    console.log('ðŸ“¦ First visit ID:', visits[0]._id, 'Status:', visits[0].status);
                 }
             } catch (err) {
-                console.error('🔒 localStorage access blocked or parse failed:', err);
+                console.error('ðŸ”’ localStorage access blocked or parse failed:', err);
                 visits = [];
             }
             try {
                 sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
                 console.log('✅ Loaded from sessionStorage:', sessionVisits.length, 'visits');
             } catch (err) {
-                console.error('🔒 sessionStorage access blocked or parse failed:', err);
+                console.error('ðŸ”’ sessionStorage access blocked or parse failed:', err);
                 sessionVisits = [];
             }
 
             // If sessionStorage has more recent data, prefer that (fallback when localStorage quota exceeded)
             if (sessionVisits.length > visits.length) {
                 visits = sessionVisits;
-                console.log('📱 Loading from sessionStorage (localStorage quota exceeded or blocked)');
+                console.log('ðŸ“± Loading from sessionStorage (localStorage quota exceeded or blocked)');
             } else if (sessionVisits.length > 0 && visits.length > 0) {
                 // Merge both sources and deduplicate by _id
                 const merged = [...visits];
                 const ids = new Set(merged.map(v => v._id));
                 sessionVisits.forEach(sv => { if (!ids.has(sv._id)) merged.push(sv); });
                 visits = merged;
-                console.log('🔗 Merged localStorage + sessionStorage');
+                console.log('ðŸ”— Merged localStorage + sessionStorage');
             }
 
             const tbody = document.getElementById('visitsTableBody');
             tbody.innerHTML = '';
 
-            console.log('📊 Loading visits. Total in storage:', visits.length, 'isAreaManager:', isAreaManager, 'myArea:', myArea);
+            console.log('ðŸ“Š Loading visits. Total in storage:', visits.length, 'isAreaManager:', isAreaManager, 'myArea:', myArea);
 
             if (visits.length === 0) {
-                console.warn('⚠️ No visits in storage');
+                console.warn('âš ï¸ No visits in storage');
                 tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-gray-500">No visits found. Add one to start.</td></tr>';
                 return;
             }
@@ -857,34 +863,26 @@
             };
 
             let filteredVisits = visits;
-            // Only filter by area if user is an employee (not area manager)
-            if (!isAreaManager && myArea) {
-                const beforeFilter = visits.length;
-                filteredVisits = visits.filter(v => {
-                    const matches = areaMatches(v, myArea);
-                    if (!matches) {
-                        console.log('❌ Visit', v._id, 'does not match area. candidates:', {
-                            propertyArea: v.propertyArea,
-                            propInfoArea: v.propertyInfo?.area,
-                            areaLocality: v.areaLocality,
-                            address: v.propertyInfo?.address
-                        });
-                    }
-                    return matches;
-                });
-                console.log('🔍 Filtered by area "' + myArea + '": ' + beforeFilter + ' → ' + filteredVisits.length);
-            } else if (isAreaManager) {
-                console.log('👤 Area manager - showing all ' + visits.length + ' visits');
+            
+            // PRIMARY FILTER: Show only visits submitted by current user
+            if (currentUserId) {
+                filteredVisits = visits.filter(v => (v.submittedById === currentUserId) || (v.staffId === currentUserId));
+                console.log('Showing only visits by current user');
+            }
+            
+            // SECONDARY FILTER: If employee with area, also filter by area
+            if (!isAreaManager && myArea && filteredVisits.length > 0) {
+                filteredVisits = filteredVisits.filter(v => areaMatches(v, myArea));
+                console.log('Also filtered by area');
             }
             
             if (filteredVisits.length === 0) {
                 const msg = myArea ? `No visits found for ${myArea}.` : 'No visits found.';
                 tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-gray-500">${msg} Add one to start.</td></tr>`;
-                console.warn('⚠️ No visits to display. Total available:', visits.length, 'After filter:', filteredVisits.length);
                 return;
             }
             
-            console.log('📋 Rendering', filteredVisits.length, 'visits to table');
+            console.log('Rendering ' + filteredVisits.length + ' visits');
 
             filteredVisits.forEach((visit, idx) => {
                 console.log(`  ${idx + 1}. Visit ${visit._id} - Property: ${visit.propertyInfo?.name || 'Unknown'}`);
@@ -959,12 +957,12 @@
                         <td class="text-sm text-gray-600">${gender}</td>
                         <td class="text-center py-3 bg-amber-50 border-x border-amber-200">
                             <div class="flex items-center justify-center gap-1">
-                                <span class="text-lg font-bold text-amber-600">${visit.studentReviewsRating ? `${'★'.repeat(Math.floor(visit.studentReviewsRating))}${`☆`.repeat(5-Math.floor(visit.studentReviewsRating))}` : '-'}</span>
+                                <span class="text-lg font-bold text-amber-600">${visit.studentReviewsRating ? `${'★'.repeat(Math.floor(visit.studentReviewsRating))}${'☆'.repeat(5-Math.floor(visit.studentReviewsRating))}` : '-'}</span>
                             </div>
                         </td>
                         <td class="text-center py-3 bg-emerald-50 border-x border-emerald-200">
                             <div class="flex items-center justify-center gap-1">
-                                <span class="text-lg font-bold text-emerald-600">${visit.employeeRating ? `${'★'.repeat(Math.floor(visit.employeeRating))}${`☆`.repeat(5-Math.floor(visit.employeeRating))}` : '-'}</span>
+                                <span class="text-lg font-bold text-emerald-600">${visit.employeeRating ? `${'★'.repeat(Math.floor(visit.employeeRating))}${'☆'.repeat(5-Math.floor(visit.employeeRating))}` : '-'}</span>
                             </div>
                         </td>
                         <td class="text-sm text-gray-600">${amList || '-'}</td>
@@ -978,6 +976,7 @@
                         <td class="text-center">${loginIdText}</td>
                         <td class="text-center">${passwordText}</td>
                         <td class="text-center flex items-center justify-center gap-1">
+                           <button onclick="openOwnerChat('${ownerName}', '${ownerContact}', '${visit._id}')" class="text-blue-600 hover:bg-blue-50 p-1 rounded" title="Chat with owner"><i data-lucide="message-circle" class="w-4 h-4"></i></button>
                            <button ${visit.status==='approved' ? 'disabled' : ''} onclick="editVisit('${visit._id}')" class="text-slate-600 hover:bg-slate-50 p-1 rounded"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
                            <button ${visit.status==='approved' ? 'disabled' : ''} onclick="deleteVisit('${visit._id}')" class="text-red-500 hover:bg-red-50 p-1 rounded"><i data-lucide="trash" class="w-4 h-4"></i></button>
                         </td>
@@ -997,7 +996,7 @@
         }
 
         function viewMap(visitId) {
-            // 🔍 Search both localStorage and sessionStorage
+            // ðŸ” Search both localStorage and sessionStorage
             let visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
             let sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
             let v = visits.find(x=>x._id===visitId);
@@ -1309,7 +1308,7 @@
         }
 
         function deleteVisit(id) {
-            // 🔍 Search both localStorage and sessionStorage
+            // ðŸ” Search both localStorage and sessionStorage
             let visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
             let sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
             let idx = visits.findIndex(v=>v._id===id);
@@ -1336,7 +1335,7 @@
 
         // Edit visit
         function editVisit(id) {
-            // 🔍 Search both localStorage and sessionStorage
+            // ðŸ” Search both localStorage and sessionStorage
             let visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
             let sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
             let v = visits.find(x => x._id === id);
@@ -1394,7 +1393,7 @@
                     s.classList.toggle('text-yellow-400', i < v.cleanlinessRating);
                     s.classList.toggle('text-gray-300', i >= v.cleanlinessRating);
                 });
-                document.getElementById('cleanlinessLabel').innerText = `Rating: ${v.cleanlinessRating}/5 ⭐`;
+                document.getElementById('cleanlinessLabel').innerText = `Rating: ${v.cleanlinessRating}/5 ⭐`;
             }
             // Restore owner behaviour button
             if (v.ownerBehaviourPublic) {
@@ -1422,13 +1421,13 @@
                 const user = JSON.parse(sessionStorage.getItem('manager_user') || sessionStorage.getItem('user') || localStorage.getItem('manager_user') || localStorage.getItem('user') || 'null');
                 const assignedArea = (user && user.area) ? user.area : (user && (user.areaName || user.location) ? (user.areaName || user.location) : 'Unassigned');
 
-                console.log('📋 Form submission started. Mode:', mode, 'User:', user?.name);
+                console.log('ðŸ“‹ Form submission started. Mode:', mode, 'User:', user?.name);
 
                 // Ensure geolocation captured (optional now - can submit without GPS)
                 const latVal = document.getElementById('latitude').value;
                 const lngVal = document.getElementById('longitude').value;
                 if (!latVal || !lngVal) {
-                    console.warn('⚠️ GPS coordinates not available - submitting without location data');
+                    console.warn('âš ï¸ GPS coordinates not available - submitting without location data');
                 }
 
                 // Validate mandatory photos from capturedPhotos or original (for edits)
@@ -1438,7 +1437,7 @@
                 const requiredKeys = ['photo_building','photo_room','photo_bathroom','photo_bed'];
                 let newMandatoryCount = 0;
                 requiredKeys.forEach(k => { if (capturedPhotos[k] && capturedPhotos[k].length > 0) newMandatoryCount++; });
-                console.log('📸 Photo validation. New mandatory:', newMandatoryCount, 'Existing:', existingCount, 'Extra:', (capturedPhotos.extra || []).length);
+                console.log('ðŸ“¸ Photo validation. New mandatory:', newMandatoryCount, 'Existing:', existingCount, 'Extra:', (capturedPhotos.extra || []).length);
                 if (mode === 'create' && newMandatoryCount < 4) return alert('Please capture all 4 mandatory photos (at least one per field).');
                 if (mode === 'edit' && (newMandatoryCount + existingCount) < 4) return alert('Please ensure there are 4 mandatory photos total (capture missing ones or keep existing).');
 
@@ -1479,6 +1478,7 @@
                     submittedById: user ? (user._id || user.id || '') : '',
                     staffName: user ? (user.name || user.login || 'Unknown') : 'Unknown',
                     staffId: user ? (user._id || user.id || user.loginId || user.login || '') : '',
+                    ownerLoginId: user ? (user.loginId || user.login || user._id || '') : '',  // ✅ ADD OWNER LOGIN ID
                     propertyArea: assignedArea,
                     verifiedByCompany: true,
                     latitude: fd.get('latitude') || document.getElementById('latitude').value || '',
@@ -1527,8 +1527,8 @@
                 };
                 const visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
                 visits.push(newVisit);
-                console.log('📝 New visit created:', newVisit._id, 'Total visits:', visits.length);
-                console.log('🔍 Visit data:', newVisit);
+                console.log('ðŸ“ New visit created:', newVisit._id, 'Total visits:', visits.length);
+                console.log('ðŸ” Visit data:', newVisit);
                 
                 // Try to save with cleanup on failure
                 let saveSuccess = false;
@@ -1539,7 +1539,7 @@
                         saveSuccess = true;
                     } catch (e) {
                         if (e.name === 'QuotaExceededError') {
-                            console.warn('⚠️ Storage quota exceeded. Attempting cleanup...');
+                            console.warn('âš ï¸ Storage quota exceeded. Attempting cleanup...');
                             // Remove old photos to make space
                             const cleaned = visits.map((v, idx) => {
                                 if (idx < visits.length - 5) {
@@ -1553,11 +1553,11 @@
                                 console.log('✅ Visit saved after cleanup');
                                 saveSuccess = true;
                             } catch (e2) {
-                                console.error('❌ Still failed after cleanup:', e2.message);
-                                alert('❌ Storage quota full. Contact admin to clear old data.');
+                                console.error('âŒ Still failed after cleanup:', e2.message);
+                                alert('âŒ Storage quota full. Contact admin to clear old data.');
                             }
                         } else {
-                            console.error('❌ safeStorage error:', e.message);
+                            console.error('âŒ safeStorage error:', e.message);
                         }
                     }
                 } else {
@@ -1566,11 +1566,11 @@
                         console.log('✅ Visit saved to localStorage');
                         // Verify it was saved
                         const check = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
-                        console.log('🔐 localStorage verification - visits count:', check.length);
+                        console.log('ðŸ” localStorage verification - visits count:', check.length);
                         saveSuccess = true;
                     } catch(e) { 
                         if (e.name === 'QuotaExceededError') {
-                            console.error('⚠️ QuotaExceededError:', e.message);
+                            console.error('âš ï¸ QuotaExceededError:', e.message);
                             console.warn('Attempting cleanup and retry...');
                             try {
                                 const cleaned = visits.map((v, idx) => {
@@ -1583,21 +1583,21 @@
                                 console.log('✅ Visit saved after cleanup');
                                 saveSuccess = true;
                             } catch (e2) {
-                                console.error('❌ Still failed after cleanup:', e2.message);
-                                alert('❌ Storage quota full. Please contact admin to clear old data.');
+                                console.error('âŒ Still failed after cleanup:', e2.message);
+                                alert('âŒ Storage quota full. Please contact admin to clear old data.');
                             }
                         } else {
-                            console.error('❌ Failed saving visits:', e.message);
-                            alert('❌ Failed to save visit: ' + e.message);
+                            console.error('âŒ Failed saving visits:', e.message);
+                            alert('âŒ Failed to save visit: ' + e.message);
                         }
                     }
                 }
                 
                 if (!saveSuccess) {
-                    console.warn('⚠️ Visit may not have been saved. Please check console.');
+                    console.warn('âš ï¸ Visit may not have been saved. Please check console.');
                 } else {
                     // Also save to backend database as backup
-                    console.log('💾 Attempting to save visit to backend...');
+                    console.log('ðŸ’¾ Attempting to save visit to backend...');
                     try {
                         const backendRes = await fetch(API_URL + '/api/visits', {
                             method: 'POST',
@@ -1607,10 +1607,10 @@
                         if (backendRes.ok) {
                             console.log('✅ Visit saved to backend database');
                         } else {
-                            console.warn('⚠️ Backend save failed:', backendRes.status);
+                            console.warn('âš ï¸ Backend save failed:', backendRes.status);
                         }
                     } catch (err) {
-                        console.warn('⚠️ Could not save to backend:', err.message);
+                        console.warn('âš ï¸ Could not save to backend:', err.message);
                         // This is non-critical - data is safe in localStorage
                     }
                 }
@@ -1687,16 +1687,16 @@
             
             // Verify data in storage before reloading table
             const verification = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
-            console.log('🔐 Before loadVisits - storage count:', verification.length);
-            console.log('📋 Last visit saved:', verification[verification.length - 1]);
+            console.log('ðŸ” Before loadVisits - storage count:', verification.length);
+            console.log('ðŸ“‹ Last visit saved:', verification[verification.length - 1]);
             
             // Reload visits table
             loadVisits();
             console.log('✅ Visit submitted and table reloaded');
             } catch (error) {
-                console.error('❌ Form submission error:', error);
+                console.error('âŒ Form submission error:', error);
                 console.error('Error stack:', error.stack);
-                alert('❌ Error submitting form: ' + error.message + '\n\nPlease check browser console for details.');
+                alert('âŒ Error submitting form: ' + error.message + '\n\nPlease check browser console for details.');
             }
         });
 
@@ -1814,7 +1814,7 @@
                 alert('Professional photos saved for this new visit. Click Submit Report to complete.');
                 return;
             }
-            // 🔍 Search both localStorage and sessionStorage
+            // ðŸ” Search both localStorage and sessionStorage
             let visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
             let sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
             let idx = visits.findIndex(v => v._id === editingStaffPhotoId);
@@ -1856,6 +1856,62 @@
             staffPhotoDataURLs = [];
         }
 
+        // Open chat with property owner from visit
+        function openOwnerChat(ownerName, ownerContact, visitId) {
+            const user = JSON.parse(sessionStorage.getItem('manager_user') || localStorage.getItem('user') || '{}');
+            
+            // Get all approved owners for area chat
+            let visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+            let sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
+            let allVisits = [...visits, ...sessionVisits];
+            
+            // Filter approved visits only
+            let approvedOwners = allVisits
+                .filter(v => v.status === 'approved' && v.ownerName && v.contactPhone)
+                .map(v => ({
+                    id: v._id || v.id,
+                    name: v.ownerName || v.propertyInfo?.ownerName || 'Owner',
+                    phone: v.contactPhone || v.propertyInfo?.contactPhone || '',
+                    type: 'owner',
+                    visitId: v._id,
+                    propertyName: v.propertyName || v.propertyInfo?.name || ''
+                }))
+                .filter((owner, idx, self) => self.findIndex(o => o.id === owner.id) === idx); // Remove duplicates
+            
+            // Store for area chat
+            sessionStorage.setItem('chatContext', JSON.stringify({
+                managerId: user._id || user.id || user.loginId || '',
+                managerName: user.name || 'Area Manager',
+                approvedOwners: approvedOwners,
+                currentChat: {
+                    id: ownerName.toLowerCase().replace(/\s+/g, '_'),
+                    name: ownerName,
+                    phone: ownerContact,
+                    type: 'owner',
+                    visitId: visitId
+                }
+            }));
+            
+            // Store owner contact for chat
+            let contacts = JSON.parse(localStorage.getItem('roomhy_chat_contacts') || '[]');
+            if (!contacts.find(c => c.name === ownerName && c.phone === ownerContact)) {
+                contacts.push({
+                    id: ownerName.toLowerCase().replace(/\s+/g, '_'),
+                    name: ownerName,
+                    phone: ownerContact,
+                    type: 'owner',
+                    visitId: visitId
+                });
+                localStorage.setItem('roomhy_chat_contacts', JSON.stringify(contacts));
+            }
+            
+            // Open chat
+            window.open('areachat.html?owner=' + encodeURIComponent(ownerName) + '&visit=' + visitId, 'roomhy_area_chat', 'width=1000,height=700');
+        }
+
     </script>
 </body>
 </html>
+
+
+

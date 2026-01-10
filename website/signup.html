@@ -1,13 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy | Light & Blue Edition</title>
-    <script>
-        // API Configuration
-        const API_URL = 'https://roomhy-backend.onrender.com';
-    </script>
+    <script src="./js/api-config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -240,8 +237,8 @@
             <button id="menu-close" class="p-2 text-slate-600 bg-slate-50 rounded-lg"><i data-lucide="x"></i></button>
         </div>
         <nav class="flex flex-col gap-5 text-base sm:text-lg font-semibold text-slate-700">
-            <a href="#" class="flex items-center gap-3 p-2 hover:text-blue-600 transition-colors"><i data-lucide="info" class="w-5 h-5"></i> About Us</a>
-            <a href="#" class="flex items-center gap-3 p-2 hover:text-blue-600 transition-colors"><i data-lucide="phone" class="w-5 h-5"></i> Contact Us</a>
+            <a href="about.html" class="flex items-center gap-3 p-2 hover:text-blue-600 transition-colors"><i data-lucide="info" class="w-5 h-5"></i> About Us</a>
+            <a href="contact.html" class="flex items-center gap-3 p-2 hover:text-blue-600 transition-colors"><i data-lucide="phone" class="w-5 h-5"></i> Contact Us</a>
             <a href="#" class="flex items-center gap-3 p-2 hover:text-blue-600 transition-colors"><i data-lucide="building" class="w-5 h-5"></i> Properties</a>
             <a href="#auth-container" onclick="toggleMenu(false)" class="bg-blue-600 text-white text-center py-3.5 rounded-xl mt-4 shadow-lg active:scale-95 transition-transform">Login / Sign Up</a>
         </nav>
@@ -267,8 +264,8 @@
                 
                 <div class="flex items-center gap-3 sm:gap-6">
                     <nav class="hidden lg:flex items-center space-x-8">
-                        <a href="#" class="text-gray-600 hover:text-blue-600 font-semibold transition-colors text-sm">About Us</a>
-                        <a href="#" class="text-gray-600 hover:text-blue-600 font-semibold transition-colors text-sm">Contact Us</a>
+                        <a href="about.html" class="text-gray-600 hover:text-blue-600 font-semibold transition-colors text-sm">About Us</a>
+                        <a href="contact.html" class="text-gray-600 hover:text-blue-600 font-semibold transition-colors text-sm">Contact Us</a>
                     </nav>
                     <a href="#auth-container" class="hidden sm:inline-flex bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-md active:scale-95">
                         Login/Signup
@@ -321,7 +318,7 @@
                                 </div>
                                 <div class="space-y-1.5">
                                     <label class="text-xs md:text-sm font-bold text-slate-700 ml-1">Password</label>
-                                    <input type="password" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-2 focus:ring-blue-50/50 outline-none transition-all" placeholder="••••••••">
+                                    <input type="password" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-2 focus:ring-blue-50/50 outline-none transition-all" placeholder=""¢"¢"¢"¢"¢"¢"¢"¢">
                                     <a href="#" class="text-xs text-blue-600 font-bold block text-right mt-1.5 hover:underline">Forgot Password?</a>
                                 </div>
                                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-100 transition-all active:scale-[0.98]">Log in</button>
@@ -428,8 +425,8 @@
         <div class="footer-links">
           <h4>Quick Links</h4>
           <ul class="font-medium text-sm md:text-base">
-            <li><a href="#">Contact Us</a></li>
-            <li><a href="#">About Us</a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+            <li><a href="about.html">About Us</a></li>
             <li><a href="#">Our Properties</a></li>
           </ul>
         </div>
@@ -554,28 +551,28 @@
                 );
 
                 if (!user) {
-                    showToast('❌ Account not found. Please sign up first!', 'error');
+                    showToast('âŒ Account not found. Please sign up first!', 'error');
                     return;
                 }
 
                 // Check if user is verified by KYC admin
                 if (user.status !== 'verified') {
                     if (user.status === 'rejected') {
-                        showToast('❌ Your account was rejected. Please contact support.', 'error');
+                        showToast('âŒ Your account was rejected. Please contact support.', 'error');
                     } else {
-                        showToast('⏳ Your account is pending verification. Check back later!', 'error');
+                        showToast('â³ Your account is pending verification. Check back later!', 'error');
                     }
                     return;
                 }
 
                 // Verify password (simple check - in production, use hashing)
                 if (user.password !== password) {
-                    showToast('❌ Incorrect password!', 'error');
+                    showToast('âŒ Incorrect password!', 'error');
                     return;
                 }
 
                 // Login successful!
-                showToast('✓ Login successful! Redirecting...', 'success');
+                showToast('âœ“ Login successful! Redirecting...', 'success');
 
                 // Store user session
                 const loggedInUser = {
@@ -688,14 +685,33 @@
                     return;
                 }
 
-                // Add new signup to KYC table
+                // Try to save to MongoDB API first
+                fetch(`${API_URL}/api/kyc/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(signupData)
+                }).then(res => {
+                    if (res.ok) {
+                        console.log('âœ“ Signup saved to MongoDB via API');
+                    } else {
+                        throw new Error('API failed');
+                    }
+                }).catch(err => {
+                    console.log('Fallback to localStorage:', err);
+                    // Add new signup to KYC table
+                    existing.unshift(signupData);
+                    localStorage.setItem(kycTableKey, JSON.stringify(existing));
+                    console.log('âœ“ Signup saved to localStorage as fallback');
+                });
+
+                // Add new signup to KYC table (localStorage for offline support)
                 existing.unshift(signupData);
                 localStorage.setItem(kycTableKey, JSON.stringify(existing));
 
                 // Also maintain tenant list for backward compatibility
                 saveLocalSignup(signupData);
 
-                console.log('✓ Signup saved to KYC Verification table');
+                console.log('âœ“ Signup saved to KYC Verification table');
             } catch (e) { 
                 console.error('saveToKYCVerification error:', e); 
             }

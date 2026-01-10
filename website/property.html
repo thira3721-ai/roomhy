@@ -1,14 +1,16 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
-        <script src="../js/socket-init.js"></script>
+    <script>
+        // API Configuration - Support both local and production
+        const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? 'http://localhost:5000'
+            : 'https://roomhy-backend.onrender.com';
+        console.log('Using API_URL:', API_URL);
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Athena House, Hinjawadi - Roomhy</title>
-    <script>
-        // API Configuration
-        const API_URL = 'https://roomhy-backend.onrender.com';
-    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -151,7 +153,7 @@
                 <div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
                     <i data-lucide="users" class="w-6 h-6 text-gray-600"></i>
                 </div>
-                <span class="text-lg font-semibold text-gray-800">Hi Yasmine 👋</span>
+                <span class="text-lg font-semibold text-gray-800">Hi Yasmine ðŸ‘‹</span>
             </div>
             <a href="profile.html" class="text-sm font-medium text-blue-600 hover:underline">Profile</a>
         </div>
@@ -179,17 +181,17 @@
                 </div>
                 <span>Favorites</span>
             </a>
-            <a href="chathome.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
-                 <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                    <i data-lucide="message-square" class="w-5 h-5 text-green-600"></i>
-                </div>
-                <span>Chats</span>
-            </a>
             <a href="mystays.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
                 <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
                     <i data-lucide="building" class="w-5 h-5 text-purple-600"></i>
                 </div>
                 <span>My Stays</span>
+            </a>
+            <a href="#" id="contactOwnerBtn" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-cyan-50 hover:text-cyan-600">
+                <div class="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="message-circle" class="w-5 h-5 text-cyan-600"></i>
+                </div>
+                <span>Contact Owner</span>
             </a>
             <a href="about.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
                 <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
@@ -223,7 +225,7 @@
     <main class="container mx-auto px-4 sm:px-6 py-6 md:py-10 mt-6">
         <div class="flex justify-between items-center mb-6">
             <nav class="text-sm font-medium text-gray-500">
-                <a href="stays.html" class="hover:text-blue-600 inline-flex items-center"> 
+                <a href="javascript:history.back()" class="hover:text-blue-600 inline-flex items-center"> 
                     <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>Back to listings
                 </a>
             </nav>
@@ -263,7 +265,7 @@
                     <div class="mb-4">
                         <div class="flex items-center justify-between mb-3">
                             <h4 class="text-sm font-semibold text-gray-800">All Photos</h4>
-                            <span class="text-xs font-medium text-gray-500">← Scroll to browse →</span>
+                            <span class="text-xs font-medium text-gray-500">â† Scroll to browse â†’</span>
                         </div>
                         <div class="flex gap-3 overflow-x-auto pb-2 thumbnail-strip" id="galleryThumbnails">
                             <!-- Thumbnails will be populated dynamically -->
@@ -292,10 +294,10 @@
                     
                     <!-- Zoom Controls -->
                     <div class="zoom-controls">
-                        <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">−</button>
+                        <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">âˆ’</button>
                         <div class="zoom-level" id="zoomLevel">100%</div>
                         <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">+</button>
-                        <button class="zoom-btn" onclick="resetZoom()" title="Reset">⟲</button>
+                        <button class="zoom-btn" onclick="resetZoom()" title="Reset">âŸ²</button>
                     </div>
                     
                     <!-- Image Navigation -->
@@ -467,7 +469,6 @@
                     <!-- Tab Navigation -->
                     <div class="flex gap-3 mb-6 border-b border-gray-200">
                         <button id="schedule-tab" class="pb-3 px-2 font-semibold text-teal-600 border-b-2 border-teal-600 transition-all duration-200">Request</button>
-                        <button id="reserve-tab" class="pb-3 px-2 font-semibold text-gray-500 border-b-2 border-transparent hover:text-gray-700 transition-all duration-200">Bid Now</button>
                     </div>
 
                     <!-- Request Tab -->
@@ -476,9 +477,7 @@
                             <input type="text" id="visit-name" placeholder="Name" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" required>
                             
                             <div class="flex items-center gap-2 border border-gray-300 rounded-lg px-3 py-2.5">
-                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Crect fill='%23FF9933' width='36' height='12'/%3E%3Crect fill='white' y='12' width='36' height='12'/%3E%3Crect fill='%23138808' y='24' width='36' height='12'/%3E%3C/svg%3E" alt="India" class="w-6 h-4">
-                                <span class="text-gray-500 text-sm">+91</span>
-                                <input type="tel" id="visit-phone" placeholder="Mobile Number" class="flex-1 text-sm focus:outline-none bg-transparent" required>
+                                <input type="email" id="visit-email" placeholder="Email Address" class="flex-1 text-sm focus:outline-none bg-transparent" required>
                             </div>
 
                             <div class="bg-teal-50 border border-teal-200 rounded-lg p-3 text-center">
@@ -501,60 +500,7 @@
                         </form>
                     </div>
 
-                    <!-- Bid Now Tab -->
-                    <div id="reserve-content" class="space-y-4 hidden">
-                        <!-- Info Box -->
-                        <div class="border-2 border-teal-200 rounded-lg p-4 space-y-3 bg-teal-50">
-                            <div class="flex items-start gap-3">
-                                <i data-lucide="home" class="w-5 h-5 text-teal-600 mt-0.5 flex-shrink-0"></i>
-                                <div>
-                                    <p class="text-sm font-bold text-gray-800">If you like a residence or apartment, make an initial payment of just ₹500/- to bid and reserve</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start gap-3">
-                                <i data-lucide="percent" class="w-5 h-5 text-teal-600 mt-0.5 flex-shrink-0"></i>
-                                <div>
-                                    <p class="text-sm font-bold text-gray-800">This will unlock special offers and priority consideration from the property owner</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start gap-3">
-                                <i data-lucide="undo-2" class="w-5 h-5 text-teal-600 mt-0.5 flex-shrink-0"></i>
-                                <div>
-                                    <p class="text-sm font-bold text-gray-800">But if you change your mind anytime, you can get your money back (no questions asked)</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <form id="reserve-form" class="space-y-3">
-                            <input type="text" id="reserve-name" placeholder="First Name" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" required>
-                            
-                            <div class="flex items-center gap-2 border border-gray-300 rounded-lg px-3 py-2.5">
-                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Crect fill='%23FF9933' width='36' height='12'/%3E%3Crect fill='white' y='12' width='36' height='12'/%3E%3Crect fill='%23138808' y='24' width='36' height='12'/%3E%3C/svg%3E" alt="India" class="w-6 h-4">
-                                <span class="text-gray-500 text-sm">+91</span>
-                                <input type="tel" id="reserve-phone" placeholder="Mobile Number" class="flex-1 text-sm focus:outline-none bg-transparent" required>
-                            </div>
-
-                            <input type="text" id="referral-code" placeholder="Enter Referral Code (Optional)" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
-                            
-                            <select id="occupancy-select" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white" required>
-                                <option value="">Select Occupancy</option>
-                                <option value="Single">Single Occupancy</option>
-                                <option value="Double">Double Occupancy</option>
-                                <option value="Triple">Triple Occupancy</option>
-                            </select>
-
-                            <div class="bg-teal-50 border border-teal-200 rounded-lg p-3 text-center">
-                                <p class="text-sm text-teal-700 font-medium">We accept bookings with a minimum stay of 3 months.</p>
-                            </div>
-
-                            <div class="flex items-start gap-2 mt-4">
-                                <input type="checkbox" id="reserve-terms" class="w-4 h-4 mt-1 accent-teal-600" required>
-                                <span class="text-xs text-gray-700">I have read and agreed to the <a href="#" class="text-teal-600 hover:underline font-semibold">terms and conditions</a> and <a href="#" class="text-teal-600 hover:underline font-semibold">privacy policy</a> and hereby confirm to proceed.</span>
-                            </div>
-
-                            <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 mt-5">Place Bid (₹500)</button>
-                        </form>
-                    </div>
+                    
 
                     <!-- Safety Badge -->
                     <div class="mt-6 text-center text-xs text-gray-600 border-t border-gray-200 pt-4 flex items-center justify-center gap-2">
@@ -641,7 +587,7 @@
                                 </div>
                                 <div class="flex justify-between items-end mt-4 pt-4 border-t border-gray-200">
                                     <p class="font-bold text-lg text-gray-900">₹11,000 <span class="text-sm font-normal text-gray-500">/ mo</span></p>
-                                    <button class="text-emerald-600 hover:text-emerald-700 font-bold text-sm">View →</button>
+                                    <button class="text-emerald-600 hover:text-emerald-700 font-bold text-sm">View â†’</button>
                                 </div>
                             </div>
                         </div>
@@ -660,7 +606,7 @@
                                 </div>
                                 <div class="flex justify-between items-end mt-4 pt-4 border-t border-gray-200">
                                     <p class="font-bold text-lg text-gray-900">₹14,500 <span class="text-sm font-normal text-gray-500">/ mo</span></p>
-                                    <button class="text-emerald-600 hover:text-emerald-700 font-bold text-sm">View →</button>
+                                    <button class="text-emerald-600 hover:text-emerald-700 font-bold text-sm">View â†’</button>
                                 </div>
                             </div>
                         </div>
@@ -679,7 +625,7 @@
                                 </div>
                                 <div class="flex justify-between items-end mt-4 pt-4 border-t border-gray-200">
                                     <p class="font-bold text-lg text-gray-900">₹10,500 <span class="text-sm font-normal text-gray-500">/ mo</span></p>
-                                    <button class="text-emerald-600 hover:text-emerald-700 font-bold text-sm">View →</button>
+                                    <button class="text-emerald-600 hover:text-emerald-700 font-bold text-sm">View â†’</button>
                                 </div>
                             </div>
                         </div>
@@ -722,10 +668,10 @@
                         <span>Explore</span>
                     </h4>
                     <ul class="space-y-3">
-                        <li><a href="stays.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>→</span><span>Apartments</span></a></li>
-                        <li><a href="stays.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>→</span><span>Hostels</span></a></li>
-                        <li><a href="stays.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>→</span><span>Co-Living</span></a></li>
-                        <li><a href="stays.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>→</span><span>PGs</span></a></li>
+                        <li><a href="stays.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>â†’</span><span>Apartments</span></a></li>
+                        <li><a href="stays.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>â†’</span><span>Hostels</span></a></li>
+                        <li><a href="stays.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>â†’</span><span>Co-Living</span></a></li>
+                        <li><a href="stays.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>â†’</span><span>PGs</span></a></li>
                     </ul>
                 </div>
                 <div>
@@ -734,10 +680,10 @@
                         <span>Company</span>
                     </h4>
                     <ul class="space-y-3">
-                        <li><a href="about.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>→</span><span>About Us</span></a></li>
-                        <li><a href="list.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>→</span><span>List Your Property</span></a></li>
-                        <li><a href="privacy.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>→</span><span>Privacy Policy</span></a></li>
-                        <li><a href="terms.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>→</span><span>Terms of Service</span></a></li>
+                        <li><a href="about.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>â†’</span><span>About Us</span></a></li>
+                        <li><a href="list.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>â†’</span><span>List Your Property</span></a></li>
+                        <li><a href="privacy.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>â†’</span><span>Privacy Policy</span></a></li>
+                        <li><a href="terms.html" class="text-gray-300 hover:text-white transition-colors flex items-center space-x-2"><span>â†’</span><span>Terms of Service</span></a></li>
                     </ul>
                 </div>
                 <div>
@@ -781,7 +727,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <button id="gallery-zoom-in" class="p-2 bg-white/10 text-white rounded hover:bg-white/20">+</button>
-                    <button id="gallery-zoom-out" class="p-2 bg-white/10 text-white rounded hover:bg-white/20">−</button>
+                    <button id="gallery-zoom-out" class="p-2 bg-white/10 text-white rounded hover:bg-white/20">âˆ’</button>
                     <button id="gallery-reset" class="p-2 bg-white/10 text-white rounded hover:bg-white/20">Reset</button>
                     <button id="gallery-close" class="p-2 bg-white/10 text-white rounded hover:bg-white/20"><i data-lucide="x" class="w-5 h-5"></i></button>
                 </div>
@@ -874,7 +820,7 @@
                         <span class="text-lg font-semibold text-gray-900">Total Amount</span>
                         <span id="payment-total" class="text-2xl font-bold text-yellow-700">₹500</span>
                     </div>
-                    <p class="text-xs text-gray-600 mt-2">✓ Fully refundable bid amount. If you don't like the place after visits, full refund will be processed.</p>
+                    <p class="text-xs text-gray-600 mt-2">âœ“ Fully refundable bid amount. If you don't like the place after visits, full refund will be processed.</p>
                 </div>
 
                 <!-- Terms & Conditions -->
@@ -894,7 +840,7 @@
                 <!-- Secure Badge -->
                 <div class="text-center text-xs text-gray-500 flex items-center justify-center space-x-1">
                     <i data-lucide="shield-check" class="w-4 h-4 text-green-600"></i>
-                    <span>SSL Secure • PCI Compliant</span>
+                    <span>SSL Secure "¢ PCI Compliant</span>
                 </div>
             </div>
         </div>
@@ -1543,7 +1489,7 @@
                             const title = p.name || p.title || r.title || 'Property';
                             const loc = p.area || p.locality || r.city || '';
                             const price = r.monthlyRent || r.rent || p.monthlyRent || p.rent || 'N/A';
-                            return `<a href="property.html?id=${r._id||r.id||''}" class="group block flex-shrink-0 snap-start w-80"><div class="light-card rounded-2xl overflow-hidden h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-gray-200"><div class="relative h-48 overflow-hidden"><img src="${img}" alt="Similar Property" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"></div><div class="p-5"><h3 class="font-bold text-lg mt-1 truncate text-gray-900">${title}</h3><div class="flex items-center space-x-1 text-gray-600 text-sm mt-2"><i data-lucide=\"map-pin\" class=\"w-4 h-4\"></i><p class="truncate">${loc}</p></div><div class="flex justify-between items-end mt-4 pt-4 border-t border-gray-200"><p class="font-bold text-lg text-gray-900">₹${price} <span class=\"text-sm font-normal text-gray-500\">/ mo</span></p><button class=\"text-emerald-600 hover:text-emerald-700 font-bold text-sm\">View →</button></div></div></div></a>`;
+                            return `<a href="property.html?id=${r._id||r.id||''}" class="group block flex-shrink-0 snap-start w-80"><div class="light-card rounded-2xl overflow-hidden h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-gray-200"><div class="relative h-48 overflow-hidden"><img src="${img}" alt="Similar Property" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"></div><div class="p-5"><h3 class="font-bold text-lg mt-1 truncate text-gray-900">${title}</h3><div class="flex items-center space-x-1 text-gray-600 text-sm mt-2"><i data-lucide=\"map-pin\" class=\"w-4 h-4\"></i><p class="truncate">${loc}</p></div><div class="flex justify-between items-end mt-4 pt-4 border-t border-gray-200"><p class="font-bold text-lg text-gray-900">₹${price} <span class=\"text-sm font-normal text-gray-500\">/ mo</span></p><button class=\"text-emerald-600 hover:text-emerald-700 font-bold text-sm\">View â†’</button></div></div></div></a>`;
                         }).join('');
                     }
                 } else {
@@ -1555,31 +1501,16 @@
 
                 // ============ Booking Tabs & Forms ============
                 const scheduleTab = document.getElementById('schedule-tab');
-                const reserveTab = document.getElementById('reserve-tab');
                 const scheduleContent = document.getElementById('schedule-content');
-                const reserveContent = document.getElementById('reserve-content');
                 const scheduleForm = document.getElementById('schedule-form');
-                const reserveForm = document.getElementById('reserve-form');
                 const whatsappToggle = document.getElementById('whatsapp-toggle');
 
-                // Tab switching
-                if (scheduleTab && reserveTab && scheduleContent && reserveContent) {
+                // Tab switching (only Request tab remains)
+                if (scheduleTab && scheduleContent) {
                     scheduleTab.addEventListener('click', () => {
                         scheduleTab.classList.add('text-teal-600', 'border-teal-600');
                         scheduleTab.classList.remove('text-gray-500', 'border-transparent');
-                        reserveTab.classList.remove('text-teal-600', 'border-teal-600');
-                        reserveTab.classList.add('text-gray-500', 'border-transparent');
                         scheduleContent.classList.remove('hidden');
-                        reserveContent.classList.add('hidden');
-                    });
-
-                    reserveTab.addEventListener('click', () => {
-                        reserveTab.classList.add('text-teal-600', 'border-teal-600');
-                        reserveTab.classList.remove('text-gray-500', 'border-transparent');
-                        scheduleTab.classList.remove('text-teal-600', 'border-teal-600');
-                        scheduleTab.classList.add('text-gray-500', 'border-transparent');
-                        reserveContent.classList.remove('hidden');
-                        scheduleContent.classList.add('hidden');
                     });
                 }
 
@@ -1605,7 +1536,7 @@
                 if (scheduleForm) {
                     scheduleForm.addEventListener('submit', async (e) => {
                         e.preventDefault();
-                        
+
                         // Check if user is logged in
                         const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
                         if (!user || !user.loginId) {
@@ -1613,20 +1544,20 @@
                             window.location.href = '../index.html';
                             return;
                         }
-                        
-                        const name = document.getElementById('visit-name').value;
-                        const phone = document.getElementById('visit-phone').value;
-                        const email = user.email || '';
 
-                        if (!name || !phone) {
+                        const name = document.getElementById('visit-name').value;
+                        const emailInput = document.getElementById('visit-email').value;
+                        const email = emailInput || user.email || '';
+
+                        if (!name || !email) {
                             alert('Please fill in all required fields');
                             return;
                         }
 
-                        // Validate phone number (10 digits)
-                        const phoneRegex = /^\d{10}$/;
-                        if (!phoneRegex.test(phone.replace(/\D/g, ''))) {
-                            alert('Please enter a valid 10-digit phone number');
+                        // Validate email
+                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        if (!emailRegex.test(email)) {
+                            alert('Please enter a valid email address');
                             return;
                         }
 
@@ -1636,6 +1567,44 @@
                         const area = document.querySelector('[id="property-location"]')?.textContent || 'Unknown';
                         const propertyType = document.querySelector('[data-field="property-type"]')?.textContent || 'PG';
                         const rentAmount = document.querySelector('[data-field="rent-amount"]')?.textContent?.replace(/₹|,/g, '') || 0;
+
+                        // ✅ Get property owner ID from approved visit data
+                        // The property must be approved by super admin first - the loginId is generated during approval
+                        let propertyOwnerId = null;
+                        const visits = getVisitsFromStorage();
+                        const propertyId_str = String(propertyId);
+                        
+                        if (visits && visits.length > 0) {
+                            // Find the visit by ID (visit ID is the property ID)
+                            const foundVisit = visits.find(x => 
+                                String(x._id) === propertyId_str || 
+                                String(x.id) === propertyId_str || 
+                                String(x.visitId) === propertyId_str
+                            );
+                            
+                            // Extract owner login ID from approved visit
+                            // Priority: use generatedCredentials.loginId (from super admin approval)
+                            if (foundVisit) {
+                                // First, check if property is approved
+                                if (foundVisit.status !== 'approved') {
+                                    alert('Error: This property has not been approved by admin yet. Please contact support.');
+                                    return;
+                                }
+                                
+                                // Get the loginId generated during approval
+                                propertyOwnerId = (foundVisit.generatedCredentials && foundVisit.generatedCredentials.loginId) || 
+                                               foundVisit.ownerLoginId || 
+                                               foundVisit.createdBy || 
+                                               foundVisit.owner || 
+                                               foundVisit.propertyOwnerId ||
+                                               (foundVisit.propertyInfo && foundVisit.propertyInfo.ownerId);
+                            }
+                        }
+
+                        if (!propertyOwnerId) {
+                            alert('Error: Could not identify property owner. Property must be approved by admin first.');
+                            return;
+                        }
 
                         try {
                             const apiUrl = API_URL;
@@ -1650,9 +1619,10 @@
                                     property_type: propertyType,
                                     rent_amount: parseInt(rentAmount),
                                     user_id: user.loginId,
+                                    owner_id: propertyOwnerId,  // ✅ ADD OWNER ID
                                     name: name,
-                                    email: email || user.loginId,
-                                    phone: phone,
+                                    email: email,
+                                    phone: '',
                                     request_type: 'request',
                                     message: ''
                                 })
@@ -1660,7 +1630,7 @@
 
                             if (response.ok) {
                                 const result = await response.json();
-                                alert(`Thank you ${name}! Your request has been sent to the area manager. We'll contact you soon.`);
+                                alert(`Thank you ${name}! Your request has been sent to the property owner. We'll contact you soon.`);
                                 scheduleForm.reset();
                             } else {
                                 const error = await response.json();
@@ -1673,90 +1643,7 @@
                     });
                 }
 
-                // Reserve Now Form (Bid Now)
-                if (reserveForm) {
-                    reserveForm.addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        
-                        // Check if user is logged in
-                        const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
-                        if (!user || !user.loginId) {
-                            alert('Please login to place a bid');
-                            window.location.href = '../index.html';
-                            return;
-                        }
-                        
-                        const name = document.getElementById('reserve-name').value;
-                        const phone = document.getElementById('reserve-phone').value;
-                        const email = user.email || user.loginId;
-                        const referral = document.getElementById('referral-code').value;
-                        const occupancy = document.getElementById('occupancy-select').value;
-
-                        if (!name || !phone || !occupancy) {
-                            alert('Please fill in all required fields');
-                            return;
-                        }
-
-                        // Validate phone number (10 digits)
-                        const phoneRegex = /^\d{10}$/;
-                        if (!phoneRegex.test(phone.replace(/\D/g, ''))) {
-                            alert('Please enter a valid 10-digit phone number');
-                            return;
-                        }
-
-                        // Get property details
-                        const propertyId = getParam('id') || '1';
-                        const propertyName = document.getElementById('property-title')?.textContent || 'Property';
-                        const area = document.querySelector('[id="property-location"]')?.textContent || 'Unknown';
-                        const propertyType = document.querySelector('[data-field="property-type"]')?.textContent || 'PG';
-                        const rentAmount = document.querySelector('[data-field="rent-amount"]')?.textContent?.replace(/₹|,/g, '') || 0;
-
-                        try {
-                            const apiUrl = API_URL;
-
-                            // Create booking bid
-                            const response = await fetch(`${apiUrl}/api/booking/create`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    property_id: propertyId,
-                                    property_name: propertyName,
-                                    area: area,
-                                    property_type: propertyType,
-                                    rent_amount: parseInt(rentAmount),
-                                    user_id: user.loginId,
-                                    name: name,
-                                    email: email,
-                                    phone: phone,
-                                    request_type: 'bid',
-                                    bid_amount: 500,
-                                    message: referral ? `Referral: ${referral}` : ''
-                                })
-                            });
-
-                            if (response.ok) {
-                                const result = await response.json();
-                                
-                                // Disable Bid Now button
-                                const bidNowBtn = document.getElementById('bid-now-btn');
-                                if (bidNowBtn) {
-                                    bidNowBtn.disabled = true;
-                                    bidNowBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                                    bidNowBtn.textContent = 'Property on Hold';
-                                }
-
-                                alert(`Bid placed successfully for ${name}! Payment of ₹500/- is confirmed. Your bid is now active.`);
-                                reserveForm.reset();
-                            } else {
-                                const error = await response.json();
-                                alert('Error: ' + (error.message || 'Could not place bid'));
-                            }
-                        } catch (error) {
-                            console.error('Error:', error);
-                            alert('Error placing bid. Please check your connection.');
-                        }
-                    });
-                }
+                
             });
         })();
 
@@ -1957,8 +1844,14 @@
                 isSaved = !isSaved;
                 
                 if (isSaved) {
-                    // Add to favorites
-                    let favorites = JSON.parse(localStorage.getItem('roomhy_favorites') || '[]');
+                    // Add to favorites using MongoDB API
+                    const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
+                    
+                    if (!user || !user.loginId) {
+                        alert('Please login to save favorites');
+                        window.location.href = 'signup.html';
+                        return;
+                    }
                     
                     // Get property details from the page
                     const propertyTitle = document.querySelector('h1') ? document.querySelector('h1').innerText : 'Property';
@@ -1967,7 +1860,8 @@
                     const propertyImg = document.querySelector('img[alt*="property"], img[alt*="image"]') ? document.querySelector('img[alt*="property"], img[alt*="image"]').src : 'https://images.unsplash.com/photo-1567016432779-1fee749a1532?q=80&w=1974&auto=format&fit=crop';
                     
                     const favorite = {
-                        id: propertyId || Date.now(),
+                        property_id: propertyId || Date.now().toString(),
+                        user_id: user.loginId,
                         title: propertyTitle,
                         location: propertyLocation,
                         price: propertyPrice,
@@ -1975,23 +1869,75 @@
                         url: window.location.href
                     };
                     
-                    // Check if already in favorites
-                    const exists = favorites.some(fav => fav.id === favorite.id);
-                    if (!exists) {
-                        favorites.push(favorite);
-                        localStorage.setItem('roomhy_favorites', JSON.stringify(favorites));
-                    }
-                    
-                    // Show toast and redirect
-                    console.log('Property saved to favorites!');
-                    setTimeout(() => {
-                        window.location.href = 'fav.html';
-                    }, 300);
+                    // Try API first
+                    fetch(`${API_URL}/api/favorites/add`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(favorite)
+                    }).then(res => {
+                        if (res.ok) {
+                            console.log('Property saved to favorites via API!');
+                            setTimeout(() => {
+                                window.location.href = 'fav.html';
+                            }, 300);
+                        } else {
+                            // Fallback to localStorage
+                            let favorites = JSON.parse(localStorage.getItem('roomhy_favorites') || '[]');
+                            const exists = favorites.some(fav => fav.property_id === favorite.property_id);
+                            if (!exists) {
+                                favorites.push(favorite);
+                                localStorage.setItem('roomhy_favorites', JSON.stringify(favorites));
+                            }
+                            setTimeout(() => {
+                                window.location.href = 'fav.html';
+                            }, 300);
+                        }
+                    }).catch(err => {
+                        console.log('Fallback to localStorage:', err);
+                        let favorites = JSON.parse(localStorage.getItem('roomhy_favorites') || '[]');
+                        const exists = favorites.some(fav => fav.property_id === favorite.property_id);
+                        if (!exists) {
+                            favorites.push(favorite);
+                            localStorage.setItem('roomhy_favorites', JSON.stringify(favorites));
+                        }
+                        setTimeout(() => {
+                            window.location.href = 'fav.html';
+                        }, 300);
+                    });
                 } else {
                     // Remove from favorites
-                    let favorites = JSON.parse(localStorage.getItem('roomhy_favorites') || '[]');
-                    favorites = favorites.filter(fav => fav.id !== (propertyId || ''));
-                    localStorage.setItem('roomhy_favorites', JSON.stringify(favorites));
+                    const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
+                    
+                    if (user && user.loginId) {
+                        // Try API first
+                        fetch(`${API_URL}/api/favorites/remove`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                property_id: propertyId,
+                                user_id: user.loginId
+                            })
+                        }).then(res => {
+                            if (res.ok) {
+                                console.log('Property removed from favorites via API');
+                            } else {
+                                // Fallback
+                                let favorites = JSON.parse(localStorage.getItem('roomhy_favorites') || '[]');
+                                favorites = favorites.filter(fav => fav.property_id !== (propertyId || ''));
+                                localStorage.setItem('roomhy_favorites', JSON.stringify(favorites));
+                            }
+                        }).catch(err => {
+                            // Fallback to localStorage
+                            let favorites = JSON.parse(localStorage.getItem('roomhy_favorites') || '[]');
+                            favorites = favorites.filter(fav => fav.property_id !== (propertyId || ''));
+                            localStorage.setItem('roomhy_favorites', JSON.stringify(favorites));
+                        });
+                    } else {
+                        // Just use localStorage if not logged in
+                        let favorites = JSON.parse(localStorage.getItem('roomhy_favorites') || '[]');
+                        favorites = favorites.filter(fav => fav.property_id !== (propertyId || ''));
+                        localStorage.setItem('roomhy_favorites', JSON.stringify(favorites));
+                    }
                     console.log('Property removed from favorites');
                 }
                 
@@ -2043,185 +1989,10 @@
             };
         })();
 
-        /* Bid Now Button Logic - with ₹500 refundable bid */
-        const bidNowBtn = document.getElementById('bid-now-btn');
-        const paymentModal = document.getElementById('payment-modal');
-        const paymentCloseBtn = document.getElementById('payment-close-btn');
-        const submitBidBtn = document.getElementById('submit-bid-btn');
-        const acceptTermsCheckbox = document.getElementById('accept-terms');
-
-        if (bidNowBtn && paymentModal) {
-            bidNowBtn.addEventListener('click', () => {
-                if (!window.isAuthenticated || !window.isAuthenticated()) {
-                    window.promptLogin();
-                    return;
-                }
-                const propertyName = document.getElementById('property-title')?.textContent || 'Property';
-                const propertyBudget = document.getElementById('property-budget')?.textContent || '₹0';
-                
-                document.getElementById('payment-property-name').textContent = propertyName;
-                document.getElementById('payment-budget').textContent = propertyBudget;
-                document.getElementById('payment-total').textContent = '₹500';
-                
-                paymentModal.classList.remove('hidden');
-                paymentModal.classList.add('flex');
-            });
-        }
-
-        if (paymentCloseBtn && paymentModal) {
-            paymentCloseBtn.addEventListener('click', () => {
-                paymentModal.classList.add('hidden');
-                paymentModal.classList.remove('flex');
-            });
-        }
-
-        // Update submit button state based on terms acceptance
-        if (acceptTermsCheckbox && submitBidBtn) {
-            acceptTermsCheckbox.addEventListener('change', () => {
-                submitBidBtn.disabled = !acceptTermsCheckbox.checked;
-            });
-            submitBidBtn.disabled = true; // Initially disabled
-        }
-
-        // Submit Bid Button
-        if (submitBidBtn) {
-            submitBidBtn.addEventListener('click', async () => {
-                if (!window.isAuthenticated || !window.isAuthenticated()) {
-                    window.promptLogin();
-                    return;
-                }
-                const tenantData = JSON.parse(localStorage.getItem('tenant_user') || '{}');
-                const propertyName = document.getElementById('payment-property-name')?.textContent || 'Unknown Property';
-                
-                const bidRecord = {
-                    bidId: 'BID_' + Date.now(),
-                    tenantId: tenantData.id || tenantData._id || 'unknown',
-                    tenantName: tenantData.name || tenantData.username || 'Anonymous',
-                    tenantPhone: tenantData.phone || 'Not provided',
-                    tenantEmail: tenantData.email || 'Not provided',
-                    propertyName: propertyName,
-                    bidAmount: 500,
-                    refundable: true,
-                    status: 'pending',
-                    priority: 'high', // Higher priority for bid
-                    createdAt: new Date().toISOString(),
-                    expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
-                    visitSlots: [], // Will be populated after owner accepts
-                    chatEnabled: false, // Will be enabled after owner accepts
-                };
-
-                // Save bid to localStorage (for owner panel)
-                const ownerBids = JSON.parse(localStorage.getItem('owner_property_bids') || '[]');
-                ownerBids.unshift(bidRecord);
-                localStorage.setItem('owner_property_bids', JSON.stringify(ownerBids));
-
-                // Save payment record
-                const tenantBids = JSON.parse(localStorage.getItem('tenant_bids') || '[]');
-                tenantBids.push(bidRecord);
-                localStorage.setItem('tenant_bids', JSON.stringify(tenantBids));
-
-                // Show success message
-                submitBidBtn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i><span>Bid Placed Successfully!</span>';
-                submitBidBtn.disabled = true;
-                submitBidBtn.classList.add('bg-green-600');
-                if (window.showToast) window.showToast('Bid placed successfully', 'success');
-
-                setTimeout(() => {
-                    paymentModal.classList.add('hidden');
-                    paymentModal.classList.remove('flex');
-                    
-                    // Enhanced success message with chat link
-                    const goToChat = confirm('✓ Bid of ₹500 placed successfully!\n\nYour bid has been sent to the property owner with HIGH PRIORITY.\n\nYour bid is valid for 7 days.\n\nWould you like to go to Chat now?\n(Chat will be available after owner accepts your bid)');
-                    
-                    if (goToChat) {
-                        window.location.href = '../chat.html';
-                    }
-                    
-                    // Reset
-                    submitBidBtn.innerHTML = '<i data-lucide="lock" class="w-5 h-5"></i><span>Proceed to Payment</span>';
-                    submitBidBtn.disabled = !acceptTermsCheckbox.checked;
-                    submitBidBtn.classList.remove('bg-green-600');
-                    acceptTermsCheckbox.checked = false;
-                    if (window.lucide) window.lucide.createIcons();
-                }, 1500);
-
-                console.log('Bid record created:', bidRecord);
-            });
-        }
+        
 
 
-        /* Request Button Logic - Send notification to owner admin panel */
-                // Connect Owner Button Logic
-                const connectOwnerBtn = document.getElementById('connect-owner-btn');
-                if (connectOwnerBtn) {
-                    connectOwnerBtn.addEventListener('click', async () => {
-                        if (!window.isAuthenticated || !window.isAuthenticated()) {
-                            window.promptLogin();
-                            return;
-                        }
-                        const tenantData = JSON.parse(localStorage.getItem('user') || localStorage.getItem('tenant_user') || '{}');
-                        let ownerLoginId = 'default_owner';
-                        try {
-                            const propertyDataStr = sessionStorage.getItem('currentProperty');
-                            if (propertyDataStr) {
-                                const propData = JSON.parse(propertyDataStr);
-                                ownerLoginId = propData.ownerLoginId || propData.ownerId || propData.owner_id || 'default_owner';
-                            }
-                        } catch (e) {}
-                        const propertyData = {
-                            propertyId: document.getElementById('property-title')?.textContent || 'Unknown Property',
-                            propertyName: document.getElementById('property-title')?.textContent || 'Unknown Property',
-                            location: document.getElementById('property-location')?.textContent || 'Unknown Location',
-                            budget: document.getElementById('property-budget')?.textContent || '₹0',
-                        };
-                        const enquiryRecord = {
-                            type: 'enquiry',
-                            studentId: tenantData.id || tenantData._id || tenantData.email || 'unknown',
-                            studentName: tenantData.name || tenantData.username || 'Anonymous Tenant',
-                            studentEmail: tenantData.email || 'Not provided',
-                            studentPhone: tenantData.phone || 'Not provided',
-                            propertyId: propertyData.propertyId,
-                            propertyName: propertyData.propertyName,
-                            location: propertyData.location,
-                            ts: new Date().toISOString(),
-                            status: 'request to connect',
-                            paidAmount: 0,
-                        };
-                        // Send to backend enquiryController
-                        try {
-                            await fetch(`/api/owners/${ownerLoginId}/enquiries`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(enquiryRecord)
-                            });
-                        } catch (e) {
-                            // fallback to localStorage if backend fails
-                            const ownerEnquiries = JSON.parse(localStorage.getItem('owner_enquiries_' + ownerLoginId) || '[]');
-                            ownerEnquiries.unshift(enquiryRecord);
-                            localStorage.setItem('owner_enquiries_' + ownerLoginId, JSON.stringify(ownerEnquiries));
-                        }
-                        // Optionally emit socket event if available
-                        if (window.io) {
-                            try {
-                                const socket = window.io();
-                                socket.emit('enquiry_notification', {
-                                    ...enquiryRecord,
-                                    ownerEmail: 'owner@property.com'
-                                });
-                            } catch (e) {}
-                        }
-                        connectOwnerBtn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i><span>Request Sent!</span>';
-                        connectOwnerBtn.disabled = true;
-                        connectOwnerBtn.classList.add('opacity-60');
-                        if (window.showToast) window.showToast('Your request has been sent successfully', 'success');
-                        setTimeout(() => {
-                            connectOwnerBtn.innerHTML = 'Connect Owner';
-                            connectOwnerBtn.disabled = false;
-                            connectOwnerBtn.classList.remove('opacity-60');
-                            if (window.lucide) window.lucide.createIcons();
-                        }, 2000);
-                    });
-                }
+        /* Request Button Logic - simplified: single Request flow */
         const requestBtn = document.getElementById('request-btn');
 
         if (requestBtn) {
@@ -2267,41 +2038,40 @@
                     paidAmount: 0,
                 };
 
-                // Store in localStorage for owner dashboard - use the key that admin.html expects
+                // Store in localStorage for owner dashboard - use the key that owner panel expects
                 const ownerEnquiries = JSON.parse(localStorage.getItem('owner_enquiries_' + ownerId) || '[]');
                 ownerEnquiries.unshift(enquiryRecord);
                 localStorage.setItem('owner_enquiries_' + ownerId, JSON.stringify(ownerEnquiries));
 
-                // Emit socket event if available
-                if (window.io) {
-                    try {
-                        const socket = window.io();
-                        socket.emit('enquiry_notification', {
-                            ...enquiryRecord,
-                            ownerEmail: 'owner@property.com' // Replace with actual owner email
-                        });
-                    } catch (e) {
-                        console.log('Socket not available, using localStorage');
+                // Chat integration removed — do not emit socket events
+
+                // Redirect to owner booking requests page filtered by property and owner
+                try {
+                    const propertyDataStr = sessionStorage.getItem('currentProperty');
+                    let propId = '';
+                    if (propertyDataStr) {
+                        const propData = JSON.parse(propertyDataStr);
+                        propId = propData._id || propData.id || propData.propertyId || propData.propertyId || '';
                     }
+                    const target = `../propertyowner/booking_request.html?propertyId=${encodeURIComponent(propId)}&ownerId=${encodeURIComponent(ownerId)}`;
+                    window.location.href = target;
+                } catch (e) {
+                    // fallback: show confirmation
+                    const confirmBtn = requestBtn;
+                    const originalText = confirmBtn?.innerHTML || 'Request';
+                    if (confirmBtn) {
+                        confirmBtn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i><span>Request Sent!</span>';
+                        confirmBtn.disabled = true;
+                        confirmBtn.classList.add('opacity-60');
+                        setTimeout(() => {
+                            confirmBtn.innerHTML = originalText;
+                            confirmBtn.disabled = false;
+                            confirmBtn.classList.remove('opacity-60');
+                            if (window.lucide) window.lucide.createIcons();
+                        }, 2000);
+                    }
+                    console.log('Enquiry created (fallback):', enquiryRecord);
                 }
-
-                // Show confirmation (no chat dialog)
-                const confirmBtn = requestBtn;
-                const originalText = confirmBtn.innerHTML;
-                confirmBtn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i><span>Request Sent!</span>';
-                confirmBtn.disabled = true;
-                confirmBtn.classList.add('opacity-60');
-                if (window.showToast) window.showToast('Your request has been sent successfully', 'success');
-                
-                setTimeout(() => {
-                    confirmBtn.innerHTML = originalText;
-                    confirmBtn.disabled = false;
-                    confirmBtn.classList.remove('opacity-60');
-                    if (window.lucide) window.lucide.createIcons();
-                }, 2000);
-
-                // Log enquiry for debugging
-                console.log('Enquiry created:', enquiryRecord);
             });
         }
 
@@ -2424,6 +2194,20 @@
 
             // Initialize
             loadProfessionalPhotos();
+
+            // Contact Owner button handler
+            const contactOwnerBtn = document.getElementById('contactOwnerBtn');
+            if (contactOwnerBtn) {
+                contactOwnerBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const propertyInfo = JSON.parse(sessionStorage.getItem('current_property') || 'null');
+                    if (propertyInfo) {
+                        window.location.href = '../propertyowner/websitechat.html';
+                    } else {
+                        alert('Please select a property first');
+                    }
+                });
+            }
         })();
     </script>
 </body>

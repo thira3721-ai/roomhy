@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -80,7 +80,7 @@
                             type="password" 
                             class="input-focus w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 transition-colors outline-none" 
                             id="login-password" 
-                            placeholder="••••••••" 
+                            placeholder=""¢"¢"¢"¢"¢"¢"¢"¢" 
                             required
                             autocomplete="off"
                         >
@@ -180,7 +180,7 @@
             const db = JSON.parse(localStorage.getItem('roomhy_superadmin_db') || 'null');
             // Seeder fallback
             if (!db && email === 'roomhyadmin@gmail.com' && password === 'admin@123') {
-                 const user = { id: 'SUPER_ADMIN', email, name: 'Super Admin', role: 'superadmin' };
+                 const user = { id: 'SUPER_ADMIN', loginId: 'SUPER_ADMIN', email, name: 'Super Admin', role: 'superadmin' };
                  // Set in both storages for cross-environment compatibility (esp. Render)
                  sessionStorage.setItem('user', JSON.stringify(user));
                  localStorage.setItem('user', JSON.stringify(user));
@@ -189,7 +189,7 @@
             }
 
             if (db && db.email === email && db.password === password) {
-                const user = { ...db, role: 'superadmin' };
+                const user = { ...db, loginId: db.loginId || db.id || 'SUPER_ADMIN', role: 'superadmin' };
                 // Set in both storages for cross-environment compatibility (esp. Render)
                 sessionStorage.setItem('user', JSON.stringify(user));
                 localStorage.setItem('user', JSON.stringify(user));

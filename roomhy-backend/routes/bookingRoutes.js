@@ -31,14 +31,6 @@ router.post('/requests/:id/schedule-visit', bookingController.scheduleVisit);
 // Delete booking
 router.delete('/requests/:id', bookingController.deleteBooking);
 
-// ================== CHAT ROUTES ==================
-
-// Send chat message
-router.post('/messages', bookingController.sendMessage);
-
-// Get chat messages for a room
-router.get('/messages/:chat_room_id', bookingController.getChatMessages);
-
 // ================== PROPERTY HOLD ROUTES ==================
 
 // Check if property is on hold

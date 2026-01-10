@@ -9,9 +9,10 @@ const bookingRequestSchema = new mongoose.Schema({
 
     user_id: { type: String, required: true, index: true },
     name: { type: String, required: true },
-    phone: { type: String, required: true },
+    phone: { type: String, default: null, sparse: true },
     email: { type: String, required: true },
 
+    owner_id: { type: String, required: true, index: true },
     area_manager_id: { type: String, index: true },
 
     request_type: { 
@@ -42,8 +43,6 @@ const bookingRequestSchema = new mongoose.Schema({
     },
 
     whatsapp_enabled: { type: Boolean, default: true },
-    chat_enabled: { type: Boolean, default: true },
-    chat_room_id: { type: String },
 
     created_at: { type: Date, default: Date.now },
     updated_at: { type: Date, default: Date.now }

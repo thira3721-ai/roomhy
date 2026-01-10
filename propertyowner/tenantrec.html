@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -57,7 +57,7 @@
                 <a href="documents.html" class="sidebar-link"><i data-lucide="file-text" class="w-5 h-5 mr-3"></i> Documents</a>
                 <a href="review.html" class="sidebar-link"><i data-lucide="star" class="w-5 h-5 mr-3"></i> Reviews</a>
                 <a href="payment.html" class="sidebar-link"><i data-lucide="credit-card" class="w-5 h-5 mr-3"></i> Payments</a>
-                <a href="chat.html" class="sidebar-link"><i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Chats</a>
+                <a href="#" class="sidebar-link disabled" onclick="event.preventDefault();"><i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Chats</a>
                 <a href="complaints.html" class="sidebar-link"><i data-lucide="alert-circle" class="w-5 h-5 mr-3"></i> Complaints</a>
                 <a href="location.html" class="sidebar-link"><i data-lucide="map-pin" class="w-5 h-5 mr-3"></i> Location</a>
                 <a href="ownerprofile.html" class="sidebar-link"><i data-lucide="settings" class="w-5 h-5 mr-3"></i> Profile & Settings</a>
@@ -424,7 +424,7 @@
 
         // --- Delete Logic ---
         function deleteTenant(loginId) {
-             if(!confirm("⚠️ Permanently delete this record? This cannot be undone.")) return;
+             if(!confirm("âš ï¸ Permanently delete this record? This cannot be undone.")) return;
              
              let tenants = JSON.parse(localStorage.getItem('roomhy_tenants') || '[]');
              const newTenants = tenants.filter(t => t.loginId !== loginId);

@@ -1,7 +1,6 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-        <script src="../js/socket-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy - Area Admin Dashboard</title>
@@ -86,13 +85,13 @@
             'visits': { label: 'Visit Reports', page: 'visit.html', icon: 'clipboard-list' },
             'tenants': { label: 'Tenants', page: 'areatenant.html', icon: 'users' },
             'owners': { label: 'Owners', page: 'areaowner.html', icon: 'briefcase' },
-            'bookings': { label: 'Booking Requests', page: 'booking_request.html', icon: 'calendar-check' },
+
             'payments': { label: 'Payments', page: 'areapayment.html', icon: 'wallet' },
             'enquiries': { label: 'Enquiries', page: 'areaenq.html', icon: 'help-circle' },
             'location': { label: 'Location', page: 'arealoc.html', icon: 'map-pin' },
             'reports': { label: 'Area Reports', page: 'areareport.html', icon: 'bar-chart-2' },
-            'chat': { label: 'Chat', page: 'areachat.html', icon: 'message-square' },
-            
+            'chat': { label: 'Chat', page: 'areachat.html', icon: 'message-circle' },
+
             // Default Modules (Always Visible)
             'dashboard': { label: 'Dashboard', page: 'dashboard_home', icon: 'layout-dashboard' }
         };
@@ -151,7 +150,7 @@
             html += createLink('dashboard');
 
             // 2. Management - Show: Properties, Tenants, Owners, Visits, Bookings, Location, Enquiries
-            const mgmt = ['properties', 'tenants', 'owners', 'visits', 'bookings', 'location', 'enquiries'];
+            const mgmt = ['properties', 'tenants', 'owners', 'visits', 'location', 'enquiries'];
             if(mgmt.some(id => allowedModules.includes(id))) {
                 html += `<div class="px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4">Management</div>`;
                 mgmt.forEach(id => html += createLink(id));

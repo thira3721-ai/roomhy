@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -48,9 +48,9 @@
                     logStatus(`  - ${key}: ${size} KB`);
                 });
                 localStorage.clear();
-                logStatus('✓ localStorage cleared');
+                logStatus('âœ“ localStorage cleared');
             } catch (e) {
-                logStatus('✗ Error: ' + e.message);
+                logStatus('âœ— Error: ' + e.message);
             }
         });
 
@@ -59,9 +59,9 @@
                 const keys = Object.keys(sessionStorage);
                 logStatus(`Found ${keys.length} items in sessionStorage`);
                 sessionStorage.clear();
-                logStatus('✓ sessionStorage cleared');
+                logStatus('âœ“ sessionStorage cleared');
             } catch (e) {
-                logStatus('✗ Error: ' + e.message);
+                logStatus('âœ— Error: ' + e.message);
             }
         });
 
@@ -72,13 +72,13 @@
                 logStatus(`Clearing ${localKeys.length} localStorage + ${sessionKeys.length} sessionStorage items...`);
                 localStorage.clear();
                 sessionStorage.clear();
-                logStatus('✓ All storage cleared');
+                logStatus('âœ“ All storage cleared');
                 setTimeout(() => {
                     logStatus('Redirecting to home page...');
                     window.location.href = 'index.html';
                 }, 1500);
             } catch (e) {
-                logStatus('✗ Error: ' + e.message);
+                logStatus('âœ— Error: ' + e.message);
             }
         });
 
@@ -87,7 +87,7 @@
                 navigator.serviceWorker.getRegistrations().then(registrations => {
                     registrations.forEach(reg => {
                         reg.unregister();
-                        logStatus('✓ Service Worker unregistered');
+                        logStatus('âœ“ Service Worker unregistered');
                     });
                 });
             }
@@ -96,7 +96,7 @@
                 caches.keys().then(cacheNames => {
                     cacheNames.forEach(cacheName => {
                         caches.delete(cacheName);
-                        logStatus(`✓ Cache "${cacheName}" deleted`);
+                        logStatus(`âœ“ Cache "${cacheName}" deleted`);
                     });
                 });
             }

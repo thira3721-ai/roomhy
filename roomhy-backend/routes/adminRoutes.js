@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
-const chatController = require('../controllers/chatController');
 const agoraController = require('../controllers/agoraController');
 const recordingController = require('../controllers/recordingController');
 const notificationController = require('../controllers/notificationController');
@@ -37,11 +36,6 @@ router.post('/users', protect, authorize('superadmin'), adminController.createUs
 
 // Admin: Update a user by loginId - Super Admin only
 router.patch('/users/:loginId', protect, authorize('superadmin'), adminController.updateUser);
-
-// Chat endpoints: store/retrieve admin <-> employee chats
-// Allow superadmin and area managers to access chats; controller will enforce area checks
-router.get('/chats/:loginId', protect, authorize('superadmin','areamanager'), chatController.getConversation);
-router.post('/chats/:loginId', protect, authorize('superadmin','areamanager'), chatController.postMessage);
 
 // Upload recordings (meeting blobs). Protected route.
 router.post('/recordings', protect, authorize('superadmin','areamanager'), recordingController.uploadRecording);

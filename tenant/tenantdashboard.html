@@ -1,7 +1,6 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-        <script src="../js/socket-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy - Tenant Dashboard</title>
@@ -121,7 +120,8 @@
                     Manage Rent Reminders
                 </button>
                 <a href="tenantchat.html" class="sidebar-item">
-                    Live Chat with Owner
+                    <i data-lucide="message-circle"></i>
+                    Chat
                 </a>
 
                 <div class="sidebar-section-title">Information Hub</div>
@@ -179,7 +179,7 @@
                     <!-- Greeting -->
                     <div>
                         <h1 class="text-3xl font-bold text-slate-900 flex items-center">
-                            Hi, <span id="welcome-name" class="mx-2">Tenant</span> <span class="text-3xl">👋</span>
+                            Hi, <span id="welcome-name" class="mx-2">Tenant</span> <span class="text-3xl">ðŸ‘‹</span>
                         </h1>
                     </div>
 
@@ -265,12 +265,6 @@
                             </div>
                             <span class="text-sm font-semibold text-slate-700">Lodge Complaint</span>
                         </a>
-                        <a href="tenantchat.html" class="dashboard-card p-4 flex flex-col items-center justify-center hover:border-brand-blue transition-colors cursor-pointer group">
-                             <div class="bg-blue-50 p-3 rounded-full mb-3 group-hover:bg-blue-100 transition-colors">
-                                <i data-lucide="message-circle" class="w-6 h-6 text-brand-blue"></i>
-                            </div>
-                            <span class="text-sm font-semibold text-slate-700">Chat Owner</span>
-                        </a>
                         <button onclick="scrollToTab('documents')" class="dashboard-card p-4 flex flex-col items-center justify-center hover:border-brand-blue transition-colors cursor-pointer group">
                              <div class="bg-purple-50 p-3 rounded-full mb-3 group-hover:bg-purple-100 transition-colors">
                                 <i data-lucide="file-text" class="w-6 h-6 text-purple-600"></i>
@@ -322,7 +316,7 @@
                             <div class="relative">
                                 <div class="absolute -left-[29px] top-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white ring-2 ring-green-100"></div>
                                 <p class="text-sm font-semibold text-slate-800">Rent Paid Successfully</p>
-                                <p class="text-xs text-slate-500 mt-0.5">Oct 2025 • ₹ 8,500</p>
+                                <p class="text-xs text-slate-500 mt-0.5">Oct 2025 "¢ ₹ 8,500</p>
                             </div>
                         </div>
                     </div>
@@ -345,7 +339,6 @@
                 <div class="px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-2">Account</div>
                 <button onclick="openModal('payRentModal'); toggleMobileMenu()" class="sidebar-item text-slate-300">Make Payment</button>
                 <button onclick="manageRentReminder(); toggleMobileMenu()" class="sidebar-item text-slate-300">Manage Reminders</button>
-                <a href="tenantchat.html" class="sidebar-item text-slate-300">Live Chat</a>
                 
                 <div class="px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-2">Info</div>
                 <a href="tenantcomplaints.html" class="sidebar-item text-slate-300">View Requests</a>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -63,7 +63,7 @@
                     <label class="block text-sm font-medium text-gray-700 text-left mb-2">Password</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i data-lucide="key" class="w-5 h-5"></i></span>
-                        <input type="password" id="password" class="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-blue-500 transition-colors" placeholder="••••••••" required>
+                        <input type="password" id="password" class="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-blue-500 transition-colors" placeholder=""¢"¢"¢"¢"¢"¢"¢"¢" required>
                     </div>
                 </div>
                 <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors flex justify-center items-center gap-2">
@@ -197,7 +197,7 @@
                                 // Try to surface backend error body for debugging
                                 let bodyText = '';
                                 try { bodyText = await res.text(); } catch (e) { bodyText = '<unreadable response>'; }
-                                console.warn('⚠️ Owner creation API failed:', res.status, bodyText);
+                                console.warn('âš ï¸ Owner creation API failed:', res.status, bodyText);
 
                                 // If the failure is a duplicate-key (owner already exists), attempt a PATCH
                                 const dupSignals = ['DUPLICATE', 'duplicate key', 'Owner ID already exists', 'E11000'];
@@ -217,15 +217,15 @@
                                         else {
                                             let pbody = '';
                                             try { pbody = await patchRes.text(); } catch (e) { pbody = '<unreadable response>'; }
-                                            console.warn('⚠️ Owner PATCH after duplicate also failed:', patchRes.status, pbody);
+                                            console.warn('âš ï¸ Owner PATCH after duplicate also failed:', patchRes.status, pbody);
                                         }
                                     } catch (err) {
-                                        console.warn('🌐 Error when PATCHing after duplicate create:', err.message);
+                                        console.warn('ðŸŒ Error when PATCHing after duplicate create:', err.message);
                                     }
                                 }
                             }
                         } catch (err) {
-                            console.warn('🌐 Owner creation API error, continuing with localStorage fallback:', err.message);
+                            console.warn('ðŸŒ Owner creation API error, continuing with localStorage fallback:', err.message);
                         }
                     })();
                 }
@@ -312,10 +312,10 @@
                         }
                         let bodyText = '';
                         try { bodyText = await res.text(); } catch (e) { bodyText = '<unreadable response>'; }
-                        console.warn('⚠️ Owner password PATCH failed:', res.status, bodyText);
+                        console.warn('âš ï¸ Owner password PATCH failed:', res.status, bodyText);
                         return { ok: false, status: res.status, body: bodyText };
                     } catch (err) {
-                        console.warn('🌐 Owner password PATCH error, will rely on localStorage:', err.message);
+                        console.warn('ðŸŒ Owner password PATCH error, will rely on localStorage:', err.message);
                         return { ok: false, error: err };
                     }
                 }
@@ -348,12 +348,12 @@
                             if (retry.ok) {
                                 console.log('✅ PATCH retry succeeded after create for', loginId);
                             } else {
-                                console.warn('⚠️ PATCH retry still failed for', loginId, retry.status || retry.error || retry.body);
+                                console.warn('âš ï¸ PATCH retry still failed for', loginId, retry.status || retry.error || retry.body);
                             }
                         } else {
                             let bodyText = '';
                             try { bodyText = await createRes.text(); } catch (e) { bodyText = '<unreadable response>'; }
-                            console.warn('⚠️ Owner creation during PATCH-retry failed:', createRes.status, bodyText);
+                            console.warn('âš ï¸ Owner creation during PATCH-retry failed:', createRes.status, bodyText);
 
                             const dupSignals = ['DUPLICATE', 'duplicate key', 'Owner ID already exists', 'E11000'];
                             const isDup = dupSignals.some(s => bodyText.includes(s) || ('' + createRes.status).includes('409'));
@@ -362,14 +362,14 @@
                                 try {
                                     const retry = await doPatch();
                                     if (retry.ok) console.log('✅ PATCH retry succeeded after duplicate create for', loginId);
-                                    else console.warn('⚠️ PATCH retry failed after duplicate create:', retry.status || retry.error || retry.body);
+                                    else console.warn('âš ï¸ PATCH retry failed after duplicate create:', retry.status || retry.error || retry.body);
                                 } catch (err) {
-                                    console.warn('🌐 Error when retrying PATCH after duplicate create:', err.message);
+                                    console.warn('ðŸŒ Error when retrying PATCH after duplicate create:', err.message);
                                 }
                             }
                         }
                     } catch (err) {
-                        console.warn('🌐 Owner creation during PATCH-retry error:', err.message);
+                        console.warn('ðŸŒ Owner creation during PATCH-retry error:', err.message);
                     }
                 }
             })();

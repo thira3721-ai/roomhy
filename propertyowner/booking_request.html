@@ -1,0 +1,736 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roomhy - Booking Requests</title>
+    <script>
+        // API Configuration
+        const API_URL = 'https://roomhy-backend.onrender.com';
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="../website/js/area-manager-profile.js"></script>
+    <script src="../js/ChatManager.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        
+        /* --- Sidebar Styling --- */
+        .sidebar { background-color: #111827; color: #9ca3af; }
+        .sidebar-link {
+            display: flex; align-items: center; padding: 0.75rem 1.5rem; 
+            color: #9ca3af; font-weight: 500; font-size: 0.9rem;
+            transition: all 0.2s; border-left: 3px solid transparent; cursor: pointer;
+        }
+        .sidebar-link:hover { background-color: #1f2937; color: #f3f4f6; }
+        .sidebar-link.active { background-color: #1f2937; color: #ffffff; border-left-color: #a855f7; }
+
+        /* Submenu Styling */
+        .submenu { background-color: #0f172a; overflow: hidden; transition: max-height 0.3s ease-in-out; max-height: 0; }
+        .submenu.open { max-height: 500px; }
+        .submenu a { padding-left: 3.5rem; font-size: 0.85rem; }
+
+        .tab-btn { padding: 12px 20px; font-weight: 600; border-bottom: 3px solid transparent; cursor: pointer; transition: all 0.2s; }
+        .tab-btn.active { color: #7c3aed; border-bottom-color: #7c3aed; }
+        .tab-btn:not(.active) { color: #9ca3af; }
+
+        .request-card { border-left: 4px solid #3b82f6; background: white; padding: 16px; border-radius: 8px; margin-bottom: 16px; }
+        .bid-card { border-left: 4px solid #10b981; background: white; padding: 16px; border-radius: 8px; margin-bottom: 16px; }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+
+        .badge { display: inline-block; padding: 6px 12px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+        .badge-pending { background: #fef3c7; color: #b45309; }
+        .badge-confirmed { background: #dcfce7; color: #15803d; }
+        .badge-paid { background: #dbeafe; color: #1e40af; }
+    </style>
+</head>
+<body class="text-slate-800">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar (Owner/Admin style) -->
+        <aside class="sidebar w-72 flex-shrink-0 hidden md:flex flex-col z-20 overflow-y-auto custom-scrollbar">
+            <div class="h-16 flex items-center px-6 border-b border-gray-800 sticky top-0 bg-[#111827] z-10">
+                 <div class="flex items-center gap-3">
+                     <div class="bg-purple-600 p-1.5 rounded-lg"><i data-lucide="home" class="w-5 h-5 text-white"></i></div>
+                     <div><h1 class="text-xl font-bold text-white">RoomHy</h1><span class="text-[10px] text-gray-500">OWNER PANEL</span></div>
+                 </div>
+            </div>
+            <nav class="flex-1 py-6 space-y-1">
+                <a href="admin.html" class="sidebar-link"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard</a>
+                <a href="properties.html" class="sidebar-link"><i data-lucide="building" class="w-5 h-5 mr-3"></i> Properties</a>
+                <a href="rooms.html" class="sidebar-link"><i data-lucide="bed-double" class="w-5 h-5 mr-3"></i> Rooms</a>
+                <a href="tenantrec.html" class="sidebar-link"><i data-lucide="clipboard-list" class="w-5 h-5 mr-3"></i> Tenant Records</a>
+                <a href="enquiry.html" class="sidebar-link"><i data-lucide="mail" class="w-5 h-5 mr-3"></i> Enquiry</a>
+                <a href="documents.html" class="sidebar-link"><i data-lucide="file-text" class="w-5 h-5 mr-3"></i> Documents</a>
+                <a href="payment.html" class="sidebar-link"><i data-lucide="credit-card" class="w-5 h-5 mr-3"></i> Payments</a>
+                <a href="booking_request.html" class="sidebar-link active"><i data-lucide="calendar-check" class="w-5 h-5 mr-3"></i> Booking Requests</a>
+                <a href="#" class="sidebar-link disabled" onclick="event.preventDefault();"><i data-lucide="message-circle" class="w-5 h-5 mr-3"></i> Messages</a>
+                <a href="complaints.html" class="sidebar-link"><i data-lucide="alert-circle" class="w-5 h-5 mr-3"></i> Complaints</a>
+                <a href="location.html" class="sidebar-link"><i data-lucide="map-pin" class="w-5 h-5 mr-3"></i> Location</a>
+                <a href="ownerprofile.html" class="sidebar-link"><i data-lucide="user" class="w-5 h-5 mr-3"></i> Profile</a>
+                <a href="settings.html" class="sidebar-link"><i data-lucide="settings" class="w-5 h-5 mr-3"></i> Settings</a>
+            </nav>
+        </aside>
+
+        <div class="flex-1 flex flex-col overflow-hidden bg-[#f3f4f6]">
+            <header class="bg-white h-16 flex items-center justify-between px-6 shadow-sm z-10">
+                <div class="flex items-center">
+                    <button id="mobile-menu-open" class="md:hidden mr-4 text-slate-500"><i data-lucide="menu" class="w-6 h-6"></i></button>
+                    <h2 class="text-lg font-semibold text-slate-800">Booking Requests</h2>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="text-slate-400 hover:text-slate-600"><i data-lucide="bell" class="w-5 h-5"></i></button>
+                    <div class="relative group">
+                        <button class="flex items-center gap-3 hover:bg-gray-50 p-1.5 rounded-full transition-colors">
+                            <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold border border-purple-200" id="headerAvatar">OP</div>
+                            <div class="text-left hidden sm:block">
+                                <p class="text-xs font-semibold text-gray-700" id="headerName">Owner</p>
+                                <p class="text-[10px] text-gray-500" id="headerAccountId">Property Owner</p>
+                            </div>
+                            <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400 hidden sm:block"></i>
+                        </button>
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 hidden group-hover:block z-50">
+                            <a href="index.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i> Account</a>
+                            <a href="ownerprofile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"><i data-lucide="user-circle" class="w-4 h-4"></i> Profile</a>
+                            <a href="#" id="logoutBtn" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"><i data-lucide="log-out" class="w-4 h-4"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-8">
+                <!-- Page Header -->
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <i data-lucide="calendar-check" class="w-8 h-8 text-purple-600"></i>
+                        Booking Requests & Bids
+                    </h1>
+                    <p class="text-gray-600 mt-2">Manage booking requests and bids from tenants in your area</p>
+                </div>
+
+                <!-- Search & Filter Bar -->
+                <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <input type="text" id="searchInput" placeholder="Search by property, user, or ID..." 
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <select id="statusFilter" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-purple-500">
+                                <option value="">All Statuses</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="visited">Visited</option>
+                            </select>
+                        </div>
+                        <div>
+                            <button onclick="loadBookingRequests()" class="w-full bg-purple-600 text-white rounded-lg px-4 py-2 hover:bg-purple-700 font-medium">
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking Requests Table -->
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse">
+                            <thead class="bg-gray-50 border-b border-gray-200 sticky top-0">
+                                <tr class="text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                    <th class="px-4 py-3 whitespace-nowrap">Property ID</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">Property Name</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">Area</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">Type</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">Rent</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">User ID</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">Name</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">Phone</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">Email</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">Request Type</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">Bid Amount</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">Message</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">Status</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">Visit Date</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">Visit Slot</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">Accept</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">Book</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">Schedule</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">Proceed</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">Chat</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bookingTableBody" class="divide-y divide-gray-200">
+                                <tr class="text-center py-8 text-gray-500">
+                                    <td colspan="21" class="py-8">
+                                        <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+                                        <p>No booking requests found</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+
+
+    <script>
+        let allBookingRequests = [];
+        let filteredRequests = [];
+
+        // Load booking requests from API
+        async function loadBookingRequests() {
+            try {
+                // ✅ Get owner info from multiple sources
+                let ownerId = null;
+                
+                // First check: explicit owner session stored by owner login flow
+                try {
+                    const ownerSessionRaw = sessionStorage.getItem('owner_session') || localStorage.getItem('owner_session');
+                    if (ownerSessionRaw) {
+                        const ownerSession = JSON.parse(ownerSessionRaw);
+                        ownerId = ownerSession.loginId || ownerSession.ownerId || ownerSession.login || ownerSession.id || ownerId;
+                    }
+                } catch (e) {
+                    console.warn('Could not parse owner_session', e);
+                }
+
+                // Second check: user object with loginId (fallback)
+                if (!ownerId) {
+                    try {
+                        const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}');
+                        ownerId = ownerId || user.loginId || user.ownerId || user.id || user.login;
+                    } catch (e) {
+                        console.warn('Could not parse user object', e);
+                    }
+                }
+
+                // Third check: direct ownerLoginId in storage
+                if (!ownerId) {
+                    ownerId = localStorage.getItem('ownerLoginId') || sessionStorage.getItem('ownerLoginId') || ownerId;
+                }
+                
+                // Third check: if ownerId still not found, try to get from approved visits
+                if (!ownerId) {
+                    const visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
+                    const approvedVisits = visits.filter(v => v.status === 'approved' && v.generatedCredentials && v.generatedCredentials.loginId);
+                    if (approvedVisits.length > 0) {
+                        // Use the first approved property's loginId
+                        ownerId = approvedVisits[0].generatedCredentials.loginId;
+                        // Store it for future use
+                        localStorage.setItem('ownerLoginId', ownerId);
+                    }
+                }
+                
+                if (!ownerId) {
+                    // Owner must be logged in to view owner-specific bookings
+                    alert('Please login as a property owner to view your booking requests');
+                    window.location.href = 'ownerlogin.html';
+                    return;
+                }
+
+                console.log('ðŸ” Resolved ownerId:', ownerId);
+                const apiUrl = API_URL;
+
+                // ✅ Fetch from API with owner_id filter (server-side)
+                const fetchUrl = `${apiUrl}/api/booking/requests?owner_id=${encodeURIComponent(ownerId)}`;
+                console.log('ðŸ”— Fetching bookings URL:', fetchUrl);
+                const response = await fetch(fetchUrl, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('ðŸ“¡ API Response:', data);
+                allBookingRequests = data.data || data.bookings || [];
+                
+                console.log(`✅ Loaded ${allBookingRequests.length} bookings from API`);
+
+                // Use DB results only for owners. If DB returns empty, show empty state.
+                if (!allBookingRequests || allBookingRequests.length === 0) {
+                    console.log('ℹ️ No bookings found in DB for owner:', ownerId);
+                    allBookingRequests = [];
+                    filteredRequests = [];
+                    applyQueryFilters();
+                    return;
+                }
+
+                filteredRequests = [...allBookingRequests];
+                applyQueryFilters();
+            } catch (error) {
+                console.error('âŒ Error loading booking requests from API:', error);
+                // Fall back disabled for logged-in owner: show error and empty list
+                console.error('âŒ Failed to fetch bookings from API for owner:', ownerId, error);
+                allBookingRequests = [];
+                filteredRequests = [];
+                applyQueryFilters();
+            }
+        }
+
+        // Helper function to load bookings from localStorage
+        function loadFromLocalStorage(ownerId) {
+            try {
+                const bookingRequests = JSON.parse(localStorage.getItem('roomhy_booking_requests') || '[]');
+                const users = JSON.parse(localStorage.getItem('roomhy_kyc_verification') || '[]');
+                
+                const userMap = {};
+                users.forEach(user => {
+                    userMap[user.id] = user;
+                });
+
+                allBookingRequests = bookingRequests.map(request => {
+                    const user = userMap[request.user_id] || {};
+                    return {
+                        ...request,
+                        name: user.firstName ? `${user.firstName} ${user.lastName || ''}` : 'N/A',
+                        phone: user.phone || 'N/A',
+                        email: user.email || 'N/A'
+                    };
+                });
+
+                // If owner_id provided, filter by that owner. Accept multiple possible owner fields.
+                if (ownerId) {
+                    allBookingRequests = allBookingRequests.filter(req => {
+                        const oid = req.owner_id || req.ownerId || req.owner || req.owner_login || req.ownerLoginId || req.ownerLogin || req.ownerid;
+                        return String(oid || '').toLowerCase() === String(ownerId).toLowerCase();
+                    });
+                }
+
+                filteredRequests = [...allBookingRequests];
+                applyQueryFilters();
+            } catch (fallbackError) {
+                console.error('âŒ Error loading from localStorage:', fallbackError);
+                allBookingRequests = [];
+                filteredRequests = [];
+                renderBookingTable();
+            }
+        }
+
+        // Render booking requests table
+        function renderBookingTable() {
+            const tableBody = document.getElementById('bookingTableBody');
+
+            if (filteredRequests.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="21" class="py-8 text-center text-gray-500">
+                            <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+                            <p>No booking requests found</p>
+                        </td>
+                    </tr>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            tableBody.innerHTML = filteredRequests.map((req, index) => `
+                <tr class="hover:bg-gray-50 text-sm border-b border-gray-200">
+                    <td class="px-4 py-3 text-gray-900 font-medium whitespace-nowrap">${req.property_id || 'N/A'}</td>
+                    <td class="px-4 py-3 text-gray-900 whitespace-nowrap">${req.property_name || 'N/A'}</td>
+                    <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${req.area || 'N/A'}</td>
+                    <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${req.property_type || 'N/A'}</td>
+                    <td class="px-4 py-3 text-gray-900 font-semibold whitespace-nowrap">₹${req.rent_amount || 0}</td>
+                    <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${req.user_id || 'N/A'}</td>
+                    <td class="px-4 py-3 text-gray-900 font-medium whitespace-nowrap">${req.name}</td>
+                    <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${req.phone}</td>
+                    <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${req.email}</td>
+                    <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${req.area_manager_id || 'N/A'}</td>
+                    <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${req.request_type || 'N/A'}</td>
+                    <td class="px-4 py-3 text-gray-900 font-semibold whitespace-nowrap">₹${req.bid_amount || 0}</td>
+                    <td class="px-4 py-3 text-gray-600 whitespace-nowrap max-w-xs truncate">${req.message || 'N/A'}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeClass(req.status)}">
+                            ${(req.status || 'pending').charAt(0).toUpperCase() + (req.status || 'pending').slice(1)}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${req.visit_type || 'N/A'}</td>
+                    <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${req.visit_date ? new Date(req.visit_date).toLocaleDateString() : 'N/A'}</td>
+                    <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${req.visit_time_slot || 'N/A'}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${getVisitStatusBadgeClass(req.visit_status)}">
+                            ${(req.visit_status || 'pending').charAt(0).toUpperCase() + (req.visit_status || 'pending').slice(1)}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-gray-500 whitespace-nowrap text-xs">${req.created_at ? new Date(req.created_at).toLocaleDateString() : 'N/A'}</td>
+                    <td class="px-4 py-3 text-gray-500 whitespace-nowrap text-xs">${req.updated_at ? new Date(req.updated_at).toLocaleDateString() : 'N/A'}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        ${req.status === 'pending' ? `<button onclick="approveBooking('${req._id || req.id}')" class="px-3 py-1 rounded bg-green-100 text-green-700 text-sm">Accept</button>` : `<span class="text-sm text-gray-500">${(req.status||'')}</span>`}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <button onclick="approveBooking('${req._id || req.id}')" class="px-3 py-1 rounded bg-indigo-100 text-indigo-700 text-sm">Book</button>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        ${req.visit_status !== 'scheduled' && req.status !== 'rejected' ? `<button onclick="scheduleVisitClick('${req._id || req.id}')" class="px-3 py-1 rounded bg-purple-100 text-purple-700 text-sm">Schedule</button>` : `<span class="text-sm text-gray-400">${req.visit_status||'-'}</span>`}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <button onclick="proceedBooking('${req._id || req.id}')" class="px-3 py-1 rounded bg-yellow-100 text-yellow-800 text-sm">Proceed</button>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        ${req.status === 'accepted' ? `<button onclick="openChat('${req._id || req.id}', '${req.user_id || ''}')" class="px-3 py-1 rounded bg-blue-100 text-blue-700 text-sm flex items-center gap-2"><i data-lucide="message-circle" class="w-4 h-4"></i> Chat</button>` : `<span class="text-sm text-gray-300">-</span>`}
+                    </td>
+                </tr>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        // Get status badge CSS class
+        function getStatusBadgeClass(status) {
+            const statusMap = {
+                'pending': 'bg-yellow-100 text-yellow-800',
+                'approved': 'bg-green-100 text-green-800',
+                'rejected': 'bg-red-100 text-red-800',
+                'visited': 'bg-blue-100 text-blue-800'
+            };
+            return statusMap[status] || 'bg-gray-100 text-gray-800';
+        }
+
+        // Get visit status badge CSS class
+        function getVisitStatusBadgeClass(status) {
+            const statusMap = {
+                'pending': 'bg-yellow-100 text-yellow-800',
+                'scheduled': 'bg-blue-100 text-blue-800',
+                'completed': 'bg-green-100 text-green-800',
+                'cancelled': 'bg-red-100 text-red-800'
+            };
+            return statusMap[status] || 'bg-gray-100 text-gray-800';
+        }
+
+        // ✅ UPDATED: Apply query param filters (propertyId only) to the requests list
+        function applyQueryFilters() {
+            try {
+                // Optional: If propertyId is in URL, filter by that property
+                const params = new URLSearchParams(window.location.search);
+                const propParam = params.get('propertyId');
+
+                if (propParam) {
+                    const propId = decodeURIComponent(propParam);
+                    filteredRequests = allBookingRequests.filter(req => {
+                        const rpid = (req.property_id || req.propertyId || req._id || req.id || '').toString();
+                        return rpid === propId || rpid.includes(propId);
+                    });
+                } else {
+                    // No property filter, show all (already server-filtered by owner_id)
+                    filteredRequests = [...allBookingRequests];
+                }
+                
+                renderBookingTable();
+            } catch (e) {
+                console.error('Error applying query filters:', e);
+                renderBookingTable();
+            }
+        }
+
+        // Search and filter functionality
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            filteredRequests = allBookingRequests.filter(req => {
+                const matchesSearch = !searchTerm || 
+                    (req.property_name && req.property_name.toLowerCase().includes(searchTerm)) ||
+                    (req.property_id && req.property_id.toLowerCase().includes(searchTerm)) ||
+                    (req.user_id && req.user_id.toLowerCase().includes(searchTerm)) ||
+                    (req.name && req.name.toLowerCase().includes(searchTerm)) ||
+                    (req.email && req.email.toLowerCase().includes(searchTerm));
+
+                const matchesStatus = !statusFilter || req.status === statusFilter;
+
+                return matchesSearch && matchesStatus;
+            });
+
+            renderBookingTable();
+        });
+
+        // Status filter functionality
+        document.getElementById('statusFilter').addEventListener('change', (e) => {
+            const statusFilter = e.target.value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            filteredRequests = allBookingRequests.filter(req => {
+                const matchesSearch = !searchTerm || 
+                    (req.property_name && req.property_name.toLowerCase().includes(searchTerm)) ||
+                    (req.property_id && req.property_id.toLowerCase().includes(searchTerm)) ||
+                    (req.user_id && req.user_id.toLowerCase().includes(searchTerm)) ||
+                    (req.name && req.name.toLowerCase().includes(searchTerm)) ||
+                    (req.email && req.email.toLowerCase().includes(searchTerm));
+
+                const matchesStatus = !statusFilter || req.status === statusFilter;
+
+                return matchesSearch && matchesStatus;
+            });
+
+            renderBookingTable();
+        });
+
+        // ============ HEADER INITIALIZATION ============
+
+        // Initialize header with user information
+        function initializeHeader() {
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}');
+                
+                if (!user || !user.loginId) {
+                    console.warn('âš ï¸ No user found, using defaults');
+                    document.getElementById('headerName').innerText = 'Owner';
+                    document.getElementById('headerAccountId').innerText = 'Property Owner';
+                    document.getElementById('headerAvatar').innerText = 'O';
+                    return;
+                }
+
+                // Get display name from various sources
+                const displayName = user.name || user.firstName || 'Owner';
+                document.getElementById('headerName').innerText = displayName;
+                document.getElementById('headerAvatar').innerText = displayName.charAt(0).toUpperCase();
+                document.getElementById('headerAccountId').innerText = `Account: ${user.loginId}`;
+                
+                console.log('✅ Header initialized for:', displayName);
+            } catch (error) {
+                console.error('Error initializing header:', error);
+            }
+        }
+
+        // Logout functionality
+        document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('user');
+            sessionStorage.removeItem('user');
+            localStorage.removeItem('ownerLoginId');
+            window.location.href = 'ownerlogin.html';
+        });
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('ðŸ“„ Page loaded, initializing booking requests...');
+            lucide.createIcons();
+            initializeHeader();
+            loadBookingRequests();
+            // Refresh data every 30 seconds
+            setInterval(loadBookingRequests, 30000);
+        });
+
+        // ============ ACTION FUNCTIONS ============
+
+        // Approve booking
+        async function approveBooking(bookingId) {
+            if (!confirm('Are you sure you want to approve this booking?')) return;
+
+            try {
+                const apiUrl = API_URL;
+
+                const response = await fetch(`${apiUrl}/api/booking/requests/${bookingId}/approve`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+
+                if (response.ok) {
+                    // Create chat room for owner-website user communication
+                    await createEnquiryChatRoom(bookingId);
+                    alert('Booking approved successfully! Chat room created for communication.');
+                    loadBookingRequests();
+                } else {
+                    alert('Error approving booking');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error approving booking');
+            }
+        }
+
+        // Create chat room when owner accepts enquiry
+        async function createEnquiryChatRoom(bookingId) {
+            try {
+                // Get booking details to extract user info
+                const bookingResponse = await fetch(`${API_URL}/api/booking/requests/${bookingId}`);
+                if (!bookingResponse.ok) {
+                    console.warn('Could not fetch booking details for room creation');
+                    return;
+                }
+
+                const bookingData = await bookingResponse.json();
+                const booking = bookingData.data || bookingData;
+
+                // Get owner info from session
+                let ownerId = null;
+                try {
+                    const ownerSessionRaw = sessionStorage.getItem('owner_session') || localStorage.getItem('owner_session');
+                    if (ownerSessionRaw) {
+                        const ownerSession = JSON.parse(ownerSessionRaw);
+                        ownerId = ownerSession.loginId || ownerSession.ownerId || ownerSession.login || ownerSession.id || ownerId;
+                    }
+                } catch (e) {
+                    console.warn('Could not parse owner_session', e);
+                }
+
+                if (!ownerId) {
+                    console.warn('No owner ID found, skipping room creation');
+                    return;
+                }
+
+                // Generate website user login ID from email
+                const userLoginId = booking.email ? ChatManager.generateWebsiteUserLoginId(booking.email) : booking.user_id;
+
+                // Create room data
+                const roomData = {
+                    room_type: 'owner_website_user',
+                    participants: [
+                        {
+                            login_id: ownerId,
+                            role: 'property_owner',
+                            name: 'Property Owner'
+                        },
+                        {
+                            login_id: userLoginId,
+                            role: 'website_user',
+                            name: booking.name || booking.email || 'Website User'
+                        }
+                    ],
+                    owner_accepted: true,
+                    property_id: booking.property_id,
+                    property_name: booking.property_name,
+                    enquiry_details: {
+                        booking_id: bookingId,
+                        user_email: booking.email,
+                        user_phone: booking.phone,
+                        bid_amount: booking.bid_amount
+                    }
+                };
+
+                // Create the room
+                const roomResponse = await fetch(`${API_URL}/api/chat/rooms`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(roomData)
+                });
+
+                if (roomResponse.ok) {
+                    const roomResult = await roomResponse.json();
+                    console.log('✓ Chat room created:', roomResult.room_id);
+                } else {
+                    console.warn('Failed to create chat room:', roomResponse.status);
+                }
+
+            } catch (error) {
+                console.error('Error creating enquiry chat room:', error);
+            }
+        }
+
+        // Reject booking
+        async function rejectBooking(bookingId) {
+            const reason = prompt('Enter reason for rejection:');
+            if (!reason) return;
+
+            try {
+                const apiUrl = API_URL;
+
+                const response = await fetch(`${apiUrl}/api/booking/requests/${bookingId}/reject`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason: reason })
+                });
+
+                if (response.ok) {
+                    alert('Booking rejected');
+                    loadBookingRequests();
+                } else {
+                    alert('Error rejecting booking');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error rejecting booking');
+            }
+        }
+
+        // Schedule visit
+        function scheduleVisitClick(bookingId) {
+            const visitType = prompt('Enter visit type (physical/virtual):');
+            if (!visitType) return;
+
+            const visitDate = prompt('Enter visit date (YYYY-MM-DD):');
+            if (!visitDate) return;
+
+            const timeSlot = prompt('Enter time slot (e.g., 10:00-11:00):');
+            if (!timeSlot) return;
+
+            scheduleVisit(bookingId, visitType, visitDate, timeSlot);
+        }
+
+        // Schedule visit API call
+        async function scheduleVisit(bookingId, visitType, visitDate, timeSlot) {
+            try {
+                const apiUrl = API_URL;
+
+                const response = await fetch(`${apiUrl}/api/booking/requests/${bookingId}/schedule-visit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        visit_type: visitType,
+                        visit_date: visitDate,
+                        visit_time_slot: timeSlot
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Visit scheduled successfully!');
+                    loadBookingRequests();
+                } else {
+                    alert('Error scheduling visit');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error scheduling visit');
+            }
+        }
+
+        // Proceed booking - update booking status to confirmed
+        function proceedBooking(bookingId) {
+            try {
+                const data = { status: 'confirmed' };
+                fetch(`/api/booking/${bookingId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                })
+                .then(r => r.json())
+                .then(result => {
+                    alert('Booking confirmed successfully!');
+                    location.reload();
+                })
+                .catch(e => {
+                    console.warn('Proceed action error:', e);
+                    alert('Error confirming booking.');
+                });
+            } catch (e) {
+                console.warn('Proceed action failed:', e);
+                alert('Proceeding with booking...');
+            }
+        }
+
+        // Open chat window for the booking
+        function openChat(bookingId, userId) {
+            // Get owner context
+            const owner = JSON.parse(sessionStorage.getItem('owner_user') || localStorage.getItem('user') || 'null');
+            sessionStorage.setItem('chatContext', JSON.stringify({
+                bookingId: bookingId,
+                userId: userId,
+                userRole: 'property-owner',
+                ownerId: owner ? (owner.ownerId || owner.loginId) : '',
+                ownerName: owner ? (owner.name || owner.ownerName) : ''
+            }));
+
+            // Open chat in new tab or same window
+            window.open('chat.html?booking=' + bookingId + '&user=' + userId, 'roomhy_chat', 'width=1000,height=700');
+        }
+    </script>
+</body>
+</html>

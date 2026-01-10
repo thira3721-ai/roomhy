@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -59,6 +59,7 @@
                 <a href="booking.html" class="sidebar-link"><i data-lucide="calendar-check" class="w-5 h-5 mr-3"></i> Bookings</a>
                 <a href="reviews.html" class="sidebar-link"><i data-lucide="star" class="w-5 h-5 mr-3"></i> Reviews</a>
                 <a href="complaint-history.html" class="sidebar-link"><i data-lucide="alert-circle" class="w-5 h-5 mr-3"></i> Complaint History</a>
+                <a href="chat-analytics.html" class="sidebar-link"><i data-lucide="message-circle" class="w-5 h-5 mr-3"></i> All Chats</a>
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Website</div>
                 <a href="website.html" class="sidebar-link"><i data-lucide="globe" class="w-5 h-5 mr-3"></i> Live Properties</a>
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Finance</div>
@@ -74,7 +75,6 @@
                     </div>
                 </div>
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">System</div>
-                 <a href="chatadmin.html" class="sidebar-link"><i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Chats</a>
                  <a href="location.html" class="sidebar-link"><i data-lucide="globe" class="w-5 h-5 mr-3"></i> Locations</a>
             </nav>
         </aside>
@@ -246,11 +246,11 @@
         }
 
         async function fetchEnquiries() {
-            console.log('🔄 fetchEnquiries() called - Super Admin Enquiry Page');
+            console.log('ðŸ”„ fetchEnquiries() called - Super Admin Enquiry Page');
             const tbody = document.getElementById('enquiryBody');
             
             if (!tbody) {
-                console.error('❌ Table body element not found! ID: enquiryBody');
+                console.error('âŒ Table body element not found! ID: enquiryBody');
                 return;
             }
             
@@ -261,7 +261,7 @@
                 const token = sessionStorage.getItem('token') || localStorage.getItem('token');
                 const apiUrl = API_URL + '/api/visits/pending';
                 
-                console.log('🔗 Fetching from API:', apiUrl);
+                console.log('ðŸ”— Fetching from API:', apiUrl);
                 const response = await fetch(apiUrl, {
                     method: 'GET',
                     headers: {
@@ -274,7 +274,7 @@
                 }
                 
                 const data = await response.json();
-                console.log('📡 API response:', data);
+                console.log('ðŸ“¡ API response:', data);
                 visits = data.visits || data || [];
                 console.log('✅ Loaded from API:', visits.length, 'visits');
                 
@@ -287,16 +287,16 @@
                 }
                 
             } catch (apiErr) {
-                console.warn('⚠️ API fetch failed, falling back to localStorage:', apiErr.message);
+                console.warn('âš ï¸ API fetch failed, falling back to localStorage:', apiErr.message);
                 
                 // Fallback to localStorage
                 try {
                     const raw = localStorage.getItem('roomhy_visits');
-                    console.log('📦 Fallback - localStorage roomhy_visits exists:', !!raw);
+                    console.log('ðŸ“¦ Fallback - localStorage roomhy_visits exists:', !!raw);
                     visits = JSON.parse(raw || '[]');
-                    console.log('📦 Loaded from localStorage:', visits.length, 'visits');
+                    console.log('ðŸ“¦ Loaded from localStorage:', visits.length, 'visits');
                 } catch (err) {
-                    console.error('❌ Failed to parse localStorage visits:', err);
+                    console.error('âŒ Failed to parse localStorage visits:', err);
                     visits = [];
                 }
                 
@@ -304,11 +304,11 @@
                 try {
                     if (visits.length === 0) {
                         const sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
-                        console.log('📦 Supplemented from sessionStorage:', sessionVisits.length, 'visits');
+                        console.log('ðŸ“¦ Supplemented from sessionStorage:', sessionVisits.length, 'visits');
                         visits = sessionVisits;
                     }
                 } catch (err) {
-                    console.error('❌ Failed to parse sessionStorage visits:', err);
+                    console.error('âŒ Failed to parse sessionStorage visits:', err);
                 }
             }
             
@@ -316,7 +316,7 @@
             const filtered = visits.filter(v => {
                 const hasStatus = ['pending', 'submitted'].includes(v.status);
                 if (!hasStatus) {
-                    console.warn('⏭️ Skipping visit (non-pending status):', v._id, 'Status:', v.status);
+                    console.warn('â­ï¸ Skipping visit (non-pending status):', v._id, 'Status:', v.status);
                 }
                 return hasStatus;
             });
@@ -325,13 +325,13 @@
             console.log('✅ Filtered to pending/submitted:', visits.length, 'visits');
 
             if(visits.length === 0) {
-                console.warn('⚠️ No pending visits found. Showing empty message.');
+                console.warn('âš ï¸ No pending visits found. Showing empty message.');
                 tbody.innerHTML = '<tr><td colspan="25" class="px-6 py-12 text-center text-gray-400">No pending reports found. <a href="javascript:location.reload()" class="text-purple-600 underline">Refresh</a></td></tr>';
                 renderStatusCounters();
                 return;
             }
             
-            console.log('📋 Rendering', visits.length, 'visits to table');
+            console.log('ðŸ“‹ Rendering', visits.length, 'visits to table');
 
             tbody.innerHTML = visits.map((v, idx) => {
                 console.log(`   Rendering ${idx + 1}/${visits.length}: ${v._id}`);
@@ -442,14 +442,14 @@
             try {
                 visits = JSON.parse(localStorage.getItem('roomhy_visits') || '[]');
             } catch (err) {
-                console.error('❌ Failed to parse localStorage visits:', err);
+                console.error('âŒ Failed to parse localStorage visits:', err);
             }
             
             let sessionVisits = [];
             try {
                 sessionVisits = JSON.parse(sessionStorage.getItem('roomhy_visits') || '[]');
             } catch (err) {
-                console.error('❌ Failed to parse sessionStorage visits:', err);
+                console.error('âŒ Failed to parse sessionStorage visits:', err);
             }
             
             // Merge both sources
@@ -562,7 +562,7 @@
                 try { sessionStorage.setItem('roomhy_visits', JSON.stringify(visits)); } catch(e){}
                 fetchRoomApprovals();
                 fetchEnquiries();
-                alert('⛔ Rejected');
+                alert('â›” Rejected');
             } catch (err) { console.error('rejectRoomNotification error:', err); alert('Error rejecting notification'); }
         }
 
@@ -622,7 +622,7 @@
                         const data = await response.json();
                         console.log('✅ Visit approved and synced to backend:', data);
                     } catch (err) {
-                        console.warn('⚠️ Backend sync failed (continuing with localStorage):', err);
+                        console.warn('âš ï¸ Backend sync failed (continuing with localStorage):', err);
                     }
                 }
                 
@@ -701,8 +701,8 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('📄 Super Admin Enquiry Page Loaded');
-            console.log('📍 URL:', window.location.href);
+            console.log('ðŸ“„ Super Admin Enquiry Page Loaded');
+            console.log('ðŸ“ URL:', window.location.href);
             fetchEnquiries();
         });
     </script>

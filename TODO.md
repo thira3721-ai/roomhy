@@ -1,18 +1,20 @@
-# TODO: Fix Console Warnings
+# Chat Workflow Implementation TODO
 
-## Tailwind CSS Production Setup
-- [ ] Install Tailwind CSS, PostCSS, and Autoprefixer
-- [ ] Create tailwind.config.js
-- [ ] Create postcss.config.js
-- [ ] Create src/css/styles.css with Tailwind directives
-- [ ] Update package.json with build script
-- [ ] Replace Tailwind CDN script in all HTML files (110+ files)
-- [ ] Test CSS compilation
+## Current Status
+- ChatManager.js is already implemented
+- socketV2.js has superadmin bypass
 
-## Google Maps API Fix
-- [ ] Update website/property.html to add &loading=async to Google Maps script
-- [ ] Note: Replace YOUR_GOOGLE_MAPS_API_KEY with actual key
-
-## Tracking Prevention Investigation
-- [ ] Investigate localStorage usage causing tracking prevention block
-- [ ] Review storage access patterns in property.html
+## Pending Tasks
+- [x] Add room creation logic to booking_request.html approveBooking function
+- [x] Find and read rooms.html for tenant assignment room creation
+- [ ] Update website/websitechat.html to use ChatManager
+- [ ] Update propertyowner/ownerchatV2.html to use ChatManager
+- [ ] Update Areamanager/areachatV2.html to use ChatManager
+- [ ] Update tenant/tenantchatV2.html to use ChatManager
+- [ ] Update superadmin/superchat.html to use ChatManager
+- [ ] Update propertyowner/ownerchat.html to use ChatManager
+- [ ] Update Areamanager/areachat.html to use ChatManager
+- [ ] Update tenant/tenantchat.html to use ChatManager
+- [ ] Test room creation triggers
+- [ ] Verify chat panels work with ChatManager
+- [ ] Ensure session management works across panels

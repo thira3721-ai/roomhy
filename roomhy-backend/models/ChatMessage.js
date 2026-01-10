@@ -1,71 +1,48 @@
 const mongoose = require('mongoose');
 
 const chatMessageSchema = new mongoose.Schema({
-    from: { 
-        type: String, 
-        required: true, 
-        index: true
-    },
-    to: { 
-        type: String, 
-        required: true, 
-        index: true
-    },
-    message: { 
-        type: String, 
-        required: true
-    },
-    timestamp: { 
-        type: Date, 
-        default: Date.now,
-        index: true
-    },
-    type: {
-        type: String,
-        enum: ['text', 'system', 'call', 'video', 'meeting'],
-        default: 'text'
-    },
-    isEscalated: {
-        type: Boolean,
-        default: false
-    },
-    read: {
-        type: Boolean,
-        default: false
-    },
-    metadata: {
-        type: mongoose.Schema.Types.Mixed,
-        default: null
-    },
-    roomId: {
-        type: String,
-        default: null,
-        index: true
-    },
-    chatType: {
-        type: String,
-        enum: ['direct', 'group', 'support', 'inquiry'],
-        default: 'direct'
-    },
-    groupId: {
-        type: String,
-        default: null,
-        index: true
-    },
-    ticketId: {
-        type: String,
-        default: null,
-        index: true
-    },
-    inquiryId: {
-        type: String,
-        default: null,
-        index: true
-    }
-}, { timestamps: true });
+  room_id: {
+    type: String,
+    required: true,
+    index: true,
+    description: 'receiver\'s loginId'
+  },
+  sender_login_id: {
+    type: String,
+    required: true,
+    description: 'sender\'s loginId'
+  },
+  sender_name: String,
+  sender_role: {
+    type: String,
+    enum: ['property_owner', 'tenant', 'areamanager', 'website_user', 'superadmin']
+  },
+  message: {
+    type: String,
+    required: true
+  },
+  message_type: {
+    type: String,
+    enum: ['text', 'image', 'file'],
+    default: 'text'
+  },
+  file_url: String,
+  is_read: {
+    type: Boolean,
+    default: false
+  },
+  created_at: {
+    type: Date,
+    default: Date.now,
+    index: true
+  },
+  updated_at: {
+    type: Date,
+    default: Date.now
+  }
+});
 
-// Index for efficient querying between two users
-chatMessageSchema.index({ from: 1, to: 1, timestamp: -1 });
-chatMessageSchema.index({ to: 1, timestamp: -1 });
+// Auto-create index for queries
+chatMessageSchema.index({ room_id: 1, created_at: -1 });
 
 module.exports = mongoose.model('ChatMessage', chatMessageSchema);

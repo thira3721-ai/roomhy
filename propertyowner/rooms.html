@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -99,7 +99,7 @@
                 <a href="payment.html" class="sidebar-link"><i data-lucide="credit-card" class="w-5 h-5 mr-3"></i> Payments</a>
                 <a href="complaints.html" class="sidebar-link"><i data-lucide="alert-circle" class="w-5 h-5 mr-3"></i> Complaints</a>
                 <a href="location.html" class="sidebar-link"><i data-lucide="map-pin" class="w-5 h-5 mr-3"></i> Location</a>
-                <a href="chat.html" class="sidebar-link"><i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Chat</a>
+                <a href="#" class="sidebar-link" onclick="openRoomChat();"><i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Chat</a>
                 <a href="ownerprofile.html" class="sidebar-link"><i data-lucide="user" class="w-5 h-5 mr-3"></i> Profile</a>
                 <a href="settings.html" class="sidebar-link"><i data-lucide="settings" class="w-5 h-5 mr-3"></i> Settings</a>
             </nav>
@@ -108,6 +108,29 @@
         <!-- Main Content -->
         <div class="flex-1 flex flex-col h-full overflow-hidden bg-[#f3f4f6] relative">
             <!-- Top Header -->
+                    <script>
+                    function openRoomChat() {
+                        // Get owner and user context
+                        const user = JSON.parse(sessionStorage.getItem('owner_user') || localStorage.getItem('user') || 'null');
+                        // Find all tenants assigned to rooms
+                        const rooms = JSON.parse(localStorage.getItem('roomhy_rooms') || '[]');
+                        let tenants = [];
+                        rooms.forEach(room => {
+                            room.beds.forEach(bed => {
+                                if (bed.tenantId && bed.tenantName) {
+                                    tenants.push({tenantId: bed.tenantId, tenantName: bed.tenantName, roomId: room.id, roomNo: room.number});
+                                }
+                            });
+                        });
+                        // Store chat context for chat.html
+                        sessionStorage.setItem('chatContext', JSON.stringify({
+                            ownerId: user ? (user.ownerId || user.loginId) : '',
+                            ownerName: user ? (user.name || user.ownerName) : '',
+                            tenants: tenants
+                        }));
+                        window.open('ownerchat.html', 'roomhy_chat', 'width=1000,height=700');
+                    }
+                    </script>
             <header class="bg-white shadow-sm h-16 flex items-center justify-between px-6 relative z-30 flex-shrink-0">
                 <div class="flex items-center">
                     <button id="mobile-menu-button" class="md:hidden mr-4 text-gray-500 hover:text-gray-700 focus:outline-none">
@@ -366,7 +389,6 @@
     </div>
 
     <script>
-        const API_URL = 'https://roomhy-backend.onrender.com';
         window.addEventListener('load', () => { if(typeof lucide!=='undefined') lucide.createIcons(); });
 
         // Backend base - now using production Render URL

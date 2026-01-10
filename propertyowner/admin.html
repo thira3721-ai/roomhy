@@ -1,19 +1,10 @@
-<script>
+﻿<script>
         // API base URL
         const API_URL = 'https://roomhy-backend.onrender.com';
-
-        // Example: Connect to Socket.IO and join as property owner
-        document.addEventListener('DOMContentLoaded', function() {
-            const user = JSON.parse(localStorage.getItem('user') || 'null');
-            if (user && user.loginId && window.connectSocket) {
-                window.connectSocket(user.loginId);
-            }
-        });
     </script>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-        <script src="../js/socket-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy - Owner Dashboard</title>
@@ -101,9 +92,10 @@
                 <a href="enquiry.html" class="sidebar-link"><i data-lucide="mail" class="w-5 h-5 mr-3"></i> Enquiry</a>
                 <a href="documents.html" class="sidebar-link"><i data-lucide="file-text" class="w-5 h-5 mr-3"></i> Documents</a>
                 <a href="payment.html" class="sidebar-link"><i data-lucide="credit-card" class="w-5 h-5 mr-3"></i> Payments</a>
+                <a href="booking_request.html" class="sidebar-link"><i data-lucide="calendar-check" class="w-5 h-5 mr-3"></i> Booking Requests</a>
+                <a href="ownerchat.html" class="sidebar-link"><i data-lucide="message-circle" class="w-5 h-5 mr-3"></i> Chat</a>
                 <a href="complaints.html" class="sidebar-link"><i data-lucide="alert-circle" class="w-5 h-5 mr-3"></i> Complaints</a>
                 <a href="location.html" class="sidebar-link"><i data-lucide="map-pin" class="w-5 h-5 mr-3"></i> Location</a>
-                <a href="chat.html" class="sidebar-link"><i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Chat</a>
                 <a href="ownerprofile.html" class="sidebar-link"><i data-lucide="user" class="w-5 h-5 mr-3"></i> Profile</a>
                 <a href="settings.html" class="sidebar-link"><i data-lucide="settings" class="w-5 h-5 mr-3"></i> Settings</a>
             </nav>
@@ -142,7 +134,7 @@
                 <div class="max-w-7xl mx-auto">
                     <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center">
                         <div>
-                            <h1 class="text-2xl font-bold text-slate-800">Welcome back, <span id="welcomeName">Owner</span>! 👋</h1>
+                            <h1 class="text-2xl font-bold text-slate-800">Welcome back, <span id="welcomeName">Owner</span>! ðŸ‘‹</h1>
                             <p class="text-sm text-slate-500 mt-1">Here's what's happening with your properties today.</p>
                         </div>
                         <div class="mt-4 md:mt-0 flex gap-3">
@@ -474,10 +466,6 @@
                 if (countSpan) countSpan.textContent = `(${list.length})`;
                 if (!list.length) { container.innerHTML = '<p class="text-sm text-gray-500">No enquiries yet.</p>'; return; }
                 container.innerHTML = list.map(e => {
-                    let chatBtn = '';
-                    if (e.status === 'accepted' && e.chatOpen) {
-                        chatBtn = `<a href='chat.html?enquiryId=${e._id}&studentId=${e.studentId}' class='ml-2 bg-blue-600 text-white px-2 py-1 rounded text-xs'>Chat</a>`;
-                    }
                     // Status badge
                     let statusColor = 'bg-gray-200 text-gray-700';
                     if (e.status === 'pending') statusColor = 'bg-yellow-100 text-yellow-800';
@@ -494,7 +482,6 @@
                         <td class='px-2 py-1'>
                             <button data-enqid="${e._id}" class="accept-enq mb-2 bg-green-600 text-white px-2 py-1 rounded text-xs">Accept</button>
                             <button data-enqid="${e._id}" class="reject-enq ml-2 bg-red-100 text-red-700 px-2 py-1 rounded text-xs">Reject</button>
-                            ${chatBtn}
                         </td>
                     </tr>`;
                 }).join('');

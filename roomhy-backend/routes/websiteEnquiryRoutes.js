@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const WebsiteEnquiry = require('../models/WebsiteEnquiry');
+const Owner = require('../models/Owner');
 
 // ============================================================
 // POST: Submit a new website enquiry
@@ -164,6 +165,62 @@ router.get('/assigned-to/:loginId', async (req, res) => {
 
     } catch (error) {
         console.error('Error fetching enquiries assigned to employee:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching enquiries',
+            error: error.message
+        });
+    }
+});
+
+// ============================================================
+// GET: Fetch enquiries by owner email/id and status (for chat integration)
+// ============================================================
+router.get('/', async (req, res) => {
+    try {
+        const { owner_email, owner_id, status } = req.query;
+
+        let query = {};
+        if (owner_email) {
+            query.owner_email = owner_email;
+        } else if (owner_id) {
+            // If owner_id is provided, we need to find enquiries by owner_id
+            // Since the model stores owner_email, we need to find enquiries where owner_email matches
+            // For now, we'll assume owner_id might be stored differently or we need to handle this case
+            // Let's check if owner_id is actually an email or if we need to look up the owner
+            if (owner_id.includes('@')) {
+                // If owner_id contains @, treat it as email
+                query.owner_email = owner_id;
+            } else {
+                // If it's a loginId like ROOMHY9603, we need to find enquiries by this ID
+                // For now, let's assume the owner_id is stored in a way we can query
+                // This might need adjustment based on how enquiries are actually stored
+                // Look up the owner by loginId to get their email
+                const owner = await Owner.findOne({ loginId: owner_id });
+                if (owner && owner.email) {
+                    query.owner_email = owner.email;
+                } else {
+                    // If owner not found or no email, return empty result
+                    return res.status(200).json({
+                        success: true,
+                        count: 0,
+                        enquiries: []
+                    });
+                }
+            }
+        }
+        if (status) query.status = status;
+
+        const enquiries = await WebsiteEnquiry.find(query).sort({ created_at: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: enquiries.length,
+            enquiries: enquiries
+        });
+
+    } catch (error) {
+        console.error('Error fetching enquiries:', error);
         res.status(500).json({
             success: false,
             message: 'Error fetching enquiries',

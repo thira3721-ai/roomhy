@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
@@ -13,8 +13,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <script>
-        // API Configuration
-        const API_URL = 'https://roomhy-backend.onrender.com';
+        // API Configuration - Support both local and production
+        // For local development, use: http://localhost:3000 or http://localhost:10
+        // For production, use: https://roomhy-backend.onrender.com
+        const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? 'http://localhost:5000'
+            : 'https://roomhy-backend.onrender.com';
+        
+        console.log('Using API_URL:', API_URL);
 
         tailwind.config = {
             theme: {
@@ -668,7 +674,7 @@
                 <div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
                     <i data-lucide="users" class="w-6 h-6 text-gray-600"></i>
                 </div>
-                <span class="text-lg font-semibold text-gray-800">Hi,welcome 👋</span>
+                <span class="text-lg font-semibold text-gray-800">Hi,welcome ðŸ‘‹</span>
             </div>
             <a href="profile.html" class="text-sm font-medium text-blue-600 hover:underline">Profile</a>
         </div>
@@ -696,12 +702,6 @@
                 </div>
                 <span>Favorites</span>
             </a>
-            <a href="chathome.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
-                 <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                    <i data-lucide="message-square" class="w-5 h-5 text-green-600"></i>
-                </div>
-                <span>Chats</span>
-            </a>
             <a href="mystays.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
                 <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
                     <i data-lucide="building" class="w-5 h-5 text-purple-600"></i>
@@ -719,6 +719,12 @@
                     <i data-lucide="phone" class="w-5 h-5 text-cyan-600"></i>
                 </div>
                 <span>Contact Us</span>
+            </a>
+            <a href="../propertyowner/websitechat.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="message-circle" class="w-5 h-5 text-green-600"></i>
+                </div>
+                <span>Chat Support</span>
             </a>
         </nav>
         
@@ -1064,7 +1070,7 @@
                             <div class="hidden lg:flex absolute -left-16 top-1/2 -translate-y-1/2 step-badge animate-pulse-pop">1</div>
                             <span class="hidden lg:inline text-sm font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-full">Your Journey Starts Here</span>
                             <h3 class="text-3xl font-bold my-4 text-gray-900 leading-snug">Search, Filter & Shortlist</h3> 
-                            <p class="text-gray-600 text-lg leading-relaxed">Use our smart, student-focused filters to find verified PGs, hostels, or apartments near your college campus. **Compare transparent prices, 360° virtual tours, and essential amenities.**</p>
+                            <p class="text-gray-600 text-lg leading-relaxed">Use our smart, student-focused filters to find verified PGs, hostels, or apartments near your college campus. **Compare transparent prices, 360Â° virtual tours, and essential amenities.**</p>
                         </div>
                     </div>
     
@@ -1181,7 +1187,7 @@
                             </div>
                             <div>
                                 <h3 class="text-xl font-semibold text-gray-900 mb-1">Zero Brokerage Always</h3>
-                                <p class="text-gray-500 leading-relaxed">Tired of paying brokers just to see a room? With Roomhy, you connect directly with verified property owners. No middlemen, no extra charges — just a clean, commission-free experience.</p>
+                                <p class="text-gray-500 leading-relaxed">Tired of paying brokers just to see a room? With Roomhy, you connect directly with verified property owners. No middlemen, no extra charges "” just a clean, commission-free experience.</p>
                             </div>
                         </div>
 
@@ -1191,7 +1197,7 @@
                             </div>
                             <div>
                                 <h3 class="text-xl font-semibold text-gray-900 mb-1">Only Pay What You Bid</h3>
-                                <p class="text-gray-500 leading-relaxed">No fixed pricing. No pressure. Set your own budget and place a live bid — the owner picks the best offer. It’s fast, fair, and puts you in control from the start.</p>
+                                <p class="text-gray-500 leading-relaxed">No fixed pricing. No pressure. Set your own budget and place a live bid "” the owner picks the best offer. It's fast, fair, and puts you in control from the start.</p>
                             </div>
                         </div>
 
@@ -1201,7 +1207,7 @@
                             </div>
                             <div>
                                 <h3 class="text-xl font-semibold text-gray-900 mb-1">Rooms That Match Your Vibe & Budget</h3>
-                                <p class="text-gray-500 leading-relaxed">Whether you want a solo PG, a shared space with friends, or a budget hostel near college — Roomhy has it all. Search by location, amenities, and real-time availability to find your perfect stay.</p>
+                                <p class="text-gray-500 leading-relaxed">Whether you want a solo PG, a shared space with friends, or a budget hostel near college "” Roomhy has it all. Search by location, amenities, and real-time availability to find your perfect stay.</p>
                             </div>
                         </div>
                     </div>
@@ -2169,45 +2175,55 @@
         // ======================================================
 
         // ======================================================
-        // START: DYNAMIC TOP SPACES LOADER (FROM LOCALSTORAGE)
+        // START: DYNAMIC TOP SPACES LOADER (FROM API)
         // ======================================================
         function loadDynamicTopSpaces() {
-            // Get cities from localStorage (added via location.html)
-            let citiesData = JSON.parse(localStorage.getItem('roomhy_cities') || '[]');
-            
-            // Extract city names - handle both string and object formats
-            let cityNames = citiesData.map(city => {
-                if (typeof city === 'string') return city;
-                if (typeof city === 'object' && city.name) return city.name;
-                return null;
-            }).filter(city => city !== null);
-            
-            // Filter out hardcoded cities (Indore and Kota)
-            const customCities = cityNames.filter(city => 
-                city.toLowerCase() !== 'indore' && city.toLowerCase() !== 'kota'
-            );
-            
-            if (customCities.length === 0) {
-                console.log('No custom cities configured. Top Spaces sections hidden.');
-                return;
+            // Get cities from MongoDB API (with localStorage fallback)
+            async function getCities() {
+                try {
+                    const response = await fetch(`${API_URL}/api/cities`);
+                    if (!response.ok) throw new Error('API failed');
+                    const data = await response.json();
+                    return (data.data || []).map(c => c.name);
+                } catch (err) {
+                    console.log('Fallback to localStorage for cities:', err);
+                    // Fallback: Get cities from localStorage
+                    let citiesData = JSON.parse(localStorage.getItem('roomhy_cities') || '[]');
+                    return citiesData.map(city => {
+                        if (typeof city === 'string') return city;
+                        if (typeof city === 'object' && city.name) return city.name;
+                        return null;
+                    }).filter(city => city !== null);
+                }
             }
-            
-            // Find the city with the most properties
-            const promises = customCities.map(city => 
-                fetch(`${API_URL}/api/website-enquiry/city/${encodeURIComponent(city)}`)
-                    .then(res => res.json())
-                    .then(data => ({
-                        city: city,
-                        count: (data.enquiries || []).length,
-                        enquiries: data.enquiries || []
-                    }))
-                    .catch(err => {
-                        console.error(`Error fetching data for ${city}:`, err);
-                        return {
+
+            getCities().then(cityNames => {
+                // Filter out hardcoded cities (Indore and Kota)
+                const customCities = cityNames.filter(city => 
+                    city.toLowerCase() !== 'indore' && city.toLowerCase() !== 'kota'
+                );
+                
+                if (customCities.length === 0) {
+                    console.log('No custom cities configured. Top Spaces sections hidden.');
+                    return;
+                }
+                
+                // Find the city with the most properties
+                const promises = customCities.map(city => 
+                    fetch(`${API_URL}/api/website-enquiry/city/${encodeURIComponent(city)}`)
+                        .then(res => res.json())
+                        .then(data => ({
                             city: city,
-                            count: 0,
-                            enquiries: []
-                        };
+                            count: (data.enquiries || []).length,
+                            enquiries: data.enquiries || []
+                        }))
+                        .catch(err => {
+                            console.error(`Error fetching data for ${city}:`, err);
+                            return {
+                                city: city,
+                                count: 0,
+                                enquiries: []
+                            };
                     })
             );
             
@@ -2281,6 +2297,10 @@
                 } else {
                     slider.innerHTML = '<p class="text-gray-500 px-4">No properties available for this city yet.</p>';
                 }
+            });
+            }).catch(err => {
+                console.error('Error loading cities:', err);
+                // If all fails, just don't show the dynamic section
             });
         }
         

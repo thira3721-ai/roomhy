@@ -3,1403 +3,377 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RoomHy - Area Manager Chat</title>
-    <script>
-        // API Configuration
-        const API_URL = 'https://roomhy-backend.onrender.com';
-    </script>
+    <title>Area Manager - Support Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .message-own { @apply bg-orange-100 border-l-4 border-orange-500 ml-auto mr-0 max-w-xs; }
+        .message-other { @apply bg-gray-100 border-l-4 border-gray-400 ml-0 mr-auto max-w-xs; }
+    </style>
 </head>
-<body class="bg-gray-50 font-sans">
+<body class="bg-gray-50">
     <div class="flex h-screen">
         <!-- Sidebar -->
-        <aside class="w-72 bg-gray-900 text-white flex flex-col hidden md:flex">
-            <div class="p-6 border-b border-gray-700">
-                <h1 class="text-2xl font-bold">RoomHy Chat</h1>
-                <p class="text-sm text-gray-400">Area Manager</p>
+        <div class="w-64 bg-white border-r border-gray-200 flex flex-col">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-xl font-bold text-orange-600">🛡️ Support Chat</h1>
             </div>
-            <nav class="flex-1 overflow-y-auto p-4 space-y-2">
-                <a href="areaadmin.html" class="block px-4 py-2 rounded hover:bg-gray-800 transition">← Back to Dashboard</a>
-                <div class="border-t border-gray-700 pt-4 mt-4">
-                    <div class="px-4 mb-3">
-                        <h3 class="text-xs font-semibold text-gray-400 uppercase mb-2">Chat Type</h3>
-                        <select id="chatTypeFilter" class="w-full bg-gray-800 border border-gray-700 text-white rounded px-2 py-1 text-sm">
-                            <option value="">All Chats</option>
-                            <option value="tenant_manager_booking">Tenant - Booking</option>
-                            <option value="manager_owner_helpdesk">Owner - Help Desk</option>
-                        </select>
-                    </div>
-                    <h3 class="text-xs font-semibold text-gray-400 uppercase px-4 mb-3">Active Chats</h3>
-                    <div id="chatsList" class="space-y-1">
-                        <!-- Chats loaded here -->
-                    </div>
+            
+            <!-- New Chat Button -->
+            <div class="px-4 py-3 border-b border-gray-200">
+                <button onclick="openNewChatModal()" class="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm font-medium">
+                    + New Support Request
+                </button>
+            </div>
+
+            <!-- Support Requests List -->
+            <div class="flex-1 overflow-y-auto p-4">
+                <h3 class="text-sm font-semibold text-gray-700 mb-4">Support Requests</h3>
+                <div id="requestsList" class="space-y-2">
+                    <div class="p-3 bg-gray-100 rounded text-center text-gray-500 text-sm">Loading...</div>
                 </div>
-            </nav>
-        </aside>
+            </div>
+
+            <!-- Logout -->
+            <div class="p-4 border-t border-gray-200">
+                <button onclick="logout()" class="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm font-medium">
+                    Logout
+                </button>
+            </div>
+        </div>
 
         <!-- Main Chat Area -->
-        <div class="flex-1 flex flex-col">
+        <div class="flex-1 flex flex-col bg-white">
             <!-- Header -->
-            <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+            <div id="chatHeader" class="h-16 bg-orange-50 border-b border-gray-200 flex items-center justify-between px-6">
                 <div>
-                    <h2 id="chatHeader" class="text-xl font-bold text-gray-900">Select a chat to start messaging</h2>
-                    <p id="chatSubheader" class="text-sm text-gray-500" id="chatType">Ready to manage chats</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button id="closeBtn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 hidden">Close Chat</button>
-                </div>
-            </header>
-
-            <!-- Messages Area -->
-            <div id="messagesContainer" class="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
-                <div class="text-center text-gray-500 mt-12">
-                    <p>No chat selected. Select from the list to start messaging.</p>
+                    <h2 id="chatTitle" class="font-bold text-gray-800">Select a support request</h2>
+                    <p id="chatSubtitle" class="text-xs text-gray-500 mt-1"></p>
+                    <p id="chatId" class="text-xs text-orange-600 font-mono mt-0.5"></p>
                 </div>
             </div>
 
-            <!-- Visit Scheduling Area (Booking Chats Only) -->
-            <div id="visitScheduling" class="bg-blue-50 border-t border-blue-200 p-4 hidden">
-                <h3 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <i data-lucide="calendar" class="w-5 h-5 text-blue-600"></i>
-                    Scheduled Visits
-                </h3>
-                <div id="visitsList" class="space-y-2">
-                    <!-- Visits displayed here -->
+            <!-- Messages -->
+            <div id="messagesArea" class="flex-1 overflow-y-auto p-6 space-y-4">
+                <div class="text-center text-gray-400 mt-20">
+                    <i data-lucide="lifebelt" class="w-16 h-16 mx-auto mb-4 opacity-30"></i>
+                    <p>Select a support request to begin</p>
                 </div>
             </div>
 
-            <!-- Message Input -->
-            <div class="bg-white border-t border-gray-200 p-4">
+            <!-- Input Area -->
+            <div id="inputArea" class="hidden border-t border-gray-200 bg-gray-50 p-6">
                 <div class="flex gap-3">
-                    <input 
-                        id="messageInput" 
-                        type="text" 
-                        placeholder="Type a message..." 
-                        class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                        disabled
-                    >
-                    <button 
-                        id="sendBtn" 
-                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50"
-                        disabled
-                    >
-                        <i data-lucide="send" class="w-4 h-4"></i> Send
+                    <input type="text" id="messageInput" placeholder="Type your response..." 
+                        class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        onkeypress="handleKeyPress(event)">
+                    <button onclick="sendMessage()" class="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-medium">
+                        Send
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        // Socket.IO connection
-        const socket = io();
-        
-        // User info
-        const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || localStorage.getItem('manager_user') || sessionStorage.getItem('manager_user') || '{}');
-        const userId = user.area_manager_id || user.loginId || user.id || 'unknown';
-        const userName = user.name || user.username || 'Area Manager';
-        const userRole = 'area_manager';
-        const userArea = user.area || 'All Areas';
-
+    <!-- New Chat Modal -->
+    <div id="newChatModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-md w-full max-h-96 overflow-hidden flex flex-col">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-gray-800">Start New Support Chat</h3>
+                <button onclick="closeNewChatModal()" class="text-gray-500 hover:text-gray-700">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div id="availableIdsList" class="flex-1 overflow-y-auto p-4 space-y-2">
+                <div class="text-center text-gray-500 py-8">Loading available contacts...</div>
+            </div>
+        </div>
+    </div>
+        const API_URL = 'https://roomhy-backend.onrender.com';
+        let socket = null;
+        let loginId = null;
         let currentChat = null;
-        let currentChatId = null;
-        let currentChatType = '';
-        let allChats = [];
-        const apiUrl = API_URL;
-
-        // ============ INITIALIZATION ============
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!user || (user.role !== 'areamanager' && user.role !== 'area_manager')) {
-                alert('Please login as an area manager');
-                window.location.href = 'areaadmin.html';
+        let allSupportRequests = [];
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = JSON.parse(localStorage.getItem('manager_user') || 'null');
+            if (!user || !user.loginId) {
+                window.location.href = '/propertyowner/ownerlogin.html';
                 return;
             }
 
-            // Join Socket.IO
-            socket.emit('user_join', { user_id: userId, user_name: userName, user_role: userRole });
+            loginId = user.loginId;
+            console.log('✓ Area Manager logged in:', loginId);
 
-            // Load chats
-            loadUserChats();
+            initSocket();
+            loadSupportRequests();
+            lucide.createIcons();
         });
 
-        // ============ SOCKET EVENTS ============
-        socket.on('new_message', (data) => {
-            if (data.chat_id === currentChatId) {
-                displayMessage(data);
-            }
-        });
+        // Initialize Socket.IO
+        function initSocket() {
+            socket = io(API_URL);
 
-        socket.on('visit_scheduled', (data) => {
-            if (data.chat_id === currentChatId) {
-                displayVisitScheduled(data);
-                loadVisits();
-            }
-        });
+            socket.on('connect', () => {
+                console.log('✓ Connected to chat');
+                socket.emit('join_room', {
+                    login_id: loginId,
+                    role: 'areamanager',
+                    name: 'Support Manager'
+                });
+            });
 
-        socket.on('user_typing', (data) => {
-            if (data.chat_id === currentChatId && data.user_id !== userId) {
-                document.getElementById('chatSubheader').textContent = `${data.user_name} is typing...`;
-            }
-        });
-
-        socket.on('user_stop_typing', (data) => {
-            if (data.chat_id === currentChatId) {
-                document.getElementById('chatSubheader').textContent = 'Ready to chat';
-            }
-        });
-
-        socket.on('chat_closed', (data) => {
-            if (data.chat_id === currentChatId) {
-                alert(`Chat closed by ${data.closed_by}.`);
-                loadUserChats();
-            }
-        });
-
-        // ============ FUNCTIONS ============
-        async function loadUserChats() {
-            try {
-                // Load chats from API
-                const response = await fetch(`${apiUrl}/api/chats/user/${userId}`);
-                const data = await response.json();
-
-                if (data.success) {
-                    allChats = data.chats || [];
-                } else {
-                    allChats = [];
+            socket.on('receive_message', (msg) => {
+                if (currentChat && msg.sender_login_id === currentChat.login_id) {
+                    displayMessage(msg, false);
+                    loadSupportRequests(); // Refresh list
                 }
+            });
 
-                // Also load booking requests to show tenants who have pending requests
-                try {
-                    const bookingResponse = await fetch(`${apiUrl}/api/booking/requests?area=${userArea}`);
-                    const bookingData = await bookingResponse.json();
-                    
-                    if (bookingData.success && bookingData.data) {
-                        // Add booking requests as pending chats if they don't already exist
-                        const bookingRequests = Array.isArray(bookingData.data) ? bookingData.data : [];
-                        
-                        bookingRequests.forEach(booking => {
-                            // Check if chat already exists for this booking
-                            const chatExists = allChats.some(c => c.booking_id === booking._id);
-                            
-                            if (!chatExists) {
-                                // Create a placeholder chat from booking request
-                                allChats.push({
-                                    chat_id: `pending_booking_${booking._id}`,
-                                    chat_type: 'tenant_manager_booking',
-                                    property_name: booking.property_name,
-                                    property_id: booking.property_id,
-                                    booking_id: booking._id,
-                                    messages: [],
-                                    participant_name: booking.name,
-                                    participant_phone: booking.phone,
-                                    status: booking.status,
-                                    is_booking_request: true
-                                });
-                            }
+            socket.on('error', (data) => {
+                console.error('Socket error:', data);
+            });
+        }
+
+        // Load support requests - show all owners
+        function loadSupportRequests() {
+            let allOwners = [];
+
+            // Load from rooms data - extract unique owners
+            const rooms = JSON.parse(localStorage.getItem('roomhy_rooms') || '[]');
+            rooms.forEach(room => {
+                if (room.owner_id && room.owner_name) {
+                    const existing = allOwners.find(o => o.login_id === room.owner_id);
+                    if (!existing) {
+                        allOwners.push({
+                            login_id: room.owner_id,
+                            name: room.owner_name,
+                            type: 'owner'
                         });
                     }
-                } catch (bookingError) {
-                    console.warn('Could not load booking requests:', bookingError);
-                }
-
-                filterAndDisplayChats();
-            } catch (error) {
-                console.error('Error loading chats:', error);
-            }
-        }
-
-        function filterAndDisplayChats() {
-            const filter = document.getElementById('chatTypeFilter').value;
-            let filtered = allChats;
-
-            if (filter) {
-                filtered = allChats.filter(c => c.chat_type === filter);
-            }
-
-            const chatsList = document.getElementById('chatsList');
-            if (filtered.length === 0) {
-                chatsList.innerHTML = '<p class="text-gray-500 text-sm p-4">No chats or booking requests found</p>';
-                return;
-            }
-
-            // Separate active chats from booking requests
-            const activeChats = filtered.filter(c => !c.is_booking_request);
-            const bookingRequests = filtered.filter(c => c.is_booking_request);
-
-            let html = '';
-
-            // Show booking requests first with highlight
-            if (bookingRequests.length > 0) {
-                html += '<div class="px-4 py-2 text-xs font-bold text-red-600 bg-red-50 sticky top-0">📋 PENDING BOOKING REQUESTS</div>';
-                html += bookingRequests.map(chat => `
-                    <button 
-                        onclick="selectChat('${chat.chat_id}')"
-                        class="w-full text-left px-4 py-3 rounded hover:bg-gray-800 transition text-sm border-l-4 border-red-500 bg-gray-800/50"
-                    >
-                        <div class="font-medium truncate text-red-400">🔴 ${chat.property_name}</div>
-                        <div class="text-xs text-red-300">${chat.participant_name}</div>
-                        <div class="text-xs text-gray-500">📞 ${chat.participant_phone}</div>
-                        <div class="text-xs text-yellow-400 mt-1">Status: ${chat.status}</div>
-                    </button>
-                `).join('');
-            }
-
-            // Show active chats
-            if (activeChats.length > 0) {
-                if (bookingRequests.length > 0) {
-                    html += '<div class="px-4 py-2 text-xs font-bold text-gray-400 bg-gray-800 sticky top-12 mt-2">💬 ACTIVE CHATS</div>';
-                }
-                html += activeChats.map(chat => `
-                    <button 
-                        onclick="selectChat('${chat.chat_id}')"
-                        class="w-full text-left px-4 py-2 rounded hover:bg-gray-800 transition text-sm"
-                    >
-                        <div class="font-medium truncate">${chat.property_name || 'Chat'}</div>
-                        <div class="text-xs text-gray-400">${chat.chat_type === 'tenant_manager_booking' ? '👤 Tenant - Booking' : '🏢 Owner - Help Desk'}</div>
-                        <div class="text-xs text-gray-500 truncate">${chat.messages?.length || 0} messages</div>
-                    </button>
-                `).join('');
-            }
-
-            chatsList.innerHTML = html;
-        }
-
-        async function selectChat(chatId) {
-            currentChatId = chatId;
-
-            // Check if this is a pending booking request
-            const bookingRequest = allChats.find(c => c.chat_id === chatId && c.is_booking_request);
-
-            if (bookingRequest) {
-                // Handle pending booking request - create chat on first message
-                document.getElementById('chatHeader').textContent = bookingRequest.property_name;
-                document.getElementById('chatSubheader').textContent = `📋 Pending Request - ${bookingRequest.participant_name}`;
-
-                // Display booking request message
-                const container = document.getElementById('messagesContainer');
-                container.innerHTML = `
-                    <div class="flex justify-center">
-                        <div class="max-w-sm bg-blue-50 border-2 border-blue-400 rounded-lg p-4 text-center">
-                            <p class="text-sm font-bold text-blue-900 mb-2">🔔 New Booking Request</p>
-                            <p class="text-xs text-blue-700 mb-3">Tenant: <strong>${bookingRequest.participant_name}</strong></p>
-                            <p class="text-xs text-blue-700 mb-3">📞 ${bookingRequest.participant_phone}</p>
-                            <p class="text-xs text-blue-700 mb-3">Property: <strong>${bookingRequest.property_name}</strong></p>
-                            <p class="text-xs text-blue-700 mb-2">Status: <span class="font-semibold">${bookingRequest.status}</span></p>
-                            <button onclick="acceptBookingRequest('${chatId}')" class="bg-green-500 text-white px-3 py-1 rounded text-xs font-bold hover:bg-green-600">
-                                ✓ Accept & Chat
-                            </button>
-                        </div>
-                    </div>
-                `;
-
-                // Enable input for messaging
-                document.getElementById('messageInput').disabled = false;
-                document.getElementById('sendBtn').disabled = false;
-                document.getElementById('closeBtn').classList.add('hidden'); // Can't close pending request
-
-                return;
-            }
-
-            // Handle regular chats
-            try {
-                const response = await fetch(`${apiUrl}/api/chats/messages/${chatId}`);
-                const data = await response.json();
-
-                if (data.success) {
-                    // Get chat details
-                    const chat = allChats.find(c => c.chat_id === chatId);
-                    currentChatType = chat.chat_type;
-
-                    // Update header
-                    document.getElementById('chatHeader').textContent = chat.property_name || 'Chat';
-                    const typeLabel = chat.chat_type === 'tenant_manager_booking' ? 'Booking Chat with Tenant' : 'Help Desk Chat with Owner';
-                    document.getElementById('chatSubheader').textContent = typeLabel;
-
-                    // Display messages
-                    const container = document.getElementById('messagesContainer');
-                    container.innerHTML = data.messages.map(msg => `
-                        <div class="flex ${msg.sender_role === 'system' ? 'justify-center' : msg.sender_id === userId ? 'justify-end' : 'justify-start'}">
-                            <div class="max-w-xs ${msg.sender_role === 'system' ? 'bg-yellow-50 border border-yellow-200 text-yellow-900 text-center' : msg.sender_id === userId ? 'bg-blue-600 text-white' : 'bg-white text-gray-900'} rounded-lg p-3 shadow">
-                                ${msg.sender_role !== 'system' ? `<p class="text-xs font-semibold opacity-90">${msg.sender_name}</p>` : ''}
-                                <p class="text-sm mt-1">${msg.message}</p>
-                                <p class="text-xs ${msg.sender_id === userId ? 'text-blue-200' : msg.sender_role === 'system' ? 'text-yellow-700' : 'text-gray-500'} mt-1">
-                                    ${new Date(msg.timestamp).toLocaleTimeString()}
-                                </p>
-                            </div>
-                        </div>
-                    `).join('');
-
-                    // Show visit scheduling for booking chats
-                    const visitScheduling = document.getElementById('visitScheduling');
-                    if (chat.chat_type === 'tenant_manager_booking') {
-                        visitScheduling.classList.remove('hidden');
-                        loadVisits();
-                    } else {
-                        visitScheduling.classList.add('hidden');
-                    }
-
-                    // Enable input
-                    document.getElementById('messageInput').disabled = false;
-                    document.getElementById('sendBtn').disabled = false;
-                    document.getElementById('closeBtn').classList.remove('hidden');
-
-                    // Join Socket.IO room
-                    socket.emit('join_chat', { chat_id: chatId, user_id: userId, user_name: userName, user_role: userRole });
-
-                    // Scroll to bottom
-                    setTimeout(() => {
-                        container.scrollTop = container.scrollHeight;
-                    }, 100);
-                }
-            } catch (error) {
-                console.error('Error selecting chat:', error);
-            }
-        }
-
-        async function acceptBookingRequest(chatId) {
-            const booking = allChats.find(c => c.chat_id === chatId && c.is_booking_request);
-            if (!booking) return;
-
-            try {
-                // Find the tenant who made the request
-                const bookingResponse = await fetch(`${apiUrl}/api/booking/requests?area=${userArea}`);
-                const bookingData = await bookingResponse.json();
-                const bookingReq = bookingData.data?.find(b => b._id === booking.booking_id);
-
-                if (!bookingReq) {
-                    alert('Could not find booking request details');
-                    return;
-                }
-
-                // Create chat
-                const createChatResponse = await fetch(`${apiUrl}/api/chats/room/create`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user1_id: bookingReq.user_id,
-                        user1_name: bookingReq.name,
-                        user1_role: 'tenant',
-                        user2_id: userId,
-                        user2_name: userName,
-                        user2_role: userRole,
-                        chat_type: 'tenant_manager_booking',
-                        booking_id: booking.booking_id,
-                        property_id: booking.property_id,
-                        property_name: booking.property_name,
-                        area: userArea
-                    })
-                });
-
-                const chatData = await createChatResponse.json();
-                if (chatData.success) {
-                    // Remove booking request from list
-                    allChats = allChats.filter(c => c.chat_id !== chatId);
-                    
-                    // Reload chats to show the new chat
-                    await loadUserChats();
-                    
-                    // Select the new chat
-                    selectChat(chatData.chat.chat_id);
-                }
-            } catch (error) {
-                console.error('Error accepting booking request:', error);
-                alert('Error: ' + error.message);
-            }
-        }
-
-        function displayMessage(data) {
-            const container = document.getElementById('messagesContainer');
-            const messageEl = document.createElement('div');
-            messageEl.className = `flex ${data.sender_id === userId ? 'justify-end' : 'justify-start'}`;
-            messageEl.innerHTML = `
-                <div class="max-w-xs ${data.sender_id === userId ? 'bg-blue-600 text-white' : 'bg-white text-gray-900'} rounded-lg p-3 shadow">
-                    <p class="text-xs font-semibold opacity-90">${data.sender_name}</p>
-                    <p class="text-sm mt-1">${data.message}</p>
-                    <p class="text-xs ${data.sender_id === userId ? 'text-blue-200' : 'text-gray-500'} mt-1">
-                        ${new Date(data.timestamp).toLocaleTimeString()}
-                    </p>
-                </div>
-            `;
-            container.appendChild(messageEl);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        async function loadVisits() {
-            try {
-                const response = await fetch(`${apiUrl}/api/chats/messages/${currentChatId}`);
-                const data = await response.json();
-
-                if (data.visits && data.visits.length > 0) {
-                    document.getElementById('visitsList').innerHTML = data.visits.map(visit => `
-                        <div class="bg-white border-l-4 border-green-500 p-3 rounded shadow-sm">
-                            <div class="flex items-start justify-between">
-                                <div>
-                                    <p class="font-semibold text-gray-900">${visit.visit_type.charAt(0).toUpperCase() + visit.visit_type.slice(1)} Visit</p>
-                                    <p class="text-sm text-gray-600">${new Date(visit.scheduled_date).toLocaleDateString()} at ${visit.scheduled_time}</p>
-                                    <span class="inline-block mt-1 px-2 py-1 rounded text-xs font-semibold ${visit.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : visit.status === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
-                                        ${visit.status.charAt(0).toUpperCase() + visit.status.slice(1)}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('');
-                } else {
-                    document.getElementById('visitsList').innerHTML = '<p class="text-gray-500 text-sm">No scheduled visits yet</p>';
-                }
-            } catch (error) {
-                console.error('Error loading visits:', error);
-            }
-        }
-
-        function displayVisitScheduled(data) {
-            const container = document.getElementById('messagesContainer');
-            const messageEl = document.createElement('div');
-            messageEl.className = 'flex justify-center';
-            messageEl.innerHTML = `
-                <div class="bg-green-50 border border-green-300 rounded-lg p-4 text-center max-w-sm">
-                    <p class="text-sm font-semibold text-green-900">📅 Visit Scheduled!</p>
-                    <p class="text-sm text-green-800 mt-1">${data.message}</p>
-                </div>
-            `;
-            container.appendChild(messageEl);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        // ============ EVENT LISTENERS ============
-        document.getElementById('sendBtn').addEventListener('click', () => {
-            const message = document.getElementById('messageInput').value.trim();
-            if (!message || !currentChatId) return;
-
-            socket.emit('send_message', {
-                chat_id: currentChatId,
-                sender_id: userId,
-                sender_name: userName,
-                sender_role: userRole,
-                message
-            });
-
-            document.getElementById('messageInput').value = '';
-        });
-
-        document.getElementById('messageInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                document.getElementById('sendBtn').click();
-            }
-        });
-
-        document.getElementById('chatTypeFilter').addEventListener('change', () => {
-            filterAndDisplayChats();
-        });
-
-        document.getElementById('closeBtn').addEventListener('click', () => {
-            if (confirm('Close this chat? You can reopen it later.')) {
-                socket.emit('close_chat', {
-                    chat_id: currentChatId,
-                    closed_by: userName,
-                    reason: 'Area Manager closed the chat'
-                });
-            }
-        });
-
-        lucide.createIcons();
-    </script>
-</body>
-</html>
-<body class="text-slate-800 h-screen overflow-hidden flex flex-col">
-    
-    <div class="flex h-full overflow-hidden">
-        <!-- Sidebar -->
-        <aside class="sidebar w-72 flex-shrink-0 flex flex-col z-20 overflow-y-auto custom-scrollbar">
-            <div class="h-16 flex items-center px-6 border-b border-gray-800 sticky top-0 bg-[#111827] z-10">
-                <div class="flex items-center gap-3">
-                    <div class="bg-purple-600 p-1.5 rounded-lg"><i data-lucide="map" class="w-5 h-5 text-white"></i></div>
-                    <div><h1 class="text-xl font-bold text-white">RoomHy</h1><span class="text-[10px] text-gray-500 font-medium tracking-wider">AREA ADMIN</span></div>
-                </div>
-            </div>
-            
-            <nav class="flex-1 py-6 space-y-1">
-                <div class="px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Overview</div>
-                <a href="areaadmin.html" class="sidebar-link"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard</a>
-
-                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Properties</div>
-                <a href="areaproperty.html" class="sidebar-link"><i data-lucide="home" class="w-5 h-5 mr-3"></i> Properties</a>
-                <a href="visit.html" class="sidebar-link"><i data-lucide="clipboard-list" class="w-5 h-5 mr-3"></i> Visit Reports</a>
-                
-                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">People</div>
-                <a href="areatenant.html" class="sidebar-link"><i data-lucide="users" class="w-5 h-5 mr-3"></i> Tenants</a>
-                <a href="areaowner.html" class="sidebar-link"><i data-lucide="briefcase" class="w-5 h-5 mr-3"></i> Owners</a>
-                <a href="booking_request.html" class="sidebar-link"><i data-lucide="calendar-check" class="w-5 h-5 mr-3"></i> Booking Requests</a>
-                
-                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Communication</div>
-                <a href="areachat.html" class="sidebar-link active"><i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Chat</a>
-                <a href="areaenq.html" class="sidebar-link"><i data-lucide="help-circle" class="w-5 h-5 mr-3"></i> Enquiries</a>
-                <a href="complaint.html" class="sidebar-link"><i data-lucide="alert-triangle" class="w-5 h-5 mr-3"></i> Complaints</a>
-
-                <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">System</div>
-                <a href="profile.html" class="sidebar-link"><i data-lucide="user" class="w-5 h-5 mr-3"></i> Profile</a>
-                <a href="setting.html" class="sidebar-link"><i data-lucide="settings" class="w-5 h-5 mr-3"></i> Settings</a>
-            </nav>
-        </aside>
-
-        <!-- Main Content -->
-        <div class="flex-1 flex flex-col h-full overflow-hidden bg-white relative">
-            <!-- Mobile Header -->
-            <div class="md:hidden h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 shadow-sm z-20">
-                <button id="mobile-menu-open" class="text-gray-500" title="Open menu"><i data-lucide="menu" class="w-6 h-6"></i></button>
-                <span class="font-semibold text-gray-800">Chats</span>
-                <button class="text-gray-500" title="Search"><i data-lucide="search" class="w-5 h-5"></i></button>
-            </div>
-
-            <div class="flex flex-1 overflow-hidden">
-
-                <!-- Mobile Chat List Overlay -->
-                <div id="mobile-chat-list-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden backdrop-blur-sm" onclick="toggleMobileChatList()"></div>
-                <div id="mobile-chat-list-sidebar" class="fixed inset-y-0 left-0 w-full bg-white z-40 transform -translate-x-full transition-transform duration-300 md:hidden flex flex-col border-r border-gray-200">
-                    <!-- Mobile Chat List Header -->
-                    <div class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 shadow-sm">
-                        <span class="font-semibold text-gray-800">Chats</span>
-                        <button onclick="toggleMobileChatList()" class="text-gray-500" title="Close chat list"><i data-lucide="x" class="w-6 h-6"></i></button>
-                    </div>
-
-                    <!-- Search & Tabs -->
-                    <div class="p-4 border-b border-gray-200 bg-white">
-                        <div class="relative mb-3">
-                            <input type="text" id="mobileMgrSearch" placeholder="Search..." class="w-full pl-9 pr-4 py-2 bg-gray-100 border-none rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500">
-                            <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-gray-400"></i>
-                        </div>
-
-                        <!-- Tabs -->
-                        <div class="flex bg-gray-100 p-1 rounded-lg">
-                            <button onclick="filterList('requests')" id="mobile-tab-requests" class="flex-1 text-xs font-medium py-1.5 rounded-md text-center text-gray-500 hover:text-gray-700 transition">Requests</button>
-                            <button onclick="filterList('team')" id="mobile-tab-team" class="flex-1 text-xs font-medium py-1.5 rounded-md text-center bg-white text-purple-600 shadow-sm transition">Team</button>
-                            <button onclick="filterList('support')" id="mobile-tab-support" class="flex-1 text-xs font-medium py-1.5 rounded-md text-center text-gray-500 hover:text-gray-700 transition">Support</button>
-                        </div>
-                    </div>
-
-                    <!-- List -->
-                    <div class="flex-1 overflow-y-auto custom-scrollbar" id="mobileMgrChatList">
-                        <!-- Dynamic Items -->
-                    </div>
-                </div>
-
-                <!-- Left Panel: Chat List (Desktop) -->
-                <div class="hidden md:flex w-80 lg:w-96 border-r border-gray-200 flex-col bg-white h-full">
-                    <!-- Search & Tabs -->
-                    <div class="p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
-                        <div class="relative mb-3">
-                            <input type="text" id="mgrSearch" placeholder="Search..." class="w-full pl-9 pr-4 py-2 bg-gray-100 border-none rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500">
-                            <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-gray-400"></i>
-                        </div>
-
-                        <!-- Tabs -->
-                        <div class="flex bg-gray-100 p-1 rounded-lg">
-                            <button onclick="filterList('requests')" id="tab-requests" class="flex-1 text-xs font-medium py-1.5 rounded-md text-center text-gray-500 hover:text-gray-700 transition">Requests</button>
-                            <button onclick="filterList('team')" id="tab-team" class="flex-1 text-xs font-medium py-1.5 rounded-md text-center bg-white text-purple-600 shadow-sm transition">Team</button>
-                            <button onclick="filterList('support')" id="tab-support" class="flex-1 text-xs font-medium py-1.5 rounded-md text-center text-gray-500 hover:text-gray-700 transition">Support</button>
-                        </div>
-                    </div>
-
-                    <!-- List -->
-                    <div class="flex-1 overflow-y-auto custom-scrollbar" id="mgrChatList">
-                        <!-- Dynamic Items -->
-                    </div>
-                </div>
-
-                <!-- Right Panel: Chat Window -->
-                <div class="flex flex-1 flex-col h-full relative bg-[#f8fafc]">
-                    
-                    <!-- Chat Header -->
-                    <div class="h-16 px-6 bg-white border-b border-gray-200 flex items-center justify-between shadow-sm z-10">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-500 overflow-hidden" id="headerAvatarContainer">
-                                <span id="headerAvatarInitials">-</span>
-                                <img id="headerAvatarImg" class="w-full h-full object-cover hidden" alt="User avatar">
-                            </div>
-                            <div>
-                                <h2 class="text-sm font-bold text-slate-800" id="headerName">Select a chat</h2>
-                                <div class="text-xs text-gray-500" id="headerSub">...</div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <!-- Connect to Admin Button (Only visible for Support Chats) -->
-                            <button id="connectAdminBtn" onclick="connectToAdmin()" class="hidden bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-purple-100 transition flex items-center gap-2">
-                                <i data-lucide="shield-plus" class="w-4 h-4"></i> Connect to Admin
-                            </button>
-                            
-                            <div class="h-6 w-px bg-gray-200 mx-1"></div>
-                            
-                            <button id="startCallBtn" class="text-gray-500 hover:text-purple-600 p-2 rounded-full hover:bg-purple-50" title="Voice Call"><i data-lucide="phone" class="w-5 h-5"></i></button>
-                            <button id="startVideoBtn" class="text-gray-500 hover:text-purple-600 p-2 rounded-full hover:bg-purple-50" title="Video Call"><i data-lucide="video" class="w-5 h-5"></i></button>
-                            <button id="toggleMeetingBtn" class="text-gray-500 hover:text-purple-600 p-2 rounded-full hover:bg-purple-50" title="Start Meeting"><i data-lucide="monitor-play" class="w-5 h-5"></i></button>
-                        </div>
-                    </div>
-
-                    <!-- Messages -->
-                    <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-4 bg-slate-50 custom-scrollbar" id="mgrMessages">
-                        <div class="flex flex-col items-center justify-center h-full text-gray-400">
-                            <i data-lucide="message-square" class="w-12 h-12 mb-4 opacity-20"></i>
-                            <p>Select a conversation to start chatting.</p>
-                        </div>
-                    </div>
-
-                    <!-- Input -->
-                    <div class="p-4 bg-white border-t border-gray-200">
-                        <div class="flex items-center gap-3 bg-gray-50 p-2 rounded-xl border border-gray-200">
-                            <button id="attachBtn" class="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-200 transition" title="Attach file"><i data-lucide="paperclip" class="w-5 h-5"></i></button>
-                            <input id="fileInput" type="file" class="hidden" aria-label="Select file to attach">
-                            
-                            <button id="recordBtn" class="text-gray-400 hover:text-red-600 p-2 rounded-full hover:bg-gray-200 transition" title="Hold to Record"><i data-lucide="mic" class="w-5 h-5"></i></button>
-                            
-                            <input type="text" id="mgrInput" placeholder="Type a message..." class="flex-1 bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-400">
-                            
-                            <button id="mgrSendBtn" class="bg-purple-600 text-white p-2 rounded-lg hover:bg-purple-700 transition shadow-sm" title="Send message">
-                                <i data-lucide="send" class="w-4 h-4" aria-hidden="true"></i>
-                            </button>
-                        </div>
-                        <div id="recordingIndicator" class="hidden text-xs text-red-500 font-bold mt-1 ml-12 animate-pulse">Recording audio...</div>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-        
-        <!-- Mobile Sidebar Overlay -->
-        <div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden backdrop-blur-sm" onclick="toggleMobileMenu()"></div>
-        <aside id="mobile-sidebar" class="fixed inset-y-0 left-0 w-72 bg-[#111827] z-40 transform -translate-x-full transition-transform duration-300 md:hidden flex flex-col">
-            <nav class="flex-1 py-4 space-y-1 px-2">
-                 <a href="areaadmin.html" class="flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-400 hover:bg-gray-800">Dashboard</a>
-                 <a href="#" class="flex items-center px-4 py-3 text-sm font-medium rounded-md bg-gray-800 text-white border-l-4 border-purple-500">Chats</a>
-            </nav>
-        </aside>
-    </div>
-
-    <script>
-        // Ensure Lucide Loads
-        window.addEventListener('load', () => { if(typeof lucide!=='undefined') lucide.createIcons(); });
-
-        // Load Agora
-        (function loadAgora(){
-            const s = document.createElement('script');
-            s.src = 'https://download.agora.io/sdk/release/AgoraRTC_N-4.17.0.js';
-            s.async = true;
-            s.onerror = () => console.warn("Agora SDK failed to load");
-            document.head.appendChild(s);
-        })();
-
-        // 1. Session Check & Init
-        // Note: user variable is already declared above (line 97), so use it here
-        const managerId = user ? (user.loginId || user.id) : 'MGR001';
-        const areaCode = user ? (user.areaCode || user.locationCode || 'KO') : 'KO';
-
-        // Socket.IO initialization moved to DOMContentLoaded to ensure proper timing
-        // This will be initialized after DOM is ready and socket-chat.js is loaded
-
-        // Debug: Log the actual user ID being used
-        console.log('Areachat: Manager user object:', user);
-        console.log('Areachat: Manager ID being used:', managerId);
-
-        // Auto-populate test data if localStorage is empty (for development/testing)
-        if (!localStorage.getItem('roomhy_employees')) {
-            console.log('Areachat: Initializing test employees data');
-            localStorage.setItem('roomhy_employees', JSON.stringify([
-                { loginId: 'EMP001', name: 'John Employee', areaCode: 'KO', role: 'Senior Manager', email: 'john@roomhy.com' },
-                { loginId: 'EMP002', name: 'Jane Employee', areaCode: 'KO', role: 'Coordinator', email: 'jane@roomhy.com' },
-                { loginId: 'EMP003', name: 'Mike Employee', areaCode: 'BNG', role: 'Senior Manager', email: 'mike@roomhy.com' }
-            ]));
-        }
-        if (!localStorage.getItem('roomhy_tenants')) {
-            console.log('Areachat: Initializing test tenants data');
-            localStorage.setItem('roomhy_tenants', JSON.stringify([
-                { loginId: 'TNT001', name: 'Alice Tenant', email: 'alice@tenant.com', phone: '9876543210', status: 'active' },
-                { loginId: 'TNT002', name: 'Bob Tenant', email: 'bob@tenant.com', phone: '9876543211', status: 'active' },
-                { loginId: 'TNT003', name: 'Carol Tenant', email: 'carol@tenant.com', phone: '9876543212', status: 'active' }
-            ]));
-        }
-        if (!localStorage.getItem('roomhy_owners_db')) {
-            console.log('Areachat: Initializing test owners data');
-            localStorage.setItem('roomhy_owners_db', JSON.stringify({
-                'OWN001': { loginId: 'OWN001', name: 'Owner One', email: 'owner1@roomhy.com', phone: '9111111111' },
-                'OWN002': { loginId: 'OWN002', name: 'Owner Two', email: 'owner2@roomhy.com', phone: '9222222222' }
-            }));
-        }
-
-        let currentTab = 'team';
-        let activeChatId = null;
-        let activeChatType = 'team';
-        let messagesCache = [];
-        let chatPoll = null;
-
-        // Firebase/Firestore intentionally disabled - using REST API backend instead
-        let db = null;
-
-        function roomIdOf(a, b) {
-            // Utility function for future use if needed
-            return [a, b].filter(Boolean).sort().join('__');
-        }
-
-        // 2. Data Accessors (Robust)
-        function getEmployees() { try { const data = JSON.parse(localStorage.getItem('roomhy_employees') || '[]'); console.log('Areachat: getEmployees returned', data.length, 'employees'); return data; } catch(e){ console.warn('Areachat: getEmployees error', e); return[] } }
-        function getTenants() { try { const data = JSON.parse(localStorage.getItem('roomhy_tenants') || '[]'); console.log('Areachat: getTenants returned', data.length, 'tenants'); return data; } catch(e){ console.warn('Areachat: getTenants error', e); return[] } }
-        function getOwners() { try { const data = Object.values(JSON.parse(localStorage.getItem('roomhy_owners_db') || '{}')); console.log('Areachat: getOwners returned', data.length, 'owners'); return data; } catch(e){ console.warn('Areachat: getOwners error', e); return[] } }
-        function getAcceptedRequests() { try { return JSON.parse(localStorage.getItem('roomhy_accepted_chat_requests') || '[]'); } catch(e){return[]} }
-
-        // Display received message immediately in DOM
-        function displayReceivedMessage(msg) {
-            console.log('Areachat: displayReceivedMessage called with msg:', msg);
-            console.log('Areachat: managerId is', managerId, 'activeChatId is', activeChatId);
-            const container = document.getElementById('mgrMessages');
-            if (!container) {
-                console.error('Areachat: mgrMessages container not found!');
-                return;
-            }
-
-            const isMe = msg.from === managerId;
-            console.log('Areachat: isMe?', isMe, '(msg.from:', msg.from, 'managerId:', managerId, ')');
-            const bubbleClass = isMe ? 'chat-bubble-me' : 'chat-bubble-user';
-            const alignClass = isMe ? 'justify-end' : 'justify-start';
-
-            const div = document.createElement('div');
-            div.className = `flex ${alignClass} mb-3`;
-            div.innerHTML = `
-                <div class="${bubbleClass} max-w-xs px-4 py-2 rounded-lg shadow-sm">
-                    <p class="text-sm break-words">${escapeHtml(msg.message)}</p>
-                    <span class="text-xs opacity-70 mt-1 block">${new Date(msg.timestamp).toLocaleTimeString()}</span>
-                </div>
-            `;
-
-            container.appendChild(div);
-            // Scroll to bottom
-            container.scrollTop = container.scrollHeight;
-            console.log('Areachat: Message displayed immediately in DOM');
-        }
-
-        // Listen for incoming messages via socket-chat.js
-        window.addEventListener('chat-message-received', (event) => {
-            const msg = event.detail;
-            console.log('Areachat: Received message event', msg);
-            console.log('Areachat: activeChatId is', activeChatId);
-            console.log('Areachat: managerId is', managerId);
-            console.log('Areachat: msg.from:', msg.from, 'msg.to:', msg.to);
-
-            // Check if this message is for the current active chat
-            if (activeChatId) {
-                const isRelevant = (msg.from === activeChatId || msg.to === activeChatId || msg.from === managerId || msg.to === managerId);
-                console.log('Areachat: Is message relevant?', isRelevant, '(from:', msg.from, 'to:', msg.to, ')');
-
-                if (isRelevant) {
-                    console.log('Areachat: Message is relevant - displaying');
-                    // Display immediately
-                    displayReceivedMessage(msg);
-                    // Update cache and refresh after short delay
-                    const exists = messagesCache.some(m =>
-                        m._id === msg._id ||
-                        (m.timestamp === msg.timestamp && m.from === msg.from && m.message === msg.message)
-                    );
-
-                    if (!exists) {
-                        console.log('Areachat: Adding new message to cache');
-                        messagesCache.push(msg);
-                        messagesCache.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-                    }
-                    console.log('Areachat: Message added, total count:', messagesCache.length);
-                } else {
-                    console.log('Areachat: Message is NOT relevant - not displaying');
-                }
-            } else {
-                console.log('Areachat: No active chat, ignoring message');
-            }
-        });
-
-        // Fetch messages from backend REST API
-        async function getMsgs(fromId, toId) {
-            try {
-                console.log('Areachat: getMsgs called with from:', fromId, 'to:', toId);
-                const url = `${API_URL}/api/chat/messages?from=${encodeURIComponent(fromId)}&to=${encodeURIComponent(toId)}&limit=500`;
-                console.log('Areachat: Fetching from:', url);
-                const resp = await fetch(url);
-                console.log('Areachat: Fetch response status:', resp.status, resp.ok);
-                if (!resp.ok) {
-                    console.warn('Areachat: API returned error status', resp.status);
-                    return [];
-                }
-                const json = await resp.json();
-                console.log('Areachat: API returned data:', json.data?.length || 0, 'messages', json);
-                return json.data || [];
-            } catch (e) {
-                console.warn('Areachat getMsgs error:', e);
-                return [];
-            }
-        }
-
-        // Send message via REST API
-        async function sendViaFirestore(payload) {
-            // Note: kept name for backward compatibility, but now uses REST API only
-            const { from, to } = payload;
-            const doc = {
-                from: payload.from,
-                to: payload.to,
-                message: payload.message || '',
-                type: payload.type || 'text',
-                isEscalated: !!payload.isEscalated,
-                metadata: payload.metadata || {},
-                read: !!payload.read,
-                timestamp: Date.now()
-            };
-
-            try {
-                const resp = await fetch(API_URL + '/api/chat/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(doc)
-                });
-                if (!resp.ok) throw new Error('REST send failed');
-                return await resp.json();
-            } catch (e) {
-                console.warn('sendViaFirestore error:', e);
-                throw e;
-            }
-        }
-
-        // 3. Tab Switching
-        function filterList(tab) {
-            currentTab = tab;
-            // Update Tab UI for both desktop and mobile
-            ['requests', 'team', 'support'].forEach(t => {
-                // Desktop tabs
-                const el = document.getElementById('tab-' + t);
-                if (el) {
-                    if (t === tab) {
-                        el.className = 'flex-1 text-xs font-bold py-1.5 rounded-md bg-white text-purple-600 shadow-sm transition';
-                    } else {
-                        el.className = 'flex-1 text-xs font-bold py-1.5 rounded-md text-gray-500 hover:text-gray-700 transition';
-                    }
-                }
-                // Mobile tabs
-                const mobileEl = document.getElementById('mobile-tab-' + t);
-                if (mobileEl) {
-                    if (t === tab) {
-                        mobileEl.className = 'flex-1 text-xs font-bold py-1.5 rounded-md bg-white text-purple-600 shadow-sm transition';
-                    } else {
-                        mobileEl.className = 'flex-1 text-xs font-bold py-1.5 rounded-md text-gray-500 hover:text-gray-700 transition';
-                    }
                 }
             });
-            renderList();
-            // Auto-open first contact when switching to Support tab to enable instant messaging
-            if (tab === 'support') {
-                setTimeout(() => {
-                    const list = document.getElementById('mgrChatList');
-                    if (list && list.children.length > 0) {
-                        const first = list.children[0];
-                        if (first && first.onclick) first.onclick();
-                    }
-                }, 50);
-            }
-        }
-        window.filterList = filterList;
 
-        // 4. Render List
-        function renderList() {
-            console.log('Areachat: renderList called, currentTab:', currentTab);
-            const list = document.getElementById('mgrChatList');
-            if(!list) {
-                console.warn('Areachat: mgrChatList element not found!');
-                return;
-            }
-            list.innerHTML = '';
-            
-            const search = document.getElementById('mgrSearch').value.toLowerCase();
-            const accepted = getAcceptedRequests();
-
-            // --- A. REQUESTS TAB (All Employees from Manager.html) ---
-            if (currentTab === 'requests') {
-                 const allEmps = getEmployees().filter(e => e.loginId !== managerId);
-                 if(allEmps.length === 0) list.innerHTML = `<div class="p-4 text-sm text-gray-500">No employees found.</div>`;
-
-                 allEmps.forEach(e => {
-                     if(e.name && e.name.toLowerCase().includes(search)) {
-                         const isAccepted = accepted.includes(e.loginId) || e.areaCode === areaCode;
-                         list.appendChild(createListItem(
-                             e.loginId, 
-                             e.name, 
-                             'Employee', 
-                             'bg-gray-100 text-gray-600', 
-                             null, 
-                             true, 
-                             isAccepted
-                         ));
-                     }
-                 });
-            } 
-            // --- B. TEAM TAB (Area Employees + Accepted) ---
-            else if (currentTab === 'team') {
-                list.appendChild(createListItem('SUPERADMIN001', 'Super Admin', 'Head Office', 'bg-red-100 text-red-700', 'SA'));
-                
-                const emps = getEmployees().filter(e => 
-                    (e.areaCode === areaCode || e.locationCode === areaCode || accepted.includes(e.loginId)) && 
-                    e.loginId !== managerId
-                );
-                
-                if(emps.length === 0) {
-                     const empty = document.createElement('div');
-                     empty.className = "p-4 text-sm text-gray-500 italic";
-                     empty.innerText = "No team members found.";
-                     list.appendChild(empty);
-                }
-
-                emps.forEach(e => {
-                     if(e.name && e.name.toLowerCase().includes(search))
-                        list.appendChild(createListItem(e.loginId, e.name, e.role || 'Team Member', 'bg-blue-100 text-blue-700'));
-                });
-            }
-            // --- C. SUPPORT TAB (All Tenants & Owners) ---
-            else if (currentTab === 'support') {
-                 // Tenants: show all tenants (no area filter needed for support chat)
-                 const tenants = getTenants();
-                 console.debug('Support tab: tenants count=', tenants.length, tenants.slice(0,2));
-                 
-                 tenants.forEach(t => {
-                     if(t.name && t.name.toLowerCase().includes(search)) {
-                         const id = t.loginId || t.id || 'TNT_' + Date.now();
-                         list.appendChild(createListItem(id, t.name, 'Tenant', 'bg-green-100 text-green-700'));
-                     }
-                 });
-
-                 // Owners: show all owners from the database
-                 const owners = getOwners();
-                 console.debug('Support tab: owners count=', owners.length, owners.slice(0,2));
-                 
-                 owners.forEach(o => {
-                     const profile = o.profile || o || {};
-                     const name = profile.name || profile.ownerName || o.name || 'Owner';
-                     const id = profile.loginId || profile.ownerId || profile.id || o.loginId || o.id || 'OWN_' + Date.now();
-                     
-                     if(name && name.toLowerCase().includes(search)) {
-                         list.appendChild(createListItem(id, name, 'Property Owner', 'bg-indigo-100 text-indigo-700'));
-                     }
-                 });
-
-                 if(list.children.length === 0) list.innerHTML = `<div class="p-4 text-sm text-gray-500">No tenants or owners found. (Check console for data count.)</div>`;
-            }
-        }
-
-        function createListItem(id, name, sub, bgClass, initials, isRequest=false, isAccepted=false) {
-            const div = document.createElement('div');
-            const isActive = id === activeChatId;
-            div.className = `p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition flex items-center gap-3 ${isActive ? 'active-chat' : ''}`;
-            
-            div.onclick = () => {
-                if(isRequest && !isAccepted) {
-                    if(confirm(`Accept ${name} into your team chat?`)) {
-                        const reqs = getAcceptedRequests();
-                        if(!reqs.includes(id)) {
-                            reqs.push(id);
-                            localStorage.setItem('roomhy_accepted_chat_requests', JSON.stringify(reqs));
-                            renderList();
+            // Load from bookings data - extract unique owners
+            const bookings = JSON.parse(localStorage.getItem('roomhy_bookings') || '[]');
+            if (Array.isArray(bookings)) {
+                bookings.forEach(booking => {
+                    if (booking.owner_id && booking.owner_name) {
+                        const existing = allOwners.find(o => o.login_id === booking.owner_id);
+                        if (!existing) {
+                            allOwners.push({
+                                login_id: booking.owner_id,
+                                name: booking.owner_name,
+                                type: 'owner'
+                            });
                         }
                     }
-                }
-                openChat(id, name, sub, currentTab === 'support');
-            };
-            
-            const init = initials || (name ? name.charAt(0).toUpperCase() : '?');
-            
-            let statusBadge = '';
-            if(isRequest) {
-                statusBadge = isAccepted 
-                    ? `<span class="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-[10px] rounded-full font-bold">Added</span>`
-                    : `<span class="ml-2 px-2 py-0.5 bg-gray-200 text-gray-600 text-[10px] rounded-full font-bold">Add</span>`;
+                });
             }
 
-            div.innerHTML = `
-                <div class="w-10 h-10 rounded-full ${bgClass} flex items-center justify-center font-bold text-xs shadow-sm flex-shrink-0">
-                    ${init}
+            // Also load any stored support requests
+            const supportRequests = JSON.parse(localStorage.getItem('roomhy_support_requests') || '[]');
+            allSupportRequests = supportRequests.concat(allOwners);
+
+            // Deduplicate
+            const seen = new Set();
+            allSupportRequests = allSupportRequests.filter(req => {
+                if (seen.has(req.login_id)) return false;
+                seen.add(req.login_id);
+                return true;
+            });
+
+            const list = document.getElementById('requestsList');
+            if (allSupportRequests.length === 0) {
+                list.innerHTML = '<div class="p-3 text-center text-gray-500 text-sm">No support requests. Add one above.</div>';
+                return;
+            }
+
+            list.innerHTML = allSupportRequests.map(req => `
+                <div class="request-item p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-orange-50 transition ${currentChat?.login_id === req.login_id ? 'bg-orange-100 border-orange-300' : ''}"
+                    onclick="selectChat('${req.login_id}', '${req.name}', '${req.type || 'owner'}')">
+                    <p class="font-medium text-gray-800 text-sm">${req.name}</p>
+                    <p class="text-xs text-gray-500 mt-1">${req.type === 'tenant' ? '👤 Tenant' : '🏠 Owner'}</p>
                 </div>
-                <div class="flex-1 min-w-0">
-                    <div class="flex justify-between items-center">
-                        <h4 class="text-sm font-semibold text-gray-900 truncate">${name}</h4>
-                        ${statusBadge}
-                    </div>
-                    <p class="text-xs text-gray-500 truncate">${sub}</p>
+            `).join('');
+        }
+
+        // Select a support request
+        async function selectChat(login_id, name, type) {
+            currentChat = { login_id, name, type };
+            
+            document.getElementById('chatTitle').textContent = name;
+            document.getElementById('chatSubtitle').textContent = type === 'owner' ? 'Property Owner' : 'Tenant';
+            document.getElementById('chatId').textContent = 'ID: ' + login_id;
+            document.getElementById('messagesArea').innerHTML = '';
+            document.getElementById('inputArea').classList.remove('hidden');
+
+            // Load message history
+            try {
+                const response = await fetch(`${API_URL}/api/chat/messages/${login_id}`);
+                let messages = [];
+                
+                if (response.ok) {
+                    messages = await response.json();
+                } else if (response.status === 404) {
+                    // No messages yet - this is normal for new chats
+                    console.log(`📝 New chat - no message history yet for ${login_id}`);
+                } else {
+                    console.error(`API Error: ${response.status} ${response.statusText}`);
+                }
+
+                if (messages.length === 0) {
+                    document.getElementById('messagesArea').innerHTML = '<p class="text-center text-gray-400 mt-8">No messages yet</p>';
+                } else {
+                    messages.forEach(msg => displayMessage(msg, msg.sender_login_id === loginId));
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                document.getElementById('messagesArea').innerHTML = '<p class="text-center text-gray-400 mt-8">Ready to chat!</p>';
+            }
+
+            // Update active state
+            document.querySelectorAll('.request-item').forEach(item => {
+                item.classList.remove('bg-orange-100', 'border-orange-300');
+            });
+            event?.target?.closest('.request-item')?.classList.add('bg-orange-100', 'border-orange-300');
+        }
+
+        // Send message
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message || !currentChat) {
+                alert('Select a request and enter a message');
+                return;
+            }
+
+            socket.emit('send_message', {
+                to_login_id: currentChat.login_id,
+                message: message
+            });
+
+            input.value = '';
+            input.focus();
+        }
+
+        // Display message
+        function displayMessage(msg, isOwn) {
+            const area = document.getElementById('messagesArea');
+            const div = document.createElement('div');
+            
+            div.className = `flex ${isOwn ? 'justify-end' : 'justify-start'} mb-3`;
+            div.innerHTML = `
+                <div class="message-item ${isOwn ? 'message-own' : 'message-other'} p-4 rounded-lg">
+                    <p class="text-xs font-semibold text-gray-600 mb-1">${msg.sender_name}</p>
+                    <p class="text-gray-800 text-sm break-words">${escapeHtml(msg.message)}</p>
+                    <p class="text-xs text-gray-500 mt-2">${new Date(msg.created_at).toLocaleTimeString()}</p>
                 </div>
             `;
-            return div;
+            
+            area.appendChild(div);
+            area.scrollTop = area.scrollHeight;
         }
 
-        // 5. Open Chat
-        async function openChat(id, name, sub, isSupportChat) {
-            console.log('Areachat: openChat called with id:', id, 'name:', name);
-            activeChatId = id;
-            activeChatType = isSupportChat ? 'support' : 'team';
+        // Utilities
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('manager_user');
+            window.location.href = '/propertyowner/ownerlogin.html';
+        }
+
+        // New Chat Modal - Show Available IDs as Clickable Buttons
+        function openNewChatModal() {
+            // Collect all available IDs
+            const availableIds = [];
             
-            // Join the conversation room with the other user's ID
-            // socket-chat.js will handle creating the consistent room ID
-            if (window.ChatSocket) {
-                // Register callback BEFORE joining room
-                window.ChatSocket.onMessage((msg) => {
-                    console.log('Areachat openChat: Received message via callback:', msg);
-                    displayReceivedMessage(msg);
-                    // Update cache if not duplicate
-                    const exists = messagesCache.some(m => 
-                        m._id === msg._id || 
-                        (m.timestamp === msg.timestamp && m.from === msg.from && m.message === msg.message)
-                    );
-                    if (!exists) {
-                        messagesCache.push(msg);
-                        messagesCache.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            // Get IDs from rooms (owners)
+            const rooms = JSON.parse(localStorage.getItem('roomhy_rooms') || '[]');
+            rooms.forEach(room => {
+                if (room.owner_id && room.owner_name) {
+                    const existing = availableIds.find(a => a.id === room.owner_id);
+                    if (!existing) {
+                        availableIds.push({
+                            id: room.owner_id,
+                            name: room.owner_name,
+                            type: 'owner',
+                            label: room.owner_name
+                        });
+                    }
+                }
+                if (room.beds) {
+                    room.beds.forEach(bed => {
+                        if (bed.tenantId && bed.tenantName) {
+                            const tid = `tenant_${room.id}_${bed.tenantId}`;
+                            const existing = availableIds.find(a => a.id === tid);
+                            if (!existing) {
+                                availableIds.push({
+                                    id: tid,
+                                    name: bed.tenantName,
+                                    type: 'tenant',
+                                    label: `${bed.tenantName} (Room ${room.number || room.name})`
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Get IDs from bookings
+            const bookings = JSON.parse(localStorage.getItem('roomhy_bookings') || '[]');
+            if (Array.isArray(bookings)) {
+                bookings.forEach(booking => {
+                    if (booking.tenant_email && booking.tenant_name) {
+                        const webId = `web_user_${booking.tenant_email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+                        const existing = availableIds.find(a => a.id === webId);
+                        if (!existing) {
+                            availableIds.push({
+                                id: webId,
+                                name: booking.tenant_name,
+                                type: 'website',
+                                label: `${booking.tenant_name} (${booking.tenant_email})`
+                            });
+                        }
                     }
                 });
-                
-                window.ChatSocket.joinRoom(id);
-                console.log('Areachat: Joined conversation with user:', id);
+            }
+
+            // Render modal
+            const list = document.getElementById('availableIdsList');
+            if (availableIds.length === 0) {
+                list.innerHTML = '<div class="text-center text-gray-500 py-8">No contacts available. Use "+ New Support Request" button to add manually.</div>';
             } else {
-                console.warn('Areachat: ChatSocket not available!');
+                list.innerHTML = availableIds.map(contact => `
+                    <button onclick="selectChat('${contact.id}', '${contact.name}', '${contact.type}'); closeNewChatModal();"
+                        class="w-full p-3 text-left bg-white border border-gray-200 rounded-lg hover:bg-orange-50 hover:border-orange-300 transition">
+                        <p class="font-medium text-gray-800 text-sm">${contact.name}</p>
+                        <p class="text-xs text-gray-500 mt-1">ID: ${contact.id}</p>
+                        <p class="text-xs text-gray-400 mt-1">${contact.type === 'owner' ? '🏠 Owner' : '👤 Tenant'}</p>
+                    </button>
+                `).join('');
             }
-            
-            const nameEl = document.getElementById('headerName');
-            const subEl = document.getElementById('headerSub');
-            const initialsEl = document.getElementById('headerAvatarInitials');
-            if(nameEl) nameEl.innerText = name;
-            if(subEl) subEl.innerText = sub;
-            if(initialsEl) initialsEl.innerText = name.charAt(0);
-            
-            // Fetch messages from backend
-            messagesCache = await getMsgs(managerId, activeChatId);
-            renderMessages();
-            
-            // Connect to Admin Logic
-            const btn = document.getElementById('connectAdminBtn');
-            if(btn) {
-                if(activeChatType === 'support') {
-                    btn.classList.remove('hidden');
-                    const escalated = messagesCache.some(m => (m.from === activeChatId || m.to === activeChatId) && m.isEscalated);
-                    if(escalated) {
-                        btn.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4"></i> Connected`;
-                        btn.classList.add('bg-green-50', 'text-green-700', 'border-green-200');
-                        btn.classList.remove('bg-purple-50', 'text-purple-700', 'border-purple-200');
-                        btn.disabled = true;
-                    } else {
-                        btn.innerHTML = `<i data-lucide="shield-plus" class="w-4 h-4"></i> Connect to Admin`;
-                        btn.classList.remove('bg-green-50', 'text-green-700', 'border-green-200');
-                        btn.classList.add('bg-purple-50', 'text-purple-700', 'border-purple-200');
-                        btn.disabled = false;
-                    }
-                } else {
-                    btn.classList.add('hidden');
-                }
-            }
-            
-            renderList();
-            renderMessages();
-            if(typeof lucide !== 'undefined') lucide.createIcons();
-            
-            // Start polling for new messages every 1.5 seconds for better real-time feel
-            if (chatPoll) clearInterval(chatPoll);
-            chatPoll = setInterval(async () => {
-                messagesCache = await getMsgs(managerId, activeChatId);
-                renderMessages();
-            }, 1500);
+
+            document.getElementById('newChatModal').classList.remove('hidden');
         }
 
-        // 6. Connect to Admin Logic
-        window.connectToAdmin = async function() {
-            if(!activeChatId || activeChatType !== 'support') return;
-            if(!confirm("Bridge this user to Super Admin?")) return;
-
-            const escalationMsg = {
-                from: managerId,
-                to: activeChatId,
-                message: "🔒 System: Area Manager connected you to Super Admin.",
-                isEscalated: true,
-                type: 'system'
-            };
-
-            try {
-                await sendViaFirestore(escalationMsg);
-                // Refresh messages (getMsgs attaches realtime listener, so UI will update)
-                messagesCache = await getMsgs(managerId, activeChatId);
-                renderMessages();
-                console.debug('connectToAdmin: escalated successfully');
-            } catch (e) {
-                console.error('connectToAdmin error:', e.message || e);
-                alert('Failed to escalate to super admin');
-            }
+        function closeNewChatModal() {
+            document.getElementById('newChatModal').classList.add('hidden');
         }
-
-        // 7. Render Messages
-        function renderMessages() {
-            if (!activeChatId) {
-                console.log('Areachat: renderMessages skipped - no activeChatId');
-                return;
-            }
-            const container = document.getElementById('mgrMessages');
-            console.log('Areachat: renderMessages - container found?', !!container);
-            if(!container) {
-                console.error('Areachat: mgrMessages container not found!');
-                return;
-            }
-            
-            // Clear the container
-            console.log('Areachat: Before clear - container HTML length:', container.innerHTML.length);
-            container.innerHTML = '';
-            console.log('Areachat: After clear - container HTML length:', container.innerHTML.length);
-            
-            const msgs = messagesCache;
-            console.log('Areachat: renderMessages - rendering', msgs.length, 'messages');
-            
-            // Date divider
-            const dateDiv = document.createElement('div');
-            dateDiv.className = "flex justify-center mb-4";
-            dateDiv.innerHTML = '<span class="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">Today</span>';
-            container.appendChild(dateDiv);
-            console.log('Areachat: Appended date divider');
-            
-            msgs.forEach((m, index) => {
-                console.log('Areachat: Rendering message', index, ':', m.message, '| from:', m.from, '| to:', m.to);
-                const isMe = m.from === managerId;
-                const div = document.createElement('div');
-                div.className = `flex ${isMe ? 'justify-end' : 'justify-start'}`;
-                const time = m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-                let content = `<p class="text-sm">${escapeHtml(m.message)}</p>`;
-                if(m.type === 'audio' && m.metadata?.audioData) {
-                    content = `<div class="flex items-center gap-2"><i data-lucide="mic" class="w-4 h-4"></i> <audio controls src="${m.metadata.audioData}" class="h-8 w-40"></audio></div>`;
-                }
-                if(m.type === 'file') {
-                    content = `<div class="flex items-center gap-2"><i data-lucide="file" class="w-4 h-4"></i> <a href="${m.metadata?.fileUrl}" class="underline text-sm">Attachment</a></div>`;
-                }
-                div.innerHTML = `
-                    <div class="max-w-[75%] ${isMe ? 'chat-bubble-me' : 'chat-bubble-user'} px-4 py-2 shadow-sm">
-                        ${content}
-                        <span class="text-[10px] block text-right mt-1 opacity-70">${time}</span>
-                    </div>
-                `;
-                container.appendChild(div);
-                console.log('Areachat: Appended message div');
-            });
-            
-            console.log('Areachat: renderMessages complete - container children:', container.children.length);
-            console.log('Areachat: Container innerHTML:', container.innerHTML.substring(0, 200));
-            console.log('Areachat: Container style:', window.getComputedStyle(container).display, window.getComputedStyle(container).height);
-            
-            container.scrollTop = container.scrollHeight;
-            if(typeof lucide !== 'undefined') {
-                console.log('Areachat: Calling lucide.createIcons()');
-                lucide.createIcons();
-            }
-        }
-
-        // 8. Advanced Features (Recording, File, Agora)
-        let mediaRecorder, audioChunks = [], isRecording = false;
-        const recordBtn = document.getElementById('recordBtn');
-        const recordingIndicator = document.getElementById('recordingIndicator');
-
-        if(recordBtn) {
-            recordBtn.addEventListener('mousedown', async () => {
-                 if (!activeChatId) return alert('Select chat first');
-                 try {
-                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                     mediaRecorder = new MediaRecorder(stream);
-                     audioChunks = [];
-                     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                     mediaRecorder.onstop = () => {
-                         const blob = new Blob(audioChunks, { type: 'audio/wav' });
-                         const reader = new FileReader();
-                         reader.readAsDataURL(blob);
-                             reader.onloadend = async () => {
-                             const payload = {
-                                 from: managerId,
-                                 to: activeChatId,
-                                 message: "Voice Note",
-                                 type: 'audio',
-                                 metadata: { audioData: reader.result },
-                                 timestamp: new Date().toISOString(),
-                                 isEscalated: (document.getElementById('connectAdminBtn').innerText.includes('Connected'))
-                             };
-                             try {
-                                 await sendViaFirestore(payload);
-                                 messagesCache = await getMsgs(managerId, activeChatId);
-                                 renderMessages();
-                             } catch (e) {
-                                 console.error('send voice note failed:', e.message || e);
-                             }
-                         };
-                     };
-                     mediaRecorder.start();
-                     isRecording = true;
-                     recordBtn.classList.add('text-red-600', 'bg-red-50', 'recording-pulse');
-                     if(recordingIndicator) recordingIndicator.classList.remove('hidden');
-                 } catch(e) { alert("Mic denied"); }
-            });
-            
-            recordBtn.addEventListener('mouseup', () => {
-                 if(mediaRecorder && mediaRecorder.state !== 'inactive') {
-                     mediaRecorder.stop();
-                     isRecording = false;
-                     recordBtn.classList.remove('text-red-600', 'bg-red-50', 'recording-pulse');
-                     if(recordingIndicator) recordingIndicator.classList.add('hidden');
-                 }
-            });
-        }
-
-        // File Attachment
-        const attachBtn = document.getElementById('attachBtn');
-        const fileInput = document.getElementById('fileInput');
-        if(attachBtn && fileInput) {
-            attachBtn.addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', async function() {
-                if(this.files[0] && activeChatId) {
-                    // For now we send filename metadata; implement multipart upload later
-                    const payload = {
-                        from: managerId,
-                        to: activeChatId,
-                        message: "File: " + this.files[0].name,
-                        type: 'file',
-                        metadata: { filename: this.files[0].name, fileUrl: '#' },
-                        timestamp: new Date().toISOString(),
-                        isEscalated: (document.getElementById('connectAdminBtn').innerText.includes('Connected'))
-                    };
-                    try {
-                        await sendViaFirestore(payload);
-                        messagesCache = await getMsgs(managerId, activeChatId);
-                        renderMessages();
-                    } catch (e) { console.error('file send failed', e.message || e); }
-                }
-            });
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('mgrInput');
-            if (!input) { console.warn('sendMessage: no input element found'); return; }
-            const text = input.value.trim();
-            if (!text) { console.warn('sendMessage: empty text'); return; }
-            if (!activeChatId) { alert('Please select a conversation first'); return; }
-            const connectBtn = document.getElementById('connectAdminBtn');
-            const isEscalated = connectBtn ? connectBtn.innerText.includes('Connected') : false;
-            const newMsg = {
-                from: managerId,
-                to: activeChatId,
-                message: text,
-                read: false,
-                isEscalated: isEscalated,
-                type: 'text',
-                timestamp: new Date().toISOString()
-            };
-            try {
-                await sendViaFirestore(newMsg);
-                // Note: sendViaFirestore already broadcasts via Socket.IO, no need to send again
-                input.value = '';
-                // Do not push to messagesCache directly; rely on polling/refresh
-                // messagesCache.push(newMsg);
-                // renderMessages();
-            } catch (e) {
-                console.error('sendMessage error:', e.message || e);
-                alert('Error sending message: ' + (e.message || e));
-            }
-        }
-
-        function escapeHtml(unsafe) {
-            if(!unsafe) return "";
-            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        }
-
-        // Initialize Socket.IO immediately - don't wait for DOMContentLoaded
-        // This ensures Socket.IO is ready before user opens any conversation
-        let initSocketAttempt = 0;
-        const initSocketIO = () => {
-            if (window.ChatSocket && typeof window.ChatSocket.init === 'function') {
-                window.ChatSocket.init(managerId);
-                console.log('Areachat: Socket.IO initialized immediately with manager ID:', managerId);
-            } else {
-                initSocketAttempt++;
-                if (initSocketAttempt < 10) {
-                    // Keep trying every 100ms until Socket.IO is ready
-                    setTimeout(initSocketIO, 100);
-                } else {
-                    console.error('Areachat: Failed to initialize ChatSocket after 10 attempts');
-                }
-            }
-        };
-        
-        // Start trying to initialize Socket.IO right away
-        initSocketIO();
-
-        // Event Listeners: attach after DOM ready to guarantee elements exist
-        window.addEventListener('DOMContentLoaded', () => {
-            console.log('Areachat: DOMContentLoaded - initializing');
-            
-            // Initialize chat list on page load
-            renderList();
-            
-            const sendBtn = document.getElementById('mgrSendBtn');
-            if (sendBtn) sendBtn.addEventListener('click', sendMessage);
-
-            const input = document.getElementById('mgrInput');
-            if (input) input.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage() });
-
-            const searchInput = document.getElementById('mgrSearch');
-            if (searchInput) searchInput.addEventListener('input', renderList);
-        });
-
-        // Sidebar logic
-        function toggleMobileMenu() {
-            document.getElementById('mobile-sidebar').classList.toggle('-translate-x-full');
-            document.getElementById('mobile-overlay').classList.toggle('hidden');
-        }
-        document.getElementById('mobile-menu-open').addEventListener('click', toggleMobileMenu);
-
-        // Call / Video handlers — post local message + send backend notification to superadmin
-        async function startCallManager() {
-            if (!activeChatId) return alert('Select a conversation first');
-            const channel = `call_${activeChatId}_${Date.now()}`.replace(/[^a-zA-Z0-9-_]/g,'_');
-            // send message to conversation about starting call
-            try {
-                await sendViaFirestore({ from: managerId, to: activeChatId, message: 'Started voice call', type: 'call', metadata: { channel }, timestamp: new Date().toISOString() });
-                messagesCache = await getMsgs(managerId, activeChatId);
-                renderMessages();
-            } catch (e) { console.error('startCall send failed', e.message || e); }
-            // backend notification for Super Admin
-            try {
-                const token = localStorage.getItem('token') || '';
-                await fetch(API_URL + '/api/admin/notifications', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ toRole: 'superadmin', from: managerId, type: 'call', meta: { channel, target: activeChatId } })
-                });
-            } catch (e) { console.warn('notify failed', e); }
-        }
-
-        async function startVideoManager() {
-            if (!activeChatId) return alert('Select a conversation first');
-            const channel = `video_${activeChatId}_${Date.now()}`.replace(/[^a-zA-Z0-9-_]/g,'_');
-            try {
-                await sendViaFirestore({ from: managerId, to: activeChatId, message: 'Started video call', type: 'video', metadata: { channel }, timestamp: new Date().toISOString() });
-                messagesCache = await getMsgs(managerId, activeChatId);
-                renderMessages();
-            } catch (e) { console.error('startVideo send failed', e.message || e); }
-            try {
-                const token = localStorage.getItem('token') || '';
-                await fetch(API_URL + '/api/admin/notifications', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ toRole: 'superadmin', from: managerId, type: 'video', meta: { channel, target: activeChatId } })
-                });
-            } catch (e) { console.warn('notify failed', e); }
-        }
-
-        // Hook buttons
-        const startCallBtnEl = document.getElementById('startCallBtn');
-        if (startCallBtnEl) startCallBtnEl.onclick = startCallManager;
-        const startVideoBtnEl = document.getElementById('startVideoBtn');
-        if (startVideoBtnEl) startVideoBtnEl.onclick = startVideoManager;
-        const toggleMeetingBtnEl = document.getElementById('toggleMeetingBtn');
-        if (toggleMeetingBtnEl) toggleMeetingBtnEl.onclick = () => alert('Meeting functionality available in main UI');
-
-        // Init
-        window.addEventListener('DOMContentLoaded', () => {
-            filterList('team');
-        });
-
     </script>
 </body>
 </html>

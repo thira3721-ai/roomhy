@@ -1,13 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy - List Your Property</title>
-    <script>
-        // API Configuration
-        const API_URL = 'https://roomhy-backend.onrender.com';
-    </script>
+    <script src="./js/api-config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -275,7 +272,7 @@
                 <div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
                     <i data-lucide="users" class="w-6 h-6 text-gray-600"></i>
                 </div>
-                <span class="text-lg font-semibold text-gray-800">Hi,welcome 👋</span>
+                <span class="text-lg font-semibold text-gray-800">Hi,welcome ðŸ‘‹</span>
             </div>
             <a href="profile.html" class="text-sm font-medium text-blue-600 hover:underline">Profile</a>
         </div>
@@ -303,12 +300,6 @@
                 </div>
                 <span>Favorites</span>
             </a>
-            <a href="chathome.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
-                 <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                    <i data-lucide="message-square" class="w-5 h-5 text-green-600"></i>
-                </div>
-                <span>Chats</span>
-            </a>
             <a href="mystays.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
                 <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
                     <i data-lucide="building" class="w-5 h-5 text-purple-600"></i>
@@ -322,7 +313,7 @@
                 </div>
                 <span>About Us</span>
             </a>
-            <a href="#contact" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+            <a href="contact.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
                 <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
                     <i data-lucide="mail" class="w-5 h-5 text-gray-600"></i>
                 </div>
@@ -535,7 +526,7 @@
         </div>
     </main>
 
-    <a href="#contact" class="fixed bottom-6 right-6 z-50 p-4 bg-red-600 text-white rounded-full shadow-lg hover:bg-red-700 transition-transform hover:scale-110">
+    <a href="contact.html" class="fixed bottom-6 right-6 z-50 p-4 bg-red-600 text-white rounded-full shadow-lg hover:bg-red-700 transition-transform hover:scale-110">
         <i data-lucide="message-circle" class="w-8 h-8"></i>
     </a>
 
@@ -810,34 +801,51 @@
         });
 
 
-        // Load cities from localStorage (populated by location.html)
-        function loadCities() {
+        // Load cities from MongoDB API (with localStorage fallback)
+        async function loadCities() {
             const citySelect = document.getElementById('city');
-            const cachedCities = JSON.parse(localStorage.getItem('roomhy_cities') || '[]');
             
             // Clear existing options except "Select City"
             while (citySelect.options.length > 1) {
                 citySelect.remove(1);
             }
             
-            if (cachedCities.length > 0) {
-                // Add cities from localStorage
-                cachedCities.forEach(city => {
-                    const option = document.createElement('option');
-                    option.value = city.toLowerCase();
-                    option.textContent = city;
-                    citySelect.appendChild(option);
-                });
-            } else {
-                // Fallback to hardcoded cities
-                const defaultCities = ['Indore', 'Kota', 'Ahmedabad', 'Delhi'];
-                defaultCities.forEach(city => {
-                    const option = document.createElement('option');
-                    option.value = city.toLowerCase();
-                    option.textContent = city;
-                    citySelect.appendChild(option);
-                });
+            let citiesData = [];
+            
+            // Try to fetch from API first
+            try {
+                const response = await fetch(`${API_URL}/api/cities`);
+                if (response.ok) {
+                    const data = await response.json();
+                    citiesData = (data.data || []).map(c => c.name);
+                    console.log('âœ“ Cities loaded from API');
+                }
+            } catch (err) {
+                console.log('API fetch failed, trying localStorage:', err);
             }
+            
+            // If API failed, try localStorage
+            if (citiesData.length === 0) {
+                const cachedCities = JSON.parse(localStorage.getItem('roomhy_cities') || '[]');
+                citiesData = cachedCities.map(city => {
+                    if (typeof city === 'string') return city;
+                    if (typeof city === 'object' && city.name) return city.name;
+                    return null;
+                }).filter(c => c !== null);
+            }
+            
+            // If still no cities, use defaults
+            if (citiesData.length === 0) {
+                citiesData = ['Indore', 'Kota', 'Ahmedabad', 'Delhi'];
+            }
+            
+            // Add cities to dropdown
+            citiesData.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city.toLowerCase();
+                option.textContent = city;
+                citySelect.appendChild(option);
+            });
             
             // Add custom location option
             const customOption = document.createElement('option');

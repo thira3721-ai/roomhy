@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner - Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background-color: #f3f4f6; }
+        .sidebar { background-color: #111827; color: #9ca3af; }
+        .sidebar-link { color: #9ca3af; font-weight: 500; transition: all 0.2s ease; display: flex; align-items: center; padding: 0.75rem 1.5rem; font-size: 0.9rem; border-left: 3px solid transparent; cursor: pointer; }
+        .sidebar-link:hover { color: #f3f4f6; background-color: #1f2937; }
+        .sidebar-link.active { background-color: #1f2937; color: #ffffff; border-left-color: #3b82f6; }
+        .message-own { @apply bg-blue-100 border-l-4 border-blue-500 ml-auto mr-0 max-w-xs; }
+        .message-other { @apply bg-gray-100 border-l-4 border-gray-400 ml-0 mr-auto max-w-xs; }
+        .filter-btn.active { @apply bg-blue-600 text-white; }
+        .filter-btn { @apply px-3 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-700 cursor-pointer hover:bg-gray-300; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="text-slate-800">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="sidebar w-72 flex-shrink-0 hidden md:flex flex-col z-20 overflow-y-auto custom-scrollbar">
+            <div class="h-16 flex items-center px-6 border-b border-gray-800 sticky top-0 bg-[#111827] z-10">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-600 p-1.5 rounded-lg"><i data-lucide="home" class="w-5 h-5 text-white"></i></div>
+                    <div><h1 class="text-xl font-bold text-white">RoomHy</h1><span class="text-[10px] text-gray-500">OWNER PANEL</span></div>
+                </div>
+            </div>
+            <nav class="flex-1 py-6 space-y-1">
+                <a href="admin.html" class="sidebar-link"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard</a>
+                <a href="properties.html" class="sidebar-link"><i data-lucide="building" class="w-5 h-5 mr-3"></i> Properties</a>
+                <a href="rooms.html" class="sidebar-link"><i data-lucide="bed-double" class="w-5 h-5 mr-3"></i> Rooms</a>
+                <a href="tenantrec.html" class="sidebar-link"><i data-lucide="clipboard-list" class="w-5 h-5 mr-3"></i> Tenant Records</a>
+                <a href="enquiry.html" class="sidebar-link"><i data-lucide="mail" class="w-5 h-5 mr-3"></i> Enquiry</a>
+                <a href="documents.html" class="sidebar-link"><i data-lucide="file-text" class="w-5 h-5 mr-3"></i> Documents</a>
+                <a href="payment.html" class="sidebar-link"><i data-lucide="credit-card" class="w-5 h-5 mr-3"></i> Payments</a>
+                <a href="booking_request.html" class="sidebar-link"><i data-lucide="calendar-check" class="w-5 h-5 mr-3"></i> Booking Requests</a>
+                <a href="ownerchat.html" class="sidebar-link active"><i data-lucide="message-circle" class="w-5 h-5 mr-3"></i> Chat</a>
+                <a href="complaints.html" class="sidebar-link"><i data-lucide="alert-circle" class="w-5 h-5 mr-3"></i> Complaints</a>
+                <a href="location.html" class="sidebar-link"><i data-lucide="map-pin" class="w-5 h-5 mr-3"></i> Location</a>
+                <a href="ownerprofile.html" class="sidebar-link"><i data-lucide="user" class="w-5 h-5 mr-3"></i> Profile</a>
+                <a href="settings.html" class="sidebar-link"><i data-lucide="settings" class="w-5 h-5 mr-3"></i> Settings</a>
+            </nav>
+            <div class="p-4 border-t border-gray-800">
+                <button onclick="logout()" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium">
+                    Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden bg-[#f3f4f6]">
+            <!-- Header -->
+            <header class="bg-white h-16 flex items-center justify-between px-6 shadow-sm z-10 border-b border-gray-200">
+                <div class="flex items-center">
+                    <button id="mobile-menu-open" class="md:hidden mr-4 text-slate-500"><i data-lucide="menu" class="w-6 h-6"></i></button>
+                    <div>
+                        <h2 id="chatTitle" class="text-lg font-semibold text-slate-800">Messages</h2>
+                        <p id="chatSubtitle" class="text-xs text-gray-500 mt-0.5"></p>
+                        <p id="chatId" class="text-xs text-blue-600 font-mono mt-0.5"></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="text-slate-400 hover:text-slate-600"><i data-lucide="bell" class="w-5 h-5"></i></button>
+                </div>
+            </header>
+
+            <!-- Filter Tabs (Below Header) -->
+            <div class="bg-white border-b border-gray-200 px-6 py-4 flex gap-2 overflow-x-auto justify-between items-center">
+                <div class="flex gap-2">
+                    <button onclick="filterChats('all')" class="filter-btn active">All Chats</button>
+                    <button onclick="filterChats('tenant')" class="filter-btn">👤 Tenants</button>
+                    <button onclick="filterChats('website')" class="filter-btn">🌐 Website Users</button>
+                    <button onclick="filterChats('support')" class="filter-btn">🛡️ Support</button>
+                </div>
+                <button onclick="openNewChatModal()" class="px-3 py-1 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 whitespace-nowrap">+ New Chat</button>
+            </div>
+
+            <!-- Main Layout: Sidebar + Chat -->
+            <div class="flex-1 flex gap-0 overflow-hidden">
+                <!-- Chats Sidebar -->
+                <div class="w-72 bg-white border-r border-gray-200 flex flex-col overflow-hidden">
+                    <div class="flex-1 overflow-y-auto p-4">
+                        <div id="chatsList" class="space-y-2">
+                            <div class="p-3 bg-gray-100 rounded text-center text-gray-500 text-sm">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Area -->
+                <div class="flex-1 flex flex-col overflow-hidden bg-white">
+
+                    <!-- Messages -->
+                    <div id="messagesArea" class="flex-1 overflow-y-auto p-6 space-y-4">
+                        <div class="text-center text-gray-400 mt-20">
+                            <i data-lucide="message-circle" class="w-16 h-16 mx-auto mb-4 opacity-30"></i>
+                            <p>Select a chat to begin messaging</p>
+                        </div>
+                    </div>
+
+                    <!-- Input Area -->
+                    <div id="inputArea" class="hidden border-t border-gray-200 bg-gray-50 p-6">
+                        <div class="flex gap-3">
+                            <input type="text" id="messageInput" placeholder="Type your message..."
+                                class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                onkeypress="handleKeyPress(event)">
+                            <button onclick="sendMessage()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
+                                Send
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+    <!-- New Chat Modal -->
+    <div id="newChatModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-md w-full max-h-96 overflow-hidden flex flex-col">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-gray-800">Start New Chat</h3>
+                <button onclick="closeNewChatModal()" class="text-gray-500 hover:text-gray-700">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div id="availableIdsList" class="flex-1 overflow-y-auto p-4 space-y-2">
+                <div class="text-center text-gray-500 py-8">Loading available contacts...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://roomhy-backend.onrender.com';
+        let socket = null;
+        let loginId = null;
+        let currentChat = null;
+        let allChats = [];
+        let filterMode = 'all';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            if (!user || !user.loginId) {
+                window.location.href = '/propertyowner/ownerlogin.html';
+                return;
+            }
+
+            loginId = user.loginId;
+            console.log('✓ Owner logged in:', loginId);
+
+            initSocket();
+            loadChats();
+            lucide.createIcons();
+        });
+
+        // Initialize Socket.IO
+        function initSocket() {
+            socket = io(API_URL);
+
+            socket.on('connect', () => {
+                console.log('✓ Connected to chat');
+                socket.emit('join_room', {
+                    login_id: loginId,
+                    role: 'owner',
+                    name: 'Property Owner'
+                });
+            });
+
+            socket.on('receive_message', (msg) => {
+                if (currentChat && msg.sender_login_id === currentChat.login_id) {
+                    displayMessage(msg, false);
+                }
+                loadChats(); // Refresh list
+            });
+
+            socket.on('error', (data) => {
+                console.error('Socket error:', data);
+            });
+        }
+
+        // Load chats from localStorage
+        function loadChats() {
+            let allChats = [];
+
+            // Load tenants from rooms
+            const rooms = JSON.parse(localStorage.getItem('roomhy_rooms') || '[]');
+            rooms.forEach(room => {
+                if (room.beds) {
+                    room.beds.forEach(bed => {
+                        if (bed.tenantId && bed.tenantName) {
+                            allChats.push({
+                                login_id: `tenant_${room.id}_${bed.tenantId}`,
+                                name: bed.tenantName,
+                                type: 'tenant',
+                                lastMessage: `Room: ${room.number || room.name}`,
+                                timestamp: new Date().toISOString()
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Load accepted bookings
+            const allBookingRequests = JSON.parse(localStorage.getItem('roomhy_bookings') || '[]');
+            if (Array.isArray(allBookingRequests)) {
+                allBookingRequests.forEach(booking => {
+                    if (booking.status === 'accepted' && booking.tenant_name && booking.tenant_email) {
+                        const webUserId = `web_user_${booking.tenant_email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+                        const existing = allChats.find(c => c.login_id === webUserId);
+                        if (!existing) {
+                            allChats.push({
+                                login_id: webUserId,
+                                name: booking.tenant_name,
+                                type: 'website',
+                                lastMessage: `Booking: ${booking.property_name || 'Property'}`,
+                                timestamp: new Date().toISOString()
+                            });
+                        }
+                    }
+                });
+            }
+
+            // Deduplicate by login_id
+            const seen = new Set();
+            allChats = allChats.filter(chat => {
+                if (seen.has(chat.login_id)) return false;
+                seen.add(chat.login_id);
+                return true;
+            });
+
+            displayChats();
+        }
+
+        // Display chats based on filter
+        function displayChats() {
+            const filtered = filterMode === 'all' ? allChats : allChats.filter(chat => chat.type === filterMode);
+            const list = document.getElementById('chatsList');
+
+            if (filtered.length === 0) {
+                list.innerHTML = '<div class="p-3 text-center text-gray-500 text-sm">No chats</div>';
+                return;
+            }
+
+            list.innerHTML = filtered.map(chat => `
+                <div class="chat-item p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition ${currentChat?.login_id === chat.login_id ? 'bg-blue-100 border-blue-300' : ''}"
+                    onclick="selectChat('${chat.login_id}', '${chat.name}', '${chat.type}')">
+                    <p class="font-medium text-gray-800 text-sm">${chat.name}</p>
+                    <p class="text-xs text-gray-500 mt-1">${getTypeLabel(chat.type)}</p>
+                </div>
+            `).join('');
+        }
+
+        // Filter chats
+        function filterChats(mode) {
+            filterMode = mode;
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            displayChats();
+        }
+
+        // Select a chat
+        async function selectChat(login_id, name, type) {
+            currentChat = { login_id, name, type };
+
+            document.getElementById('chatTitle').textContent = name;
+            document.getElementById('chatSubtitle').textContent = getTypeLabel(type);
+            document.getElementById('chatId').textContent = 'ID: ' + login_id;
+            document.getElementById('messagesArea').innerHTML = '';
+            document.getElementById('inputArea').classList.remove('hidden');
+
+            // Load message history
+            try {
+                const response = await fetch(`${API_URL}/api/chat/messages/${login_id}`);
+                let messages = [];
+                
+                if (response.ok) {
+                    messages = await response.json();
+                } else if (response.status === 404) {
+                    // No messages yet - this is normal for new chats
+                    console.log(`📝 New chat - no message history yet for ${login_id}`);
+                } else {
+                    console.error(`API Error: ${response.status} ${response.statusText}`);
+                }
+
+                if (messages.length === 0) {
+                    document.getElementById('messagesArea').innerHTML = '<p class="text-center text-gray-400 mt-8">No messages yet. Start the conversation!</p>';
+                } else {
+                    messages.forEach(msg => displayMessage(msg, msg.sender_login_id === loginId));
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                document.getElementById('messagesArea').innerHTML = '<p class="text-center text-gray-400 mt-8">Ready to chat!</p>';
+            }
+
+            // Update active state
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.remove('bg-blue-100', 'border-blue-300');
+            });
+            event?.target?.closest('.chat-item')?.classList.add('bg-blue-100', 'border-blue-300');
+        }
+
+        // Send message
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message || !currentChat) {
+                alert('Select a chat and enter a message');
+                return;
+            }
+
+            socket.emit('send_message', {
+                to_login_id: currentChat.login_id,
+                message: message
+            });
+
+            input.value = '';
+            input.focus();
+        }
+
+        // Display message
+        function displayMessage(msg, isOwn) {
+            const area = document.getElementById('messagesArea');
+            const div = document.createElement('div');
+
+            div.className = `flex ${isOwn ? 'justify-end' : 'justify-start'} mb-3`;
+            div.innerHTML = `
+                <div class="message-item ${isOwn ? 'message-own' : 'message-other'} p-4 rounded-lg">
+                    <p class="text-xs font-semibold text-gray-600 mb-1">${msg.sender_name}</p>
+                    <p class="text-gray-800 text-sm break-words">${escapeHtml(msg.message)}</p>
+                    <p class="text-xs text-gray-500 mt-2">${new Date(msg.created_at).toLocaleTimeString()}</p>
+                </div>
+            `;
+
+            area.appendChild(div);
+            area.scrollTop = area.scrollHeight;
+        }
+
+        // Utilities
+        function getTypeLabel(type) {
+            const labels = {
+                tenant: '👤 Tenant',
+                website: '🌐 Website User',
+                support: '🛡️ Support'
+            };
+            return labels[type] || type;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = '/propertyowner/ownerlogin.html';
+        }
+
+        // New Chat Modal - Show Available IDs as Clickable Buttons
+        function openNewChatModal() {
+            // Collect all available IDs
+            const availableIds = [];
+
+            // Get tenant IDs from rooms
+            const rooms = JSON.parse(localStorage.getItem('roomhy_rooms') || '[]');
+            rooms.forEach(room => {
+                if (room.beds) {
+                    room.beds.forEach(bed => {
+                        if (bed.tenantId && bed.tenantName) {
+                            const tid = `tenant_${room.id}_${bed.tenantId}`;
+                            const existing = availableIds.find(a => a.id === tid);
+                            if (!existing) {
+                                availableIds.push({
+                                    id: tid,
+                                    name: bed.tenantName,
+                                    type: 'tenant',
+                                    label: `${bed.tenantName} (Room ${room.number || room.name})`
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Get IDs from accepted bookings
+            const bookings = JSON.parse(localStorage.getItem('roomhy_bookings') || '[]');
+            if (Array.isArray(bookings)) {
+                bookings.forEach(booking => {
+                    if (booking.status === 'accepted' && booking.tenant_email && booking.tenant_name) {
+                        const webId = `web_user_${booking.tenant_email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+                        const existing = availableIds.find(a => a.id === webId);
+                        if (!existing) {
+                            availableIds.push({
+                                id: webId,
+                                name: booking.tenant_name,
+                                type: 'website',
+                                label: `${booking.tenant_name} (${booking.tenant_email})`
+                            });
+                        }
+                    }
+                });
+            }
+
+            // Render modal
+            const list = document.getElementById('availableIdsList');
+            if (availableIds.length === 0) {
+                list.innerHTML = '<div class="text-center text-gray-500 py-8">No contacts available yet. Check rooms and bookings.</div>';
+            } else {
+                list.innerHTML = availableIds.map(contact => `
+                    <button onclick="selectChat('${contact.id}', '${contact.name}', '${contact.type}'); closeNewChatModal();"
+                        class="w-full p-3 text-left bg-white border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition">
+                        <p class="font-medium text-gray-800 text-sm">${contact.name}</p>
+                        <p class="text-xs text-gray-500 mt-1">ID: ${contact.id}</p>
+                        <p class="text-xs text-gray-400 mt-1">${contact.type === 'tenant' ? '👤 Tenant' : '🌐 Website User'}</p>
+                    </button>
+                `).join('');
+            }
+
+            document.getElementById('newChatModal').classList.remove('hidden');
+        }
+
+        function closeNewChatModal() {
+            document.getElementById('newChatModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

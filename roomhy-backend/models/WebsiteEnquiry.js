@@ -22,9 +22,9 @@ const WebsiteEnquirySchema = new mongoose.Schema({
     owner_email: { type: String },
     owner_phone: { type: String },
     photos: [{ type: String }], // URLs of uploaded photos
-    status: { 
-        type: String, 
-        enum: ['pending', 'assigned', 'completed', 'rejected'],
+    status: {
+        type: String,
+        enum: ['pending', 'assigned', 'accepted', 'completed', 'rejected'],
         default: 'pending',
         index: true
     },

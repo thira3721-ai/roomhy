@@ -1,14 +1,18 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const http = require('http');
+const { Server } = require('socket.io');
 const dotenv = require('dotenv');
 
 dotenv.config();
 
-// Enable Socket.IO diagnostic logging
-process.env.DEBUG = 'socket.io*';
-
 const app = express();
+const server = http.createServer(app);
+// Socket.io
+const io = new Server(server, {
+    cors: { origin: '*' }
+});
 
 // Middleware
 // allow larger JSON bodies for base64 recording uploads
@@ -39,13 +43,14 @@ app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/website-enquiry', require('./routes/websiteEnquiryRoutes'));
 app.use('/api/owners', require('./routes/ownerRoutes'));
 app.use('/api/complaints', require('./routes/complaintRoutes'));
-app.use('/api/chats', require('./routes/chatRoutes')); // New unified chat routes
-app.use('/api/chat', require('./routes/chatRoutes')); // Backward compatibility
 app.use('/api/booking', require('./routes/bookingRoutes'));
+app.use('/api/favorites', require('./routes/favoritesRoutes'));
+app.use('/api/bids', require('./routes/bidsRoutes'));
+app.use('/api/kyc', require('./routes/kycRoutes'));
+app.use('/api/cities', require('./routes/citiesRoutes'));
 app.use('/api', require('./routes/uploadRoutes'));
-
-// Serve recording files
-app.use('/recordings', express.static(path.join(__dirname, 'public', 'recordings')));
+// Chat API
+app.use('/api/chat', require('./routes/chatRoutes'));
 
 // Favicon route (prevent 404 errors in console)
 app.get('/favicon.ico', (req, res) => {
@@ -65,73 +70,137 @@ app.get('/website', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'website', 'index.html'));
 });
 
+// Serve static files from public directory (MUST come after API routes but before catch-all)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve recording files
+app.use('/recordings', express.static(path.join(__dirname, 'public', 'recordings')));
+
 // Serve static website files (MUST come after specific routes)
 app.use('/website', express.static(path.join(__dirname, '..', 'website')));
 app.use('/propertyowner', express.static(path.join(__dirname, '..', 'propertyowner')));
 app.use(express.static(path.join(__dirname, '..', 'website'))); // Default to website for other requests
 app.use(express.static(path.join(__dirname, '..')));
 
-// --- Socket.IO Setup ---
-const http = require('http');
-const { Server } = require('socket.io');
-const server = http.createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: '*',
-        methods: ['GET', 'POST']
-    }
+// Global 404 Error Handler for API calls (must be after all routes)
+app.use((req, res) => {
+  if (req.path.startsWith('/api/')) {
+    // API route not found - return JSON
+    return res.status(404).json({
+      success: false,
+      message: 'API endpoint not found',
+      path: req.path,
+      method: req.method,
+      timestamp: new Date()
+    });
+  }
+  // For non-API routes, serve index.html (SPA fallback)
+  res.sendFile(path.join(__dirname, '..', 'index.html'));
 });
 
-// Attach io to app for access in routes
-app.set('io', io);
-
-// Import and setup new unified chat Socket.IO handlers
-const setupChatSocket = require('./socketIO');
-setupChatSocket(io);
-
-// Legacy Socket.IO support (for backward compatibility)
+// Socket.io handlers - Enhanced for room-based subscriptions
 io.on('connection', (socket) => {
-    console.log('Socket.IO: User connected', socket.id);
+    console.log('Socket connected:', socket.id);
 
-    // Legacy: Join room by user id/loginId for private messaging
-    socket.on('join-room', (roomId) => {
-        if (roomId) {
-            socket.join(roomId);
-            console.log('Socket.IO: User joined room', roomId);
-        }
+    // When user joins, subscribe them to their user-specific room
+    socket.on('user_join', (payload) => {
+        try {
+            const { user_id, user_role } = payload || {};
+            if (user_id) {
+                socket.join(user_id); // Subscribe to user-specific room
+                console.log(`User ${user_id} joined room: ${user_id}`);
+            }
+            
+            // Super admin joins all rooms to see all chats
+            if (user_role === 'superadmin' || user_role === 'super-admin') {
+                socket.join('admin_all_chats');
+                console.log(`Super Admin ${user_id} joined all chats room`);
+            }
+        } catch (e) { console.error(e); }
     });
 
-    socket.on('leave-room', (roomId) => {
-        if (roomId) {
-            socket.leave(roomId);
-            console.log('Socket.IO: User left room', roomId);
-        }
+    // When user opens a specific chat room
+    socket.on('join_room', (payload) => {
+        try {
+            const { room_id, user_id } = payload || {};
+            if (room_id && user_id) {
+                socket.join(room_id);
+                console.log(`User ${user_id} joined room: ${room_id}`);
+                
+                // Notify room that user is online
+                io.to(room_id).emit('user_online', { user_id, room_id });
+            }
+        } catch (e) { console.error(e); }
     });
 
-    // Legacy: Handle chat message sending and broadcasting
-    socket.on('send-message', (data) => {
-        const { roomId, message, from, to, timestamp } = data;
-        console.log('Socket.IO: Message received', { roomId, from, to, message: message.substring(0, 50) + '...' });
+    // When user leaves a chat room
+    socket.on('leave_room', (payload) => {
+        try {
+            const { room_id, user_id } = payload || {};
+            if (room_id && user_id) {
+                socket.leave(room_id);
+                console.log(`User ${user_id} left room: ${room_id}`);
+                
+                // Notify room that user is offline
+                io.to(room_id).emit('user_offline', { user_id, room_id });
+            }
+        } catch (e) { console.error(e); }
+    });
 
-        // Broadcast to all clients in the room (including sender for consistency)
-        io.to(roomId).emit('receive-message', {
-            roomId,
-            message,
-            from,
-            to,
-            timestamp: timestamp || new Date().toISOString()
-        });
+    // When a new message is sent
+    socket.on('send_message', (payload) => {
+        try {
+            const { room_id, user_id, message } = payload || {};
+            if (!room_id || !message) {
+                console.error('Invalid message payload');
+                return;
+            }
+            
+            // Emit to all users in the room
+            io.to(room_id).emit('new_message', {
+                room_id,
+                user_id,
+                message,
+                timestamp: new Date()
+            });
+            
+            // Also emit to admin all-chats room
+            io.to('admin_all_chats').emit('new_message', {
+                room_id,
+                user_id,
+                message,
+                timestamp: new Date()
+            });
+        } catch (e) { console.error(e); }
+    });
 
-        console.log('Socket.IO: Message broadcast sent to rooms:', roomId);
+    // Typing indicator
+    socket.on('user_typing', (payload) => {
+        try {
+            const { room_id, user_id, is_typing } = payload || {};
+            if (room_id) {
+                io.to(room_id).emit('user_typing', { user_id, is_typing });
+            }
+        } catch (e) { console.error(e); }
+    });
+
+    // Mark messages as read
+    socket.on('mark_read', (payload) => {
+        try {
+            const { room_id, user_id } = payload || {};
+            if (room_id && user_id) {
+                io.to(room_id).emit('messages_read', { room_id, user_id });
+            }
+        } catch (e) { console.error(e); }
     });
 
     socket.on('disconnect', () => {
-        console.log('Socket.IO: User disconnected', socket.id);
+        console.log('Socket disconnected:', socket.id);
     });
 });
 
-// Start Server with Socket.IO
-const PORT = process.env.PORT || 10;
+// Start Server
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
 });

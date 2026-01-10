@@ -1,10 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy - Area Reports</title>
-    <script>
         const API_URL = 'https://roomhy-backend.onrender.com';
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -120,7 +119,7 @@
                 <a href="areaowner.html" class="sidebar-link">
                     <i data-lucide="briefcase" class="w-5 h-5 mr-3"></i> Owners
                 </a>
-                <a href="booking_request.html" class="sidebar-link">
+                
                     <i data-lucide="calendar-check" class="w-5 h-5 mr-3"></i> Booking Requests
                 </a>
 
@@ -139,10 +138,6 @@
                 </a>
 
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Communication</div>
-                <a href="areachat.html" class="sidebar-link">
-                    <i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Chat
-                </a>
-
                 <div class="mt-6 px-6 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">System</div>
                  <a href="arealoc.html" class="sidebar-link"><i data-lucide="map-pin" class="w-5 h-5 mr-3"></i> RoomHy Location</a>
                  <a href="areareport.html" class="sidebar-link"><i data-lucide="bar-chart-2" class="w-5 h-5 mr-3"></i> Reports</a>
@@ -159,16 +154,16 @@
                     <button id="mobile-menu-open" class="md:hidden mr-4 text-slate-500"><i data-lucide="menu" class="w-6 h-6"></i></button>
                     <div class="flex items-center text-sm">
                         <span class="text-slate-500 font-medium">Area:</span>
-                        <span class="ml-2 px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-bold uppercase tracking-wide">Koramangala</span>
+                        <span class="ml-2 px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-bold uppercase tracking-wide" id="areaDisplay">Loading...</span>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
                     <div class="text-right hidden sm:block">
-                        <p class="text-xs font-semibold text-gray-700">Vikram Singh</p>
-                        <p class="text-[10px] text-gray-500">Area Manager</p>
+                        <p class="text-xs font-semibold text-gray-700" id="userNameDisplay">User</p>
+                        <p class="text-[10px] text-gray-500" id="userRoleDisplay">Role</p>
                     </div>
-                    <div class="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-xs border border-purple-200">
-                        VS
+                    <div class="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-xs border border-purple-200" id="userInitials">
+                        U
                     </div>
                 </div>
             </header>
@@ -177,6 +172,17 @@
             <main class="flex-1 overflow-y-auto p-4 md:p-8">
                 <div class="max-w-[1600px] mx-auto">
                     
+                    <!-- Employee Notice -->
+                    <div id="employeeNotice" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 hidden">
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="info" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"></i>
+                            <div>
+                                <p class="text-sm font-medium text-blue-900">You are viewing reports for your assigned area only.</p>
+                                <p class="text-xs text-blue-700 mt-1" id="employeeAreaNotice"></p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Page Header & Filters -->
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                         <div>
@@ -460,7 +466,60 @@
     </div>
 
     <script>
-        lucide.createIcons();
+        // Get logged-in user and check role
+        let currentUser = null;
+        let userAssignedArea = null;
+        let isAreaManager = false;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(sessionStorage.getItem('manager_user') || sessionStorage.getItem('user') || localStorage.getItem('manager_user') || localStorage.getItem('user') || 'null');
+            currentUser = user;
+
+            if (!user) {
+                console.warn('No user logged in');
+                document.getElementById('areaDisplay').innerText = 'Unassigned';
+                return;
+            }
+
+            // Update header with user info
+            const userName = user.name || 'User';
+            document.getElementById('userNameDisplay').innerText = userName;
+            
+            // Get user initials
+            const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            document.getElementById('userInitials').innerText = initials;
+
+            // Check user role
+            if (user.role === 'areamanager') {
+                isAreaManager = true;
+                document.getElementById('userRoleDisplay').innerText = 'Area Manager';
+                document.getElementById('areaDisplay').innerText = user.areaName || user.area || user.city || 'Area';
+                console.log('Area Manager logged in');
+            } else if (user.role === 'employee') {
+                isAreaManager = false;
+                userAssignedArea = user.area || user.areaName || user.location || user.team || null;
+                document.getElementById('userRoleDisplay').innerText = 'Employee';
+                
+                if (userAssignedArea) {
+                    document.getElementById('areaDisplay').innerText = userAssignedArea.toUpperCase();
+                    
+                    // Show employee notice
+                    const employeeNotice = document.getElementById('employeeNotice');
+                    employeeNotice.classList.remove('hidden');
+                    document.getElementById('employeeAreaNotice').innerText = `Only showing data for ${userAssignedArea} area.`;
+                    
+                    console.log('Employee logged in. Assigned Area:', userAssignedArea);
+                } else {
+                    document.getElementById('areaDisplay').innerText = 'Unassigned';
+                    console.warn('Employee has no assigned area');
+                }
+            } else {
+                document.getElementById('userRoleDisplay').innerText = 'User';
+                document.getElementById('areaDisplay').innerText = user.area || 'Area';
+            }
+
+            lucide.createIcons();
+        });
 
         function toggleMobileMenu() {
             const mobileSidebar = document.getElementById('mobile-sidebar');
@@ -546,3 +605,4 @@
     </script>
 </body>
 </html>
+

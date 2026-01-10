@@ -1,13 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roomhy - Stays, PGs & Hostels</title>
-    <script>
-        // API Configuration
-        const API_URL = 'https://roomhy-backend.onrender.com';
-    </script>
+    <script src="./js/api-config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -130,7 +127,7 @@
                 
                 <div class="flex items-center">
                     <a href="index.html" class="flex-shrink-0">
-                        <img src="images/logoroomhy.jpg" alt="Roomhy Logo" class="h-20 w-auto">
+                        <img src="images/logoroomhy.jpg" alt="Roomhy Logo" class="h-10 w-25">
                     </a>
                 </div>
                 
@@ -187,7 +184,7 @@
                 <div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
                     <i data-lucide="users" class="w-6 h-6 text-gray-600"></i>
                 </div>
-                <span class="text-lg font-semibold text-gray-800">Hi ,welcome👋</span>
+                <span class="text-lg font-semibold text-gray-800">Hi ,welcomeðŸ‘‹</span>
             </div>
             <a href="profile.html" class="text-sm font-medium text-blue-600 hover:underline">Profile</a>
         </div>
@@ -215,12 +212,6 @@
                 </div>
                 <span>Favorites</span>
             </a>
-            <a href="chathome.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
-                 <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                    <i data-lucide="message-square" class="w-5 h-5 text-green-600"></i>
-                </div>
-                <span>Chats</span>
-            </a>
             <a href="mystays.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
                 <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
                     <i data-lucide="building" class="w-5 h-5 text-purple-600"></i>
@@ -238,6 +229,12 @@
                     <i data-lucide="phone" class="w-5 h-5 text-cyan-600"></i>
                 </div>
                 <span>Contact Us</span>
+            </a>
+            <a href="../propertyowner/websitechat.html" class="flex items-center space-x-4 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="message-circle" class="w-5 h-5 text-green-600"></i>
+                </div>
+                <span>Chat Support</span>
             </a>
         </nav>
         
@@ -376,7 +373,7 @@
                             Clear Filters
                         </button>
                         <button id="mobile-request-all" class='w-full border-2 border-green-600 text-green-600 hover:bg-green-50 bg-transparent font-bold py-3 rounded-xl transition-colors shadow-md glow-button'>
-                            Request on all
+                            Bid to all
                         </button>
                     </div>
                 </div>
@@ -481,7 +478,7 @@
                             Clear Filters
                         </button>
                         <button id="desktop-request-all" class='w-full border-2 border-green-600 text-green-600 hover:bg-green-50 bg-transparent font-bold py-3 rounded-xl transition-colors shadow-md glow-button'>
-                            Request on all
+                            Bid to all
                         </button>
                     </div>
                 </div>
@@ -552,7 +549,7 @@
     <footer class="bg-gray-800 text-gray-300">
         <div class="container mx-auto px-6 py-16">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
-                <div class="md:col-span-1"><a href="index.html" class="mb-4 inline-block"><img src="images/logoroomhy.jpg" alt="Roomhy Logo" class="h-20 w-auto"></a><p class="text-gray-400 text-sm">Your trusted partner in finding the perfect student accommodation. Live, learn, and grow with us.</p><div class="flex space-x-5 mt-6"><a href="#" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="facebook" class="w-5 h-5"></i></a><a href="#" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="instagram" class="w-5 h-5"></i></a><a href="#" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="twitter" class="w-5 h-5"></i></a></div></div>
+                <div class="md:col-span-1"><a href="index.html" class="mb-4 inline-block"><img src="images/logoroomhy.jpg" alt="Roomhy Logo" class="h-10 w-25"></a><p class="text-gray-400 text-sm">Your trusted partner in finding the perfect student accommodation. Live, learn, and grow with us.</p><div class="flex space-x-5 mt-6"><a href="#" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="facebook" class="w-5 h-5"></i></a><a href="#" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="instagram" class="w-5 h-5"></i></a><a href="#" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="twitter" class="w-5 h-5"></i></a></div></div>
                 <div><h4 class="font-semibold text-lg mb-5 text-white">Explore</h4><ul class="space-y-3"><li><a href="#" class="text-gray-300 hover:text-white transition-colors">Apartments</a></li><li><a href="#" class="text-gray-300 hover:text-white transition-colors">Hostels</a></li><li><a href="#" class="text-gray-300 hover:text-white transition-colors">Co-Living</a></li><li><a href="#" class="text-gray-300 hover:text-white transition-colors">PGs</a></li></ul></div>
                 <div><h4 class="font-semibold text-lg mb-5 text-white">Company</h4><ul class="space-y-3"><li><a href="about.html" class="text-gray-300 hover:text-white transition-colors">About Us</a></li><li><a href="list.html" class="text-gray-300 hover:text-white transition-colors">List Your Property</a></li><li><a href="privacy.html" class="text-gray-300 hover:text-white transition-colors">Privacy Policy</a></li><li><a href="terms.html" class="text-gray-300 hover:text-white transition-colors">Terms of Service</a></li></ul></div>
                 
@@ -574,7 +571,7 @@
                     </ul>
                 </div>
             </div>
-            <div class="mt-12 border-t border-gray-700 pt-8 text-center text-gray-400 text-sm"><p>&copy; 2025 Roomhy. All Rights Reserved. Built with ❤️ for students.</p></div>
+            <div class="mt-12 border-t border-gray-700 pt-8 text-center text-gray-400 text-sm"><p>&copy; 2025 Roomhy. All Rights Reserved. Built with â¤ï¸ for students.</p></div>
         </div>
     </footer>
 
@@ -738,12 +735,12 @@
         // Fetch properties from database API
         async function fetchPropertiesFromAPI(filters = {}) {
             try {
-                // Determine which endpoint to use - use relative URL for cross-origin compatibility
-                let url = '/api/website-enquiry/all';
+                // Determine which endpoint to use - use full API_URL for cross-origin requests
+                let url = `${API_URL}/api/website-enquiry/all`;
                 
                 // If city is specified, use the city-specific endpoint
                 if (filters.city) {
-                    url = `/api/website-enquiry/city/${encodeURIComponent(filters.city)}`;
+                    url = `${API_URL}/api/website-enquiry/city/${encodeURIComponent(filters.city)}`;
                 }
                 
                 const response = await fetch(url, {
@@ -891,7 +888,7 @@
                     <div class="p-5 pt-0 bg-white border-t border-gray-100">
                         <a href="property.html?id=${propertyId}" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2">
                             <i data-lucide="message-square" class="w-4 h-4"></i>
-                            <span>Request Now</span>
+                            <span>Bid Now</span>
                         </a>
                     </div>
                 </div>`;
